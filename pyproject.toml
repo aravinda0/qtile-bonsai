@@ -54,7 +54,7 @@ pre-install-commands = [
   "pip install xcffib",
 ]
 [tool.hatch.envs.default.scripts]
-cov = "pytest --cov-report=term-missing --cov-config=pyproject.toml --cov=src/qtile_bonsai --cov=tests {args}"
+cov = "pytest --cov-report=term-missing --cov-report=xml --cov-config=pyproject.toml --cov=src/qtile_bonsai --cov=tests {args}"
 no-cov = "cov --no-cov {args}"
 
 [tool.hatch.envs.ci]
