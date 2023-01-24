@@ -28,6 +28,9 @@ jobs:
         sudo apt install -y python3-cffi python3-cairocffi libpangocairo-1.0-0
         pip install hatch
         hatch env create ci
+    - name: Check formatting
+      run: |
+        hatch run ci:format_check .
     - name: Run tests
       run: |
         hatch run ci:pytest
