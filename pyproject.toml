@@ -44,6 +44,7 @@ dependencies = [
   "pytest",
   "pytest-cov",
   "pyright",
+  "pre-commit",
   "black",
   "ruff",
   "ptpython",
@@ -56,6 +57,8 @@ pre-install-commands = [
 [tool.hatch.envs.default.scripts]
 cov = "pytest --cov-report=term-missing --cov-report=xml --cov-config=pyproject.toml --cov=src/qtile_bonsai --cov=tests {args}"
 no-cov = "cov --no-cov {args}"
+format = ["black {args}"]
+format_check = ["black --check {args}"]
 
 [tool.hatch.envs.ci]
 template = "default"
