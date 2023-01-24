@@ -15,6 +15,6 @@ repos:
     hooks:
     - id: format
       name: format
-      entry: hatch run default:black
+      entry: hatch run default:format .
       types: [python]
       language: system
