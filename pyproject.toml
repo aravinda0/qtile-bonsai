@@ -1,0 +1,89 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "qtile-bonsai"
+description = "A flexible window layout for the qtile window manager that supports tabs and splits that can be arbitrarily nested"
+readme = "README.md"
+requires-python = ">=3.10"
+license = "MIT"
+keywords = ["qtile", "bonsai", "tiling", "window", "manager", "layout"]
+authors = [
+  { name = "Aravinda Rao", email = "maniacalace@gmail.com" },
+]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "License :: OSI Approved :: MIT License",
+  "Programming Language :: Python",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: Implementation :: CPython",
+  "Programming Language :: Python :: Implementation :: PyPy",
+  "Topic :: Desktop Environment :: Window Managers",
+]
+dynamic = ["version"]
+dependencies = [
+  "bidict",
+  "strenum",
+]
+
+[project.urls]
+Documentation = "https://github.com/aravinda0/qtile-bonsai#readme"
+Issues = "https://github.com/aravinda0/qtile-bonsai/issues"
+Source = "https://github.com/aravinda0/qtile-bonsai"
+
+[tool.hatch.version]
+path = "src/qtile_bonsai/__about__.py"
+
+[tool.hatch.envs.default]
+dependencies = [
+  "xcffib",
+  "cairocffi",
+  "qtile",
+  "pytest",
+  "pytest-cov",
+  "pyright",
+  "black",
+  "ruff",
+  "ptpython",
+]
+pre-install-commands = [
+  # `xcffib` must be installed before `cairocffi`. This has to be installed using a
+  # separate pip statement - specifying it in the `dependencies` list won't work.
+  "pip install xcffib",
+]
+[tool.hatch.envs.default.scripts]
+cov = "pytest --cov-report=term-missing --cov-config=pyproject.toml --cov=src/qtile_bonsai --cov=tests {args}"
+no-cov = "cov --no-cov {args}"
+
+[tool.hatch.envs.test]
+template = "default"
+[[tool.hatch.envs.test.matrix]]
+python = ["310", "311"]
+
+[tool.coverage.run]
+branch = true
+parallel = true
+omit = [
+  "src/qtile_bonsai/__about__.py",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+  "no cov",
+  "if __name__ == .__main__.:",
+  "if TYPE_CHECKING:",
+]
+
+[tool.black]
+line-length = 88
+
+[tool.ruff]
+select = [
+  "E", "F", "I", "N", "S", "FBT", "B", "C4", "T20", "PT", "RET", "SIM", "RUF",
+]
+ignore = [
+  "E501",  # line-too-long; handled more effectively by black
+  "S101",  # assert-used; temporary until some type annotations sorted out
+]
