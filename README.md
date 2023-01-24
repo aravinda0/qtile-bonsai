@@ -1,5 +1,6 @@
 # Qtile Bonsai
 
+![CI Status](https://github.com/aravinda0/qtile-bonsai/workflows/ci/badge.svg?branch=master)
 [![License - MIT](https://img.shields.io/github/license/qtile/qtile.svg)](https://github.com/aravinda0/qtile-bonsai/blob/master/LICENSE.txt)
 
 -----
