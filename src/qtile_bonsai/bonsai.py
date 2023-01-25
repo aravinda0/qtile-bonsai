@@ -249,9 +249,15 @@ class Bonsai(Layout):
             tab_bar_ui.drawer.height = r.height
             tab_bar_ui.drawer.clear("00ffff")
 
-            for i, _tab in enumerate(tab_container.children):
-                # TODO: Use tab title here
-                tab_bar_ui.text_layout.text = "my tab"
+            for i, tab in enumerate(tab_container.children):
+                if tab is tab_container.active_child:
+                    tab_bar_ui.drawer.set_source_rgb("ff0000")
+                    tab_bar_ui.text_layout.colour = "0000ff"
+                else:
+                    tab_bar_ui.drawer.set_source_rgb("0000ff")
+                    tab_bar_ui.text_layout.colour = "00ff00"
+                tab_bar_ui.drawer.fillrect(i * 100, 0, 100, r.height)
+                tab_bar_ui.text_layout.text = tab.title or "my tab"
                 tab_bar_ui.text_layout.draw(i * 100, 0)
 
             tab_bar_ui.drawer.draw(0, 0, r.width, r.height)
