@@ -301,13 +301,13 @@ class Node(metaclass=abc.ABCMeta):
 
         return ancestors
 
-    def get_first_ancestor(self, of_type: type[NodeType]) -> NodeType | None:
+    def get_first_ancestor(self, of_type: type[NodeType]) -> NodeType:
         node = self.parent
         while node is not None:
             if isinstance(node, of_type):
                 return node
             node = node.parent
-        return None
+        raise ValueError(f"No node of type {of_type} in ancestor chain")
 
     @classmethod
     def next_id(cls):
