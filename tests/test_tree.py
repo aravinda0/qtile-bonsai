@@ -2208,21 +2208,6 @@ class TestFocus:
         assert tc2.active_child is t2
         assert tc1.active_child is not t1
 
-    def test_sets_last_focused_pane_on_ancestor_tabs(self):
-        tree = Tree()
-        p1 = tree.add_tab()
-        p2 = tree.add_tab(p1)
-        p3 = tree.split(p2, "x")
-        p4 = tree.add_tab(p3, new_level=True)
-        p5 = tree.split(p4, "x")
-
-        tree.focus(p5)
-
-        t2, t1 = p5.get_ancestors(Tab)
-
-        assert t2.last_focused_pane is p5
-        assert t1.last_focused_pane is p5
-
 
 class TestMotions:
     class TestRight:

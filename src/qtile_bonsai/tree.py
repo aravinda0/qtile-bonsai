@@ -445,7 +445,6 @@ class Tab(Node):
         self.parent: TabContainer
         self.children: list[SplitContainer]
         self.title: str = title
-        self.last_focused_pane: Pane | None = None
 
     @property
     def rect(self) -> UnitRect:
@@ -717,7 +716,6 @@ class Tree:
         while node.parent is not None:
             if isinstance(node, Tab):
                 node.parent.active_child = node
-                node.last_focused_pane = pane
             node = node.parent
         pane.recency = self.next_recency_value()
 
