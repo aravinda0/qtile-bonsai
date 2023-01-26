@@ -12,7 +12,7 @@ from libqtile.config import ScreenRect
 from libqtile.layout.base import Layout
 from libqtile.log_utils import logger
 
-from qtile_bonsai.tree import Axis, Node, Pane, TabContainer, Tree, TreeEvent
+from qtile_bonsai.tree import Axis, Node, Pane, Tab, TabContainer, Tree, TreeEvent
 
 UITabBar = collections.namedtuple("UITabBar", ["window", "drawer", "text_layout"])
 
@@ -196,6 +196,14 @@ class Bonsai(Layout):
         self._tree.resize(self.focused_pane, Axis.y, amount)
         self._request_relayout()
 
+    def cmd_rename_tab(self, widget: str = "prompt"):
+        prompt_widget = self.group.qtile.widgets_map.get(widget)
+        if prompt_widget is None:
+            logger.error(f"The '{widget}' widget was not found")
+            return
+
+        prompt_widget.start_input("Rename tab: ", self._handle_rename_tab)
+
     def _handle_default_next_window(self):
         return self._tree.add_tab()
 
@@ -234,6 +242,11 @@ class Bonsai(Layout):
                 tab_bar_ui.drawer.finalize()
                 tab_bar_ui.window.kill()
                 del self._tab_bars_ui[node.id]
+
+    def _handle_rename_tab(self, new_title: str):
+        tab = self.focused_pane.get_first_ancestor(Tab)
+        tab.title = new_title
+        self._request_relayout()
 
     def _layout_tab_container_node(
         self, tab_container: TabContainer, screen_rect: ScreenRect
