@@ -527,11 +527,26 @@ class TabBar:
         self.active_tab_color = "#0000ff"
 
 
+class NodeFactory:
+    """Abstract factory class that enables consumers to extend the default `Node` family
+    of classes to add any WM-specific constructs.
+
+    These are the classes will be used internally by the `Tree` implementation.
+    """
+
+    TabContainer: type[TabContainer] = TabContainer
+    Tab: type[Tab] = Tab
+    SplitContainer: type[SplitContainer] = SplitContainer
+    Pane: type[Pane] = Pane
+
+
 class Tree:
     TreeEventCallback = Callable[[list[Node]], None]
     _recency_seq = 0
 
-    def __init__(self):
+    def __init__(self, node_factory: type[NodeFactory] | NodeFactory = NodeFactory):
+        """"""
+        self._node_factory: type[NodeFactory] | NodeFactory = node_factory
         self._root: TabContainer | None = None
         self._event_subscribers: collections.defaultdict[
             TreeEvent, dict[str, Tree.TreeEventCallback]
@@ -619,13 +634,13 @@ class Tree:
         # During the flow below, we try to ensure `new_pane` is created after any other
         # new nodes to maintain ID sequence.
         if pane_container.axis == axis:
-            new_pane = Pane(p2_rect)
+            new_pane = self._node_factory.Pane(p2_rect)
             new_pane.parent = pane_container
             pane_container.children.insert(pane_index + 1, new_pane)
         else:
             pane_container.children.remove(pane)
 
-            new_split_container = SplitContainer()
+            new_split_container = self._node_factory.SplitContainer()
             new_split_container.axis = axis
             new_split_container.parent = pane_container
             pane_container.children.insert(pane_index, new_split_container)
@@ -634,7 +649,7 @@ class Tree:
             pane.parent = new_split_container
             new_split_container.children.append(pane)
 
-            new_pane = Pane(p2_rect)
+            new_pane = self._node_factory.Pane(p2_rect)
             new_pane.parent = new_split_container
             new_split_container.children.append(new_pane)
 
@@ -854,18 +869,18 @@ class Tree:
         # Max sized rect for top level tab bar
         tab_bar_rect = UnitRect(0, 0, 1, TabBar.default_height)
 
-        tab_container = TabContainer()
+        tab_container = self._node_factory.TabContainer()
         tab_container.tab_bar.rect = tab_bar_rect
         added_nodes.append(tab_container)
 
         new_tab_title = f"{len(tab_container.children) + 1}"
-        new_tab = Tab(title=new_tab_title)
+        new_tab = self._node_factory.Tab(title=new_tab_title)
         new_tab.parent = tab_container
         tab_container.children.append(new_tab)
         tab_container.active_child = new_tab
         added_nodes.append(new_tab)
 
-        new_split_container = SplitContainer()
+        new_split_container = self._node_factory.SplitContainer()
         new_split_container.parent = new_tab
         new_tab.children.append(new_split_container)
         added_nodes.append(new_split_container)
@@ -873,7 +888,7 @@ class Tree:
         # Max sized rect, allowing for top level tab bar
         new_pane_rect = UnitRect(tab_bar_rect.x, tab_bar_rect.y2, 1, 1 - tab_bar_rect.h)
 
-        new_pane = Pane(new_pane_rect)
+        new_pane = self._node_factory.Pane(new_pane_rect)
         new_pane.parent = new_split_container
         new_split_container.children.append(new_pane)
         added_nodes.append(new_pane)
@@ -886,19 +901,19 @@ class Tree:
         added_nodes = []
 
         new_tab_title = f"{len(tab_container.children) + 1}"
-        new_tab = Tab(title=new_tab_title)
+        new_tab = self._node_factory.Tab(title=new_tab_title)
         new_tab.parent = tab_container
         tab_container.children.append(new_tab)
         added_nodes.append(new_tab)
 
-        new_split_container = SplitContainer()
+        new_split_container = self._node_factory.SplitContainer()
         new_split_container.parent = new_tab
         new_tab.children.append(new_split_container)
         added_nodes.append(new_split_container)
 
         new_pane_rect = tab_container.get_inner_rect()
 
-        new_pane = Pane(new_pane_rect)
+        new_pane = self._node_factory.Pane(new_pane_rect)
         new_pane.parent = new_split_container
         new_split_container.children.append(new_pane)
         added_nodes.append(new_pane)
@@ -920,7 +935,7 @@ class Tree:
         at_pane_pos = at_split_container.children.index(at_pane)
         at_split_container.children.remove(at_pane)
 
-        new_tab_container = TabContainer()
+        new_tab_container = self._node_factory.TabContainer()
         new_tab_container.parent = at_split_container
         at_split_container.children.insert(at_pane_pos, new_tab_container)
         added_nodes.append(new_tab_container)
@@ -935,11 +950,11 @@ class Tree:
         )
 
         tab1_title = f"{len(new_tab_container.children) + 1}"
-        tab1 = Tab(title=tab1_title)
+        tab1 = self._node_factory.Tab(title=tab1_title)
         tab1.parent = new_tab_container
         new_tab_container.children.append(tab1)
 
-        split_container1 = SplitContainer()
+        split_container1 = self._node_factory.SplitContainer()
         split_container1.parent = tab1
         tab1.children.append(split_container1)
 
@@ -954,20 +969,20 @@ class Tree:
         # Start adding the real new tab that was requested and mark it as the active
         # tab.
         tab2_title = f"{len(new_tab_container.children) + 1}"
-        tab2 = Tab(title=tab2_title)
+        tab2 = self._node_factory.Tab(title=tab2_title)
         tab2.parent = new_tab_container
         new_tab_container.children.append(tab2)
         new_tab_container.active_child = tab2
         added_nodes.append(tab2)
 
-        split_container2 = SplitContainer()
+        split_container2 = self._node_factory.SplitContainer()
         split_container2.parent = tab2
         tab2.children.append(split_container2)
         added_nodes.append(split_container2)
 
         # The new tab's pane will have the same dimensions as `at_pane` after it was
         # adjusted above.
-        new_pane = Pane(at_pane.rect)
+        new_pane = self._node_factory.Pane(at_pane.rect)
         new_pane.parent = split_container2
         split_container2.children.append(new_pane)
         added_nodes.append(new_pane)
