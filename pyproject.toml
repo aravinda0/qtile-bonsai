@@ -90,3 +90,6 @@ ignore = [
   "E501",  # line-too-long; handled more effectively by black
   "S101",  # assert-used; temporary until some type annotations sorted out
 ]
+unfixable = [
+  "T20",  # don't auto-remove print-statements
+]
