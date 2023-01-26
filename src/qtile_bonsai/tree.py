@@ -860,7 +860,8 @@ class Tree:
         tab_container.tab_bar.rect = tab_bar_rect
         added_nodes.append(tab_container)
 
-        new_tab = Tab(title="My tab")
+        new_tab_title = f"{len(tab_container.children) + 1}"
+        new_tab = Tab(title=new_tab_title)
         new_tab.parent = tab_container
         tab_container.children.append(new_tab)
         tab_container.active_child = new_tab
@@ -886,7 +887,8 @@ class Tree:
     def _add_tab(self, tab_container: TabContainer) -> tuple[Pane, list[Node]]:
         added_nodes = []
 
-        new_tab = Tab(title="My Tab")
+        new_tab_title = f"{len(tab_container.children) + 1}"
+        new_tab = Tab(title=new_tab_title)
         new_tab.parent = tab_container
         tab_container.children.append(new_tab)
         added_nodes.append(new_tab)
@@ -934,7 +936,8 @@ class Tree:
             TabBar.default_height,
         )
 
-        tab1 = Tab(title="My Tab")
+        tab1_title = f"{len(new_tab_container.children) + 1}"
+        tab1 = Tab(title=tab1_title)
         tab1.parent = new_tab_container
         new_tab_container.children.append(tab1)
 
@@ -952,7 +955,8 @@ class Tree:
 
         # Start adding the real new tab that was requested and mark it as the active
         # tab.
-        tab2 = Tab(title="My Tab")
+        tab2_title = f"{len(new_tab_container.children) + 1}"
+        tab2 = Tab(title=tab2_title)
         tab2.parent = new_tab_container
         new_tab_container.children.append(tab2)
         new_tab_container.active_child = tab2

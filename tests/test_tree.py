@@ -358,6 +358,33 @@ class TestAddTab:
 
         assert isinstance(pane, Pane)
 
+    def test_when_a_tab_is_created_then_it_has_an_auto_generated_title_based_on_its_index(
+        self,
+    ):
+        tree = Tree()
+
+        p1 = tree.add_tab()
+        p2 = tree.add_tab()
+
+        t1 = p1.get_first_ancestor(Tab)
+        t2 = p2.get_first_ancestor(Tab)
+
+        assert t1.title == "1"
+        assert t2.title == "2"
+
+    def test_when_a_tab_is_created_at_a_nested_level_then_it_has_an_auto_generated_title_based_on_its_index(
+        self,
+    ):
+        tree = Tree()
+        p1 = tree.add_tab()
+        p2 = tree.add_tab(p1, new_level=True)
+
+        t1_1, _ = p1.get_ancestors(Tab)
+        t1_2, _ = p2.get_ancestors(Tab)
+
+        assert t1_1.title == "1"
+        assert t1_2.title == "2"
+
     def test_add_tab_to_empty_tree(self):
         tree = Tree()
 
