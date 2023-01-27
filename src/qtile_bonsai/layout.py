@@ -5,16 +5,41 @@
 import collections
 from typing import Callable
 
-from bidict import bidict
 from libqtile import qtile
 from libqtile.backend.base import Window
 from libqtile.config import ScreenRect
 from libqtile.layout.base import Layout
 from libqtile.log_utils import logger
 
-from qtile_bonsai.core.tree import Axis, Node, Pane, Tab, TabContainer, Tree, TreeEvent
+from qtile_bonsai.core.tree import (
+    Axis,
+    Node,
+    NodeFactory,
+    Pane,
+    Tab,
+    TabContainer,
+    Tree,
+    TreeEvent,
+)
+from qtile_bonsai.core.utils import UnitRect
 
 UITabBar = collections.namedtuple("UITabBar", ["window", "drawer", "text_layout"])
+
+
+class UITabContainer(TabContainer):
+    pass
+
+
+class UIPane(Pane):
+    def __init__(self, rect: UnitRect):
+        super().__init__(rect)
+
+        self.window: Window
+
+
+class UINodeFactory(NodeFactory):
+    TabContainer = UITabContainer
+    Pane = UIPane
 
 
 class Bonsai(Layout):
@@ -23,8 +48,8 @@ class Bonsai(Layout):
 
         self._tree: Tree
         self._focused_window: Window
-        self._windows_to_panes: bidict[Window, Pane]
-        self._on_next_window: Callable[[], Pane]
+        self._windows_to_panes: dict[Window, UIPane]
+        self._on_next_window: Callable[[], UIPane]
         self._tab_bars_ui: dict[int, UITabBar] = {}
 
         self._reset()
@@ -60,9 +85,9 @@ class Bonsai(Layout):
         as well.
         """
         for node in self._tree.iter_walk():
-            if isinstance(node, TabContainer):
+            if isinstance(node, UITabContainer):
                 self._layout_tab_container_node(node, screen_rect)
-            elif isinstance(node, Pane):
+            elif isinstance(node, UIPane):
                 self._layout_pane_node(node, screen_rect)
 
     def configure(self, window: Window, screen_rect: ScreenRect):
@@ -76,14 +101,17 @@ class Bonsai(Layout):
             self._on_next_window = self._handle_default_next_window
 
         pane = self._on_next_window()
+        pane.window = window
+
         self._windows_to_panes[window] = pane
 
-    def remove(self, window: Window):
+    def remove(self, window: Window) -> Window | None:
         pane = self._windows_to_panes[window]
         next_focus_pane = self._tree.remove(pane)
         del self._windows_to_panes[window]
         if next_focus_pane is not None:
-            return self._windows_to_panes.inv[next_focus_pane]
+            return next_focus_pane.window
+        return None
 
     def focus(self, window: Window):
         self._focused_window = window
@@ -204,11 +232,11 @@ class Bonsai(Layout):
 
         prompt_widget.start_input("Rename tab: ", self._handle_rename_tab)
 
-    def _handle_default_next_window(self):
+    def _handle_default_next_window(self) -> UIPane:
         return self._tree.add_tab()
 
     def _reset(self):
-        self._tree = Tree()
+        self._tree = Tree(node_factory=UINodeFactory)
         self._tree.subscribe(
             TreeEvent.node_added, lambda nodes: self._handle_added_tree_nodes(nodes)
         )
@@ -216,7 +244,7 @@ class Bonsai(Layout):
             TreeEvent.node_removed, lambda nodes: self._handle_removed_tree_nodes(nodes)
         )
 
-        self._windows_to_panes = bidict()
+        self._windows_to_panes = {}
         self._tab_bars_ui = {}
 
         def _handle_next_window():
@@ -277,8 +305,8 @@ class Bonsai(Layout):
         else:
             tab_bar_ui.window.hide()
 
-    def _layout_pane_node(self, pane: Pane, screen_rect: ScreenRect):
-        window = self._windows_to_panes.inv[pane]
+    def _layout_pane_node(self, pane: UIPane, screen_rect: ScreenRect):
+        window = pane.window
         if self._tree.is_visible(pane):
             r = pane.rect.to_screen_space(screen_rect)
             window.place(r.x, r.y, r.width, r.height, 1, "#ff0000")
@@ -290,9 +318,8 @@ class Bonsai(Layout):
         for tab_bar_ui in self._tab_bars_ui.values():
             tab_bar_ui.window.hide()
 
-    def _request_focus(self, pane: Pane):
-        window = self._windows_to_panes.inv[pane]
-        self.group.focus(window)
+    def _request_focus(self, pane: UIPane):
+        self.group.focus(pane.window)
 
     def _request_relayout(self):
         self.group.layout_all()

@@ -24,7 +24,6 @@ classifiers = [
 ]
 dynamic = ["version"]
 dependencies = [
-  "bidict == 0.22.1",
   "strenum == 0.4.9",
 ]
 
