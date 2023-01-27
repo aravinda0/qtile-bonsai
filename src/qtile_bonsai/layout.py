@@ -12,7 +12,7 @@ from libqtile.config import ScreenRect
 from libqtile.layout.base import Layout
 from libqtile.log_utils import logger
 
-from qtile_bonsai.tree import Axis, Node, Pane, Tab, TabContainer, Tree, TreeEvent
+from qtile_bonsai.core.tree import Axis, Node, Pane, Tab, TabContainer, Tree, TreeEvent
 
 UITabBar = collections.namedtuple("UITabBar", ["window", "drawer", "text_layout"])
 

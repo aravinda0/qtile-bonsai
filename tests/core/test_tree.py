@@ -5,7 +5,7 @@
 from unittest import mock
 
 import pytest
-from qtile_bonsai.tree import (
+from qtile_bonsai.core.tree import (
     Node,
     NodeFactory,
     Pane,
@@ -15,9 +15,9 @@ from qtile_bonsai.tree import (
     TabContainer,
     Tree,
     TreeEvent,
-    UnitRect,
     tree_matches_repr,
 )
+from qtile_bonsai.core.utils import UnitRect
 
 
 @pytest.fixture(autouse=True)
