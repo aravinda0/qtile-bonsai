@@ -155,7 +155,7 @@ class Bonsai(Layout):
         qtile.cmd_spawn(program)
 
     def cmd_spawn_tab(
-        self, program: str, new_level: bool = False, level: int | None = None
+        self, program: str, *, new_level: bool = False, level: int | None = None
     ):
         def _handle_next_window():
             return self._tree.add_tab(
@@ -166,21 +166,21 @@ class Bonsai(Layout):
 
         qtile.cmd_spawn(program)
 
-    def cmd_left(self, wrap=True):
+    def cmd_left(self, *, wrap: bool = True):
         if self._tree.is_empty:
             return
 
         next_pane = self._tree.left(self.focused_pane, wrap=wrap)
         self._request_focus(next_pane)
 
-    def cmd_right(self, wrap=True):
+    def cmd_right(self, *, wrap: bool = True):
         if self._tree.is_empty:
             return
 
         next_pane = self._tree.right(self.focused_pane, wrap=wrap)
         self._request_focus(next_pane)
 
-    def cmd_up(self, wrap=True):
+    def cmd_up(self, *, wrap: bool = True):
         if self._tree.is_empty:
             return
 
