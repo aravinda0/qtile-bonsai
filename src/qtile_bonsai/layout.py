@@ -2,12 +2,12 @@
 # SPDX-License-Identifier: MIT
 
 
-import collections
 from typing import Callable
 
 from libqtile import qtile
-from libqtile.backend.base import Window
+from libqtile.backend.base import Drawer, Window
 from libqtile.config import ScreenRect
+from libqtile.drawer import TextLayout
 from libqtile.layout.base import Layout
 from libqtile.log_utils import logger
 
@@ -23,11 +23,54 @@ from qtile_bonsai.core.tree import (
 )
 from qtile_bonsai.core.utils import UnitRect
 
-UITabBar = collections.namedtuple("UITabBar", ["window", "drawer", "text_layout"])
-
 
 class UITabContainer(TabContainer):
-    pass
+    def __init__(self):
+        super().__init__()
+
+        self.bar_window: Window
+        self.bar_drawer: Drawer
+        self.bar_text_layout: TextLayout
+
+    def init_ui(self, qtile):
+        # Arbitrary coords on init. Will get rendered to proper screen position
+        # during layout phase.
+        self.bar_window = qtile.core.create_internal(0, 0, 1, 1)
+        self.bar_drawer = self.bar_window.create_drawer(1, 1)
+        self.bar_text_layout = self.bar_drawer.textlayout(
+            "", "000000", "mono", 15, None
+        )
+
+    def unhide(self, screen_rect: ScreenRect):
+        r = self.tab_bar.rect.to_screen_space(screen_rect)
+
+        self.bar_window.place(r.x, r.y, r.width, r.height, 1, "#0000ff")
+        self.bar_window.unhide()
+
+        self.bar_drawer.width = r.width
+        self.bar_drawer.height = r.height
+        self.bar_drawer.clear("00ffff")
+
+        for i, tab in enumerate(self.children):
+            if tab is self.active_child:
+                self.bar_drawer.set_source_rgb("ff0000")
+                self.bar_text_layout.colour = "0000ff"
+            else:
+                self.bar_drawer.set_source_rgb("0000ff")
+                self.bar_text_layout.colour = "00ff00"
+            self.bar_drawer.fillrect(i * 100, 0, 100, r.height)
+            self.bar_text_layout.text = tab.title or "my tab"
+            self.bar_text_layout.draw(i * 100, 0)
+
+        self.bar_drawer.draw(0, 0, r.width, r.height)
+
+    def hide(self):
+        self.bar_window.hide()
+
+    def finalize(self):
+        self.bar_text_layout.finalize()
+        self.bar_drawer.finalize()
+        self.bar_window.kill()
 
 
 class UIPane(Pane):
@@ -35,6 +78,14 @@ class UIPane(Pane):
         super().__init__(rect)
 
         self.window: Window
+
+    def unhide(self, screen_rect: ScreenRect):
+        r = self.rect.to_screen_space(screen_rect)
+        self.window.place(r.x, r.y, r.width, r.height, 1, "#ff0000")
+        self.window.unhide()
+
+    def hide(self):
+        self.window.hide()
 
 
 class UINodeFactory(NodeFactory):
@@ -50,7 +101,6 @@ class Bonsai(Layout):
         self._focused_window: Window
         self._windows_to_panes: dict[Window, UIPane]
         self._on_next_window: Callable[[], UIPane]
-        self._tab_bars_ui: dict[int, UITabBar] = {}
 
         self._reset()
 
@@ -85,10 +135,8 @@ class Bonsai(Layout):
         as well.
         """
         for node in self._tree.iter_walk():
-            if isinstance(node, UITabContainer):
-                self._layout_tab_container_node(node, screen_rect)
-            elif isinstance(node, UIPane):
-                self._layout_pane_node(node, screen_rect)
+            if isinstance(node, (UITabContainer, UIPane)):
+                node.unhide(screen_rect)
 
     def configure(self, window: Window, screen_rect: ScreenRect):
         """Defined since this is an abstract method, but not implemented since things
@@ -245,7 +293,6 @@ class Bonsai(Layout):
         )
 
         self._windows_to_panes = {}
-        self._tab_bars_ui = {}
 
         def _handle_next_window():
             return self._tree.add_tab()
@@ -254,69 +301,23 @@ class Bonsai(Layout):
 
     def _handle_added_tree_nodes(self, nodes: list[Node]):
         for node in nodes:
-            if isinstance(node, TabContainer):
-                # Arbitrary coords on init. Will get rendered to proper screen position
-                # during layout phase.
-                tab_bar = self.group.qtile.core.create_internal(0, 0, 1, 1)
-                drawer = tab_bar.create_drawer(1, 1)
-                text_layout = drawer.textlayout("", "000000", "mono", 15, None)
-                self._tab_bars_ui[node.id] = UITabBar(tab_bar, drawer, text_layout)
+            if isinstance(node, UITabContainer):
+                node.init_ui(self.group.qtile)
 
     def _handle_removed_tree_nodes(self, nodes: list[Node]):
         for node in nodes:
-            if isinstance(node, TabContainer):
-                tab_bar_ui = self._tab_bars_ui[node.id]
-                tab_bar_ui.text_layout.finalize()
-                tab_bar_ui.drawer.finalize()
-                tab_bar_ui.window.kill()
-                del self._tab_bars_ui[node.id]
+            if isinstance(node, UITabContainer):
+                node.finalize()
 
     def _handle_rename_tab(self, new_title: str):
         tab = self.focused_pane.get_first_ancestor(Tab)
         tab.title = new_title
         self._request_relayout()
 
-    def _layout_tab_container_node(
-        self, tab_container: TabContainer, screen_rect: ScreenRect
-    ):
-        tab_bar_ui = self._tab_bars_ui[tab_container.id]
-        if self._tree.is_visible(tab_container):
-            r = tab_container.tab_bar.rect.to_screen_space(screen_rect)
-
-            tab_bar_ui.window.place(r.x, r.y, r.width, r.height, 1, "#0000ff")
-            tab_bar_ui.window.unhide()
-
-            tab_bar_ui.drawer.width = r.width
-            tab_bar_ui.drawer.height = r.height
-            tab_bar_ui.drawer.clear("00ffff")
-
-            for i, tab in enumerate(tab_container.children):
-                if tab is tab_container.active_child:
-                    tab_bar_ui.drawer.set_source_rgb("ff0000")
-                    tab_bar_ui.text_layout.colour = "0000ff"
-                else:
-                    tab_bar_ui.drawer.set_source_rgb("0000ff")
-                    tab_bar_ui.text_layout.colour = "00ff00"
-                tab_bar_ui.drawer.fillrect(i * 100, 0, 100, r.height)
-                tab_bar_ui.text_layout.text = tab.title or "my tab"
-                tab_bar_ui.text_layout.draw(i * 100, 0)
-
-            tab_bar_ui.drawer.draw(0, 0, r.width, r.height)
-        else:
-            tab_bar_ui.window.hide()
-
-    def _layout_pane_node(self, pane: UIPane, screen_rect: ScreenRect):
-        window = pane.window
-        if self._tree.is_visible(pane):
-            r = pane.rect.to_screen_space(screen_rect)
-            window.place(r.x, r.y, r.width, r.height, 1, "#ff0000")
-            window.unhide()
-        else:
-            window.hide()
-
     def _hide_all_internal_windows(self):
-        for tab_bar_ui in self._tab_bars_ui.values():
-            tab_bar_ui.window.hide()
+        for node in self._tree.iter_walk():
+            if isinstance(node, UITabContainer):
+                node.hide()
 
     def _request_focus(self, pane: UIPane):
         self.group.focus(pane.window)
