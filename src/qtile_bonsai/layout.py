@@ -47,20 +47,35 @@ class UITabContainer(TabContainer):
         self.bar_window.place(r.x, r.y, r.width, r.height, 1, "#0000ff")
         self.bar_window.unhide()
 
+        min_width = 50
+        font_size = 15
+        font_family = "mono"
+        offset = 0
+        padding = 20
+        tab_bar_bg_color = "aaaaaa"
+        active_tab_bg_color = "ff0000"
+        active_tab_fg_color = "0000ff"
+        inactive_tab_bg_color = "0000ff"
+        inactive_tab_fg_color = "00ff00"
+
         self.bar_drawer.width = r.width
         self.bar_drawer.height = r.height
-        self.bar_drawer.clear("00ffff")
+        self.bar_drawer.clear(tab_bar_bg_color)
 
-        for i, tab in enumerate(self.children):
+        for tab in self.children:
             if tab is self.active_child:
-                self.bar_drawer.set_source_rgb("ff0000")
-                self.bar_text_layout.colour = "0000ff"
+                self.bar_drawer.set_source_rgb(active_tab_bg_color)
+                self.bar_text_layout.colour = active_tab_fg_color
             else:
-                self.bar_drawer.set_source_rgb("0000ff")
-                self.bar_text_layout.colour = "00ff00"
-            self.bar_drawer.fillrect(i * 100, 0, 100, r.height)
-            self.bar_text_layout.text = tab.title or "my tab"
-            self.bar_text_layout.draw(i * 100, 0)
+                self.bar_drawer.set_source_rgb(inactive_tab_bg_color)
+                self.bar_text_layout.colour = inactive_tab_fg_color
+
+            w, _ = self.bar_drawer.max_layout_size([tab.title], font_family, font_size)
+            w = max(w + padding * 2, min_width)
+            self.bar_drawer.fillrect(offset, 0, w, r.height)
+            self.bar_text_layout.text = tab.title
+            self.bar_text_layout.draw(offset + padding, 0)
+            offset += w
 
         self.bar_drawer.draw(0, 0, r.width, r.height)
 
