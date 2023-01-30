@@ -304,14 +304,19 @@ class Tree:
 
         return adjacent
 
-    def iter_walk(self, start: Node | None = None):
+    def iter_walk(
+        self, start: Node | None = None, *, only_visible: bool = False
+    ) -> Iterator[Node]:
         if self.is_empty:
             return
 
-        def walk(node):
+        def walk(node) -> Iterator[Node]:
             yield node
-            for n in node.children:
-                yield from walk(n)
+            if only_visible and isinstance(node, TabContainer):
+                yield from walk(node.active_child)
+            else:
+                for n in node.children:
+                    yield from walk(n)
 
         yield from walk(start or self._root)
 
