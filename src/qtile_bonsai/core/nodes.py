@@ -40,11 +40,11 @@ class Node(metaclass=abc.ABCMeta):
         raise NotImplementedError
 
     @property
-    def id(self):
+    def id(self) -> int:
         return self._id
 
     @property
-    def children(self):
+    def children(self) -> list[Node]:
         return self._children
 
     @property
