@@ -183,7 +183,10 @@ class Bonsai(Layout):
         as well.
         """
         for node in self._tree.iter_walk():
-            node.render(screen_rect, self)
+            if self._tree.is_visible(node):
+                node.render(screen_rect, self)
+            else:
+                node.hide()
 
     def configure(self, window: Window, screen_rect: ScreenRect):
         """Defined since this is an abstract method, but not implemented since things
