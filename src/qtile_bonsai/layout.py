@@ -13,9 +13,9 @@ from libqtile.log_utils import logger
 
 from qtile_bonsai.core.tree import (
     Axis,
-    Node,
     NodeFactory,
     Pane,
+    SplitContainer,
     Tab,
     TabContainer,
     Tree,
@@ -24,7 +24,30 @@ from qtile_bonsai.core.tree import (
 from qtile_bonsai.core.utils import UnitRect
 
 
-class UITabContainer(TabContainer):
+class BonsaiNodeMixin:
+    def init_ui(self, qtile):
+        """Handles any initialization for UI resources that may represent a node"""
+        pass
+
+    def render(self, screen_rect: ScreenRect, layout: "Bonsai"):
+        """Renders UI elements of this node.
+
+        The `layout` is accepted as a parameter since qtile stores user-passed config
+        directly on the `Layout` instance as attributes. The builtin qtile-layouts also
+        pass around the entire layout to access user-config.
+        """
+        pass
+
+    def hide(self):
+        """Hides any UI elements of this node."""
+        pass
+
+    def finalize(self):
+        """Performs any cleanup that may be needed, such as releasing UI resources."""
+        pass
+
+
+class BonsaiTabContainer(TabContainer, BonsaiNodeMixin):
     def __init__(self):
         super().__init__()
 
@@ -41,7 +64,7 @@ class UITabContainer(TabContainer):
             "", "000000", "mono", 15, None
         )
 
-    def unhide(self, screen_rect: ScreenRect):
+    def render(self, screen_rect: ScreenRect, layout: "Bonsai"):
         r = self.tab_bar.rect.to_screen_space(screen_rect)
 
         self.bar_window.place(r.x, r.y, r.width, r.height, 1, "#0000ff")
@@ -50,7 +73,6 @@ class UITabContainer(TabContainer):
         min_width = 50
         font_size = 15
         font_family = "mono"
-        offset = 0
         padding = 20
         tab_bar_bg_color = "aaaaaa"
         active_tab_bg_color = "ff0000"
@@ -62,6 +84,7 @@ class UITabContainer(TabContainer):
         self.bar_drawer.height = r.height
         self.bar_drawer.clear(tab_bar_bg_color)
 
+        offset = 0
         for tab in self.children:
             if tab is self.active_child:
                 self.bar_drawer.set_source_rgb(active_tab_bg_color)
@@ -88,13 +111,21 @@ class UITabContainer(TabContainer):
         self.bar_window.kill()
 
 
-class UIPane(Pane):
+class BonsaiTab(Tab, BonsaiNodeMixin):
+    pass
+
+
+class BonsaiSplitContainer(SplitContainer, BonsaiNodeMixin):
+    pass
+
+
+class BonsaiPane(Pane, BonsaiNodeMixin):
     def __init__(self, rect: UnitRect):
         super().__init__(rect)
 
         self.window: Window
 
-    def unhide(self, screen_rect: ScreenRect):
+    def render(self, screen_rect: ScreenRect, layout: "Bonsai"):
         r = self.rect.to_screen_space(screen_rect)
         self.window.place(r.x, r.y, r.width, r.height, 1, "#ff0000")
         self.window.unhide()
@@ -104,18 +135,20 @@ class UIPane(Pane):
 
 
 class UINodeFactory(NodeFactory):
-    TabContainer = UITabContainer
-    Pane = UIPane
+    TabContainer = BonsaiTabContainer
+    Tab = BonsaiTab
+    SplitContainer = BonsaiSplitContainer
+    Pane = BonsaiPane
 
 
 class Bonsai(Layout):
-    def __init__(self) -> None:
-        super().__init__()
+    def __init__(self, **config) -> None:
+        super().__init__(**config)
 
         self._tree: Tree
         self._focused_window: Window
-        self._windows_to_panes: dict[Window, UIPane]
-        self._on_next_window: Callable[[], UIPane]
+        self._windows_to_panes: dict[Window, BonsaiPane]
+        self._on_next_window: Callable[[], BonsaiPane]
 
         self._reset()
 
@@ -150,8 +183,7 @@ class Bonsai(Layout):
         as well.
         """
         for node in self._tree.iter_walk():
-            if isinstance(node, (UITabContainer, UIPane)):
-                node.unhide(screen_rect)
+            node.render(screen_rect, self)
 
     def configure(self, window: Window, screen_rect: ScreenRect):
         """Defined since this is an abstract method, but not implemented since things
@@ -295,7 +327,7 @@ class Bonsai(Layout):
 
         prompt_widget.start_input("Rename tab: ", self._handle_rename_tab)
 
-    def _handle_default_next_window(self) -> UIPane:
+    def _handle_default_next_window(self) -> BonsaiPane:
         return self._tree.add_tab()
 
     def _reset(self):
@@ -314,15 +346,13 @@ class Bonsai(Layout):
 
         self._on_next_window = _handle_next_window
 
-    def _handle_added_tree_nodes(self, nodes: list[Node]):
+    def _handle_added_tree_nodes(self, nodes: list[BonsaiNodeMixin]):
         for node in nodes:
-            if isinstance(node, UITabContainer):
-                node.init_ui(self.group.qtile)
+            node.init_ui(self.group.qtile)
 
-    def _handle_removed_tree_nodes(self, nodes: list[Node]):
+    def _handle_removed_tree_nodes(self, nodes: list[BonsaiNodeMixin]):
         for node in nodes:
-            if isinstance(node, UITabContainer):
-                node.finalize()
+            node.finalize()
 
     def _handle_rename_tab(self, new_title: str):
         tab = self.focused_pane.get_first_ancestor(Tab)
@@ -331,10 +361,9 @@ class Bonsai(Layout):
 
     def _hide_all_internal_windows(self):
         for node in self._tree.iter_walk():
-            if isinstance(node, UITabContainer):
-                node.hide()
+            node.hide()
 
-    def _request_focus(self, pane: UIPane):
+    def _request_focus(self, pane: BonsaiPane):
         self.group.focus(pane.window)
 
     def _request_relayout(self):
