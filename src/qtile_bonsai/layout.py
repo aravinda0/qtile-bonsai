@@ -70,8 +70,8 @@ class BonsaiTabContainer(TabContainer, BonsaiNodeMixin):
     def render(self, screen_rect: ScreenRect, layout: "Bonsai"):
         r = self.tab_bar.rect.to_screen_space(screen_rect)
 
-        self.bar_window.place(r.x, r.y, r.width, r.height, 0, "#000000")
-        self.bar_window.unhide()
+        window_border_color = self._resolve_level_config("window.border.color", layout)
+        window_border_width = self._resolve_level_config("window.border.width", layout)
 
         tab_bar_bg_color = self._resolve_level_config("tab_bar.bg_color", layout)
         tab_min_width = self._resolve_level_config("tab_bar.tab.min_width", layout)
@@ -90,6 +90,11 @@ class BonsaiTabContainer(TabContainer, BonsaiNodeMixin):
         tab_inactive_fg_color = self._resolve_level_config(
             "tab_bar.tab.inactive_fg_color", layout
         )
+
+        self.bar_window.place(
+            r.x, r.y, r.width, r.height, window_border_width, window_border_color
+        )
+        self.bar_window.unhide()
 
         self.bar_drawer.width = r.width
         self.bar_drawer.height = r.height
@@ -167,6 +172,16 @@ class UINodeFactory(NodeFactory):
 class Bonsai(Layout):
     defaults = [
         (
+            "window.border.color",
+            Gruvbox.dark_yellow,
+            "Background color the tab bar, beind the tabs",
+        ),
+        (
+            "window.border.width",
+            1,
+            "Background color the tab bar, beind the tabs",
+        ),
+        (
             "tab_bar.bg_color",
             Gruvbox.bg0,
             "Background color the tab bar, beind the tabs",
@@ -182,7 +197,7 @@ class Bonsai(Layout):
         ),
         (
             "tab_bar.tab.active_fg_color",
-            Gruvbox.fg2,
+            Gruvbox.fg1,
             "Foreground text color of the active tab",
         ),
         (
