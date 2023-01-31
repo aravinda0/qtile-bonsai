@@ -11,6 +11,7 @@ from libqtile.drawer import TextLayout
 from libqtile.layout.base import Layout
 from libqtile.log_utils import logger
 
+from qtile_bonsai.colors import Gruvbox
 from qtile_bonsai.core.tree import (
     Axis,
     NodeFactory,
@@ -69,7 +70,7 @@ class BonsaiTabContainer(TabContainer, BonsaiNodeMixin):
     def render(self, screen_rect: ScreenRect, layout: "Bonsai"):
         r = self.tab_bar.rect.to_screen_space(screen_rect)
 
-        self.bar_window.place(r.x, r.y, r.width, r.height, 1, "#0000ff")
+        self.bar_window.place(r.x, r.y, r.width, r.height, 0, "#000000")
         self.bar_window.unhide()
 
         tab_bar_bg_color = self._resolve_level_config("tab_bar.bg_color", layout)
@@ -149,7 +150,7 @@ class BonsaiPane(Pane, BonsaiNodeMixin):
 
     def render(self, screen_rect: ScreenRect, layout: "Bonsai"):
         r = self.rect.to_screen_space(screen_rect)
-        self.window.place(r.x, r.y, r.width, r.height, 1, "#ff0000")
+        self.window.place(r.x, r.y, r.width, r.height, 1, Gruvbox.dark_yellow)
         self.window.unhide()
 
     def hide(self):
@@ -165,25 +166,33 @@ class UINodeFactory(NodeFactory):
 
 class Bonsai(Layout):
     defaults = [
-        ("tab_bar.bg_color", "bbbbbb", "Background color the tab bar, beind the tabs"),
+        (
+            "tab_bar.bg_color",
+            Gruvbox.bg0,
+            "Background color the tab bar, beind the tabs",
+        ),
         ("tab_bar.tab.min_width", 50, "Minimum width of a tab on a tab bar"),
         ("tab_bar.tab.font_family", "Mono", "Font family to use for tab titles"),
         ("tab_bar.tab.font_size", 15, "Font size to use for tab titles"),
         ("tab_bar.tab.padding", 20, "Font size to use for tab titles"),
-        ("tab_bar.tab.active_bg_color", "ff0000", "Background color of the active tab"),
+        (
+            "tab_bar.tab.active_bg_color",
+            Gruvbox.bg4,
+            "Background color of the active tab",
+        ),
         (
             "tab_bar.tab.active_fg_color",
-            "0000ff",
+            Gruvbox.fg2,
             "Foreground text color of the active tab",
         ),
         (
             "tab_bar.tab.inactive_bg_color",
-            "0000ff",
+            Gruvbox.bg1,
             "Background color of inactive tabs",
         ),
         (
             "tab_bar.tab.inactive_fg_color",
-            "00ff00",
+            Gruvbox.fg1,
             "Foreground text color of inactive tabs",
         ),
     ]
