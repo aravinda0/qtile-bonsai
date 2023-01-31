@@ -25,6 +25,8 @@ from qtile_bonsai.core.utils import UnitRect
 
 
 class BonsaiNodeMixin:
+    """A mixin that formalizes UI operations for nodes."""
+
     def init_ui(self, qtile):
         """Handles any initialization for UI resources that may represent a node"""
         pass
