@@ -70,6 +70,11 @@ class Node(metaclass=abc.ABCMeta):
         return self.parent.children[-1] is self
 
     @property
+    def tab_level(self) -> int:
+        """Returns the number of TabContainers under which this node exists."""
+        return len(self.get_ancestors(of_type=TabContainer))
+
+    @property
     def operational_sibling(self) -> Node | None:
         parent = self.parent
 
