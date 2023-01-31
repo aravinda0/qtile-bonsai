@@ -42,6 +42,12 @@ class InvalidTreeStructureError(Exception):
 class Tree:
     TreeEventCallback = Callable[[list[Node]], None]
     _recency_seq = 0
+    _prunable_chains = [
+        (SplitContainer, SplitContainer, Pane),
+        (Tab, SplitContainer, SplitContainer),
+        (SplitContainer, SplitContainer, SplitContainer),
+        (SplitContainer, SplitContainer, TabContainer),
+    ]
 
     def __init__(self, node_factory: type[NodeFactory] | NodeFactory = NodeFactory):
         """"""
@@ -518,8 +524,9 @@ class Tree:
         top-down chain of `[n1, n2, n3]`. We look for opportunities to merge `n3` into
         `n1` and discard `n2`.
 
-        All the `[n1, n2, n3]` possibilities are listed below. The chains that are
-        prunable are marked with *.
+        All the `[n1, n2, n3]` possibilities are listed below.
+        The arrows point to the parent node. The chains that are prunable are marked
+        with *.
 
             T ◄─┐
                 │
@@ -555,34 +562,39 @@ class Tree:
         nodes_to_remove = []
 
         n1, n2, n3 = node.parent.parent, node.parent, node
-        if n3.is_sole_child:
-            prunable_chains = [
-                (SplitContainer, SplitContainer, Pane),
-                (Tab, SplitContainer, SplitContainer),
-                (SplitContainer, SplitContainer, SplitContainer),
-                (SplitContainer, SplitContainer, TabContainer),
-            ]
-            if (type(n1), type(n2), type(n3)) in prunable_chains:
-                assert n1 is not None
+        if n3.is_sole_child and self._is_prunable_chain(n1, n2, n3):
+            assert n1 is not None
 
-                index = n1.children.index(n2)
-                n1.children.remove(n2)
+            index = n1.children.index(n2)
+            n1.children.remove(n2)
 
-                if isinstance(n1, SplitContainer) and isinstance(n3, SplitContainer):
-                    # Here, even n3 gets discarded with n2. Only n1 remains which
-                    # absorbs the children of n3.
-                    for child in n3.children:
-                        child.parent = n1
-                        n1.children.insert(index, child)
-                        index += 1
-                    nodes_to_remove.append(n3)
-                else:
-                    n3.parent = n1
-                    n1.children.insert(index, n3)
+            if isinstance(n1, SplitContainer) and isinstance(n3, SplitContainer):
+                # Here, even n3 gets discarded with n2. Only n1 remains which
+                # absorbs the children of n3.
+                for child in n3.children:
+                    child.parent = n1
+                    n1.children.insert(index, child)
+                    index += 1
+                nodes_to_remove.append(n3)
+            else:
+                n3.parent = n1
+                n1.children.insert(index, n3)
 
-                nodes_to_remove.append(n2)
+            nodes_to_remove.append(n2)
 
         return nodes_to_remove
+
+    def _is_prunable_chain(self, n1: Node, n2: Node, n3: Node) -> bool:
+        for chain in self._prunable_chains:
+            if all(
+                [
+                    isinstance(n1, chain[0]),
+                    isinstance(n2, chain[1]),
+                    isinstance(n3, chain[2]),
+                ]
+            ):
+                return True
+        return False
 
     def _find_super_node_to_resize(self, pane: Pane, axis: Axis) -> Node | None:
         """Finds the first node in the ancestor chain that is under a SC of the
