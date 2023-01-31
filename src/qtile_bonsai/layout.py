@@ -72,15 +72,23 @@ class BonsaiTabContainer(TabContainer, BonsaiNodeMixin):
         self.bar_window.place(r.x, r.y, r.width, r.height, 1, "#0000ff")
         self.bar_window.unhide()
 
-        min_width = 50
-        font_size = 15
-        font_family = "mono"
-        padding = 20
-        tab_bar_bg_color = "aaaaaa"
-        active_tab_bg_color = "ff0000"
-        active_tab_fg_color = "0000ff"
-        inactive_tab_bg_color = "0000ff"
-        inactive_tab_fg_color = "00ff00"
+        tab_bar_bg_color = self._resolve_level_config("tab_bar.bg_color", layout)
+        tab_min_width = self._resolve_level_config("tab_bar.tab.min_width", layout)
+        tab_font_family = self._resolve_level_config("tab_bar.tab.font_family", layout)
+        tab_font_size = self._resolve_level_config("tab_bar.tab.font_size", layout)
+        tab_padding = self._resolve_level_config("tab_bar.tab.padding", layout)
+        tab_active_bg_color = self._resolve_level_config(
+            "tab_bar.tab.active_bg_color", layout
+        )
+        tab_active_fg_color = self._resolve_level_config(
+            "tab_bar.tab.active_fg_color", layout
+        )
+        tab_inactive_bg_color = self._resolve_level_config(
+            "tab_bar.tab.inactive_bg_color", layout
+        )
+        tab_inactive_fg_color = self._resolve_level_config(
+            "tab_bar.tab.inactive_fg_color", layout
+        )
 
         self.bar_drawer.width = r.width
         self.bar_drawer.height = r.height
@@ -89,17 +97,19 @@ class BonsaiTabContainer(TabContainer, BonsaiNodeMixin):
         offset = 0
         for tab in self.children:
             if tab is self.active_child:
-                self.bar_drawer.set_source_rgb(active_tab_bg_color)
-                self.bar_text_layout.colour = active_tab_fg_color
+                self.bar_drawer.set_source_rgb(tab_active_bg_color)
+                self.bar_text_layout.colour = tab_active_fg_color
             else:
-                self.bar_drawer.set_source_rgb(inactive_tab_bg_color)
-                self.bar_text_layout.colour = inactive_tab_fg_color
+                self.bar_drawer.set_source_rgb(tab_inactive_bg_color)
+                self.bar_text_layout.colour = tab_inactive_fg_color
 
-            w, _ = self.bar_drawer.max_layout_size([tab.title], font_family, font_size)
-            w = max(w + padding * 2, min_width)
+            w, _ = self.bar_drawer.max_layout_size(
+                [tab.title], tab_font_family, tab_font_size
+            )
+            w = max(w + tab_padding * 2, tab_min_width)
             self.bar_drawer.fillrect(offset, 0, w, r.height)
             self.bar_text_layout.text = tab.title
-            self.bar_text_layout.draw(offset + padding, 0)
+            self.bar_text_layout.draw(offset + tab_padding, 0)
             offset += w
 
         self.bar_drawer.draw(0, 0, r.width, r.height)
@@ -111,6 +121,16 @@ class BonsaiTabContainer(TabContainer, BonsaiNodeMixin):
         self.bar_text_layout.finalize()
         self.bar_drawer.finalize()
         self.bar_window.kill()
+
+    def _resolve_level_config(self, key: str, layout: "Bonsai"):
+        # Include this TC node when determining level for applying configuration
+        level = self.tab_level + 1
+
+        level_key = f"L{level}.{key}"
+        if not hasattr(layout, level_key):
+            level_key = key
+
+        return getattr(layout, level_key)
 
 
 class BonsaiTab(Tab, BonsaiNodeMixin):
@@ -144,8 +164,33 @@ class UINodeFactory(NodeFactory):
 
 
 class Bonsai(Layout):
+    defaults = [
+        ("tab_bar.bg_color", "bbbbbb", "Background color the tab bar, beind the tabs"),
+        ("tab_bar.tab.min_width", 50, "Minimum width of a tab on a tab bar"),
+        ("tab_bar.tab.font_family", "Mono", "Font family to use for tab titles"),
+        ("tab_bar.tab.font_size", 15, "Font size to use for tab titles"),
+        ("tab_bar.tab.padding", 20, "Font size to use for tab titles"),
+        ("tab_bar.tab.active_bg_color", "ff0000", "Background color of the active tab"),
+        (
+            "tab_bar.tab.active_fg_color",
+            "0000ff",
+            "Foreground text color of the active tab",
+        ),
+        (
+            "tab_bar.tab.inactive_bg_color",
+            "0000ff",
+            "Background color of inactive tabs",
+        ),
+        (
+            "tab_bar.tab.inactive_fg_color",
+            "00ff00",
+            "Foreground text color of inactive tabs",
+        ),
+    ]
+
     def __init__(self, **config) -> None:
         super().__init__(**config)
+        self.add_defaults(self.defaults)
 
         self._tree: Tree
         self._focused_window: Window
