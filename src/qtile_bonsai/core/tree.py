@@ -55,7 +55,7 @@ class Tree:
     def is_empty(self):
         return self._root is None
 
-    def add_tab(
+    def tab(
         self,
         at_pane: Pane | None = None,
         *,

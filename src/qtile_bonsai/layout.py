@@ -327,9 +327,7 @@ class Bonsai(Layout):
         self, program: str, *, new_level: bool = False, level: int | None = None
     ):
         def _handle_next_window():
-            return self._tree.add_tab(
-                self.focused_pane, new_level=new_level, level=level
-            )
+            return self._tree.tab(self.focused_pane, new_level=new_level, level=level)
 
         self._on_next_window = _handle_next_window
 
@@ -402,7 +400,7 @@ class Bonsai(Layout):
         prompt_widget.start_input("Rename tab: ", self._handle_rename_tab)
 
     def _handle_default_next_window(self) -> BonsaiPane:
-        return self._tree.add_tab()
+        return self._tree.tab()
 
     def _reset(self):
         self._tree = Tree(node_factory=UINodeFactory)
@@ -416,7 +414,7 @@ class Bonsai(Layout):
         self._windows_to_panes = {}
 
         def _handle_next_window():
-            return self._tree.add_tab()
+            return self._tree.tab()
 
         self._on_next_window = _handle_next_window
 
