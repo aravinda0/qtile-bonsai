@@ -158,8 +158,13 @@ class BonsaiPane(Pane, BonsaiNodeMixin):
         self.window: Window
 
     def render(self, screen_rect: ScreenRect, layout: "Bonsai"):
+        window_border_color = getattr(layout, "window.border.color")
+        window_border_width = getattr(layout, "window.border.width")
+
         r = self.rect.to_screen_space(screen_rect)
-        self.window.place(r.x, r.y, r.width, r.height, 1, Gruvbox.dark_yellow)
+        self.window.place(
+            r.x, r.y, r.width, r.height, window_border_width, window_border_color
+        )
         self.window.unhide()
 
     def hide(self):
@@ -175,6 +180,16 @@ class UINodeFactory(NodeFactory):
 
 class Bonsai(Layout):
     defaults = [
+        (
+            "window.border.color",
+            Gruvbox.dark_yellow,
+            "Color of the border around windows",
+        ),
+        (
+            "window.border.width",
+            1,
+            "Width of the border around windows",
+        ),
         (
             "tab_bar.border.color",
             Gruvbox.dark_yellow,
