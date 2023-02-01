@@ -286,23 +286,43 @@ class Bonsai(Layout):
         self._focused_window = window
         self._tree.focus(self.focused_pane)
 
-    def focus_first(self):
-        pass
+    def focus_first(self) -> Window | None:
+        first = next(self._tree.iter_panes(), None)
+        if first is not None:
+            return first.window
+        return None
 
-    def focus_last(self):
-        pass
+    def focus_last(self) -> Window | None:
+        panes = list(self._tree.iter_panes())
+        if panes:
+            return panes[-1].window
+        return None
 
-    def focus_next(self, window):
-        pass
+    def focus_next(self, window) -> Window | None:
+        current_pane = self._windows_to_panes[window]
+        panes = list(self._tree.iter_panes())
+        i = panes.index(current_pane)
+        if i != len(panes) - 1:
+            return panes[i + 1].window
+        return None
 
-    def focus_previous(self, window):
-        pass
+    def focus_previous(self, window) -> Window | None:
+        current_pane = self._windows_to_panes[window]
+        panes = list(self._tree.iter_panes())
+        i = panes.index(current_pane)
+        if i != 0:
+            return panes[i - 1].window
+        return None
 
     def cmd_next(self):
-        pass
+        next_window = self.focus_next(self.focused_window)
+        if next_window is not None:
+            self._request_focus(self._windows_to_panes[next_window])
 
     def cmd_previous(self):
-        pass
+        prev_window = self.focus_previous(self.focused_window)
+        if prev_window is not None:
+            self._request_focus(self._windows_to_panes[prev_window])
 
     def hide(self):
         # While other layouts are active, ensure that any new windows are captured
