@@ -70,10 +70,14 @@ class BonsaiTabContainer(TabContainer, BonsaiNodeMixin):
     def render(self, screen_rect: ScreenRect, layout: "Bonsai"):
         r = self.tab_bar.rect.to_screen_space(screen_rect)
 
-        window_border_color = self._resolve_level_config("window.border.color", layout)
-        window_border_width = self._resolve_level_config("window.border.width", layout)
-
+        tab_bar_border_color = self._resolve_level_config(
+            "tab_bar.border.color", layout
+        )
+        tab_bar_border_width = self._resolve_level_config(
+            "tab_bar.border.width", layout
+        )
         tab_bar_bg_color = self._resolve_level_config("tab_bar.bg_color", layout)
+
         tab_min_width = self._resolve_level_config("tab_bar.tab.min_width", layout)
         tab_font_family = self._resolve_level_config("tab_bar.tab.font_family", layout)
         tab_font_size = self._resolve_level_config("tab_bar.tab.font_size", layout)
@@ -92,7 +96,7 @@ class BonsaiTabContainer(TabContainer, BonsaiNodeMixin):
         )
 
         self.bar_window.place(
-            r.x, r.y, r.width, r.height, window_border_width, window_border_color
+            r.x, r.y, r.width, r.height, tab_bar_border_width, tab_bar_border_color
         )
         self.bar_window.unhide()
 
@@ -172,12 +176,12 @@ class UINodeFactory(NodeFactory):
 class Bonsai(Layout):
     defaults = [
         (
-            "window.border.color",
+            "tab_bar.border.color",
             Gruvbox.dark_yellow,
             "Background color the tab bar, beind the tabs",
         ),
         (
-            "window.border.width",
+            "tab_bar.border.width",
             1,
             "Background color the tab bar, beind the tabs",
         ),
