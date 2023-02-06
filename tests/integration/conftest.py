@@ -1,0 +1,128 @@
+# SPDX-FileCopyrightText: 2023-present Aravinda Rao <maniacalace@gmail.com>
+# SPDX-License-Identifier: MIT
+
+import multiprocessing
+import os
+import subprocess
+import time
+
+import pytest
+from libqtile import config, layout
+from libqtile.backend.wayland.core import Core as WaylandCore
+from libqtile.backend.x11.core import Core as X11Core
+from libqtile.command.client import InteractiveCommandClient
+from libqtile.confreader import Config
+from libqtile.core.manager import Qtile
+from libqtile.resources import default_config
+from pyvirtualdisplay.display import Display
+from qtile_bonsai.layout import Bonsai
+
+
+class BonsaiConfig(Config):
+    auto_fullscreen = True
+    groups = [
+        config.Group("a"),
+        config.Group("b"),
+        config.Group("c"),
+    ]
+    layouts = [Bonsai(), layout.Columns(num_columns=3)]
+    floating_layout = default_config.floating_layout
+    keys = []
+    mouse = []
+    screens = [config.Screen()]
+    follow_mouse_focus = False
+    reconfigure_screens = False
+
+
+@pytest.fixture()
+def qtile_x11():
+    display = Display(backend="xvfb")
+    display.start()
+
+    def run_qtile():
+        core = X11Core(display.new_display_var)
+        qtile = Qtile(core, BonsaiConfig())
+        qtile.loop()
+
+    # launch qtile and give it some time to start up
+    qtile_process = multiprocessing.Process(target=run_qtile)
+    qtile_process.start()
+    time.sleep(0.5)
+
+    yield
+
+    # terminate qtile and give it some time to do so
+    qtile_process.terminate()
+    time.sleep(0.5)
+
+    display.stop()
+
+
+@pytest.fixture()
+def qtile_wayland():
+    wlroots_env = {
+        "WLR_BACKENDS": "headless",
+        "WLR_LIBINPUT_NO_DEVICES": "1",
+        "WLR_RENDERER": "pixman",
+        "WLR_HEADLESS_OUTPUTS": "1",
+        "XDG_RUNTIME_DIR": "/tmp",
+        "GDK_BACKEND": "wayland",
+    }
+
+    def run_qtile(queue):
+        core = WaylandCore()
+        qtile = Qtile(core, BonsaiConfig())
+        queue.put(core.display_name)
+        qtile.loop()
+
+    # Prep wayland environment for our test qtile session
+    os.environ.pop("DISPLAY", None)
+    os.environ.update(wlroots_env)
+
+    # launch qtile and give it some time to start up
+    queue = multiprocessing.Queue()
+    qtile_process = multiprocessing.Process(target=run_qtile, args=(queue,))
+    qtile_process.start()
+    time.sleep(0.5)
+
+    # Update the environment with the appropriate wayland display value so subsequently
+    # spawned applications can see it
+    os.environ["WAYLAND_DISPLAY"] = queue.get()
+
+    yield
+
+    # terminate qtile and give it some time to do so
+    qtile_process.terminate()
+    time.sleep(0.5)
+
+    os.environ.pop("WAYLAND_DISPLAY")
+
+
+@pytest.fixture(params=["qtile_x11", "qtile_wayland"])
+def manager(request):
+    # pytest doesn't support auto-parametrizing fixtures yet but we can still invoke
+    # them explicitly
+    request.getfixturevalue(request.param)
+
+    manager = InteractiveCommandClient()
+    if manager.status() != "OK":
+        raise RuntimeError("Test qtile instance did not respond with OK status")
+    return manager
+
+
+@pytest.fixture()
+def make_window():
+    window_processes = []
+
+    def _make_window():
+        process = subprocess.Popen(["alacritty"])
+        time.sleep(0.5)
+        window_processes.append(process)
+
+    yield _make_window
+
+    for process in window_processes:
+        process.terminate()
+
+    # give some time for windows to terminate
+    time.sleep(0.5)
