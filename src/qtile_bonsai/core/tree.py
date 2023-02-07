@@ -683,3 +683,9 @@ def tree_matches_repr(tree: Tree, test_repr: str) -> bool:
     tree_repr = textwrap.dedent(repr(tree)).strip()
     test_repr = textwrap.dedent(test_repr).strip()
     return tree_repr == test_repr
+
+
+def repr_matches_repr(repr1: str, repr2: str) -> bool:
+    repr1 = textwrap.dedent(repr1).strip()
+    repr2 = textwrap.dedent(repr2).strip()
+    return repr1 == repr2
