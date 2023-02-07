@@ -438,6 +438,12 @@ class Bonsai(Layout):
 
         prompt_widget.start_input("Rename tab: ", self._handle_rename_tab)
 
+    def cmd_info(self):
+        return {
+            "name": "bonsai",
+            "tree": repr(self._tree),
+        }
+
     def _handle_default_next_window(self) -> BonsaiPane:
         return self._tree.tab()
 
