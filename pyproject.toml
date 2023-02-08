@@ -42,6 +42,7 @@ dependencies = [
   "qtile",
   "pytest",
   "pytest-cov",
+  "pytest-xdist",
   "pyvirtualdisplay",
   "pywlroots",
   "pywayland",
