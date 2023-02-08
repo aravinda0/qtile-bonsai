@@ -3,6 +3,7 @@
 
 import multiprocessing
 import os
+import tempfile
 import time
 
 import pytest
@@ -59,13 +60,19 @@ def qtile_x11():
 
 
 @pytest.fixture()
-def qtile_wayland():
+def tmp_xdg_runtime_dir():
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        yield tmp_dir
+
+
+@pytest.fixture()
+def qtile_wayland(tmp_xdg_runtime_dir):
     wlroots_env = {
         "WLR_BACKENDS": "headless",
         "WLR_LIBINPUT_NO_DEVICES": "1",
         "WLR_RENDERER": "pixman",
         "WLR_HEADLESS_OUTPUTS": "1",
-        "XDG_RUNTIME_DIR": "/tmp",
+        "XDG_RUNTIME_DIR": tmp_xdg_runtime_dir,
         "GDK_BACKEND": "wayland",
     }
 
