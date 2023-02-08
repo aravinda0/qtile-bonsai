@@ -3,7 +3,6 @@
 
 import multiprocessing
 import os
-import subprocess
 import time
 
 import pytest
@@ -14,6 +13,7 @@ from libqtile.command.client import InteractiveCommandClient
 from libqtile.confreader import Config
 from libqtile.core.manager import Qtile
 from libqtile.resources import default_config
+from PySide6.QtWidgets import QApplication, QWidget
 from pyvirtualdisplay.display import Display
 from qtile_bonsai.layout import Bonsai
 
@@ -115,14 +115,23 @@ def make_window():
     window_processes = []
 
     def _make_window():
-        process = subprocess.Popen(["alacritty"])
-        time.sleep(0.5)
+        def run_qt_app():
+            app = QApplication([])
+            window = QWidget()
+            window.show()
+            app.exec()
+
+        process = multiprocessing.Process(target=run_qt_app)
+        process.start()
         window_processes.append(process)
+
+        # Give it some time to start up.
+        time.sleep(0.5)
 
     yield _make_window
 
     for process in window_processes:
         process.terminate()
 
-    # give some time for windows to terminate
+    # Give some time for windows to terminate
     time.sleep(0.5)
