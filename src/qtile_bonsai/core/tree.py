@@ -11,6 +11,7 @@ from typing import Callable, Iterable, Iterator
 
 from strenum import StrEnum
 
+from qtile_bonsai.core.geometry import Axis, AxisParam, Direction, DirectionParam
 from qtile_bonsai.core.nodes import (
     Node,
     NodeFactory,
@@ -20,14 +21,7 @@ from qtile_bonsai.core.nodes import (
     TabBar,
     TabContainer,
 )
-from qtile_bonsai.core.utils import (
-    Axis,
-    AxisParam,
-    Direction,
-    DirectionParam,
-    UnitRect,
-    validate_unit_range,
-)
+from qtile_bonsai.core.utils import UnitRect, validate_unit_range
 
 
 class TreeEvent(StrEnum):

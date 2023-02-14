@@ -7,7 +7,8 @@ from __future__ import annotations
 import abc
 from typing import TypeVar
 
-from qtile_bonsai.core.utils import Axis, AxisParam, UnitRect
+from qtile_bonsai.core.geometry import Axis, AxisParam
+from qtile_bonsai.core.utils import UnitRect
 
 
 class Node(metaclass=abc.ABCMeta):
