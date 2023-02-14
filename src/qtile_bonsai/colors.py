@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2023-present Aravinda Rao <maniacalace@gmail.com>
+# SPDX-License-Identifier: MIT
+
+
 class Gruvbox:
     bg0_hard = "#1d2021"
     bg0_soft = "#32302f"
