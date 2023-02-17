@@ -11,7 +11,7 @@ from typing import Callable, Iterable, Iterator
 
 from strenum import StrEnum
 
-from qtile_bonsai.core.geometry import Axis, AxisParam, Direction, DirectionParam
+from qtile_bonsai.core.geometry import Axis, AxisParam, Direction, DirectionParam, Rect
 from qtile_bonsai.core.nodes import (
     Node,
     NodeFactory,
@@ -21,7 +21,7 @@ from qtile_bonsai.core.nodes import (
     TabBar,
     TabContainer,
 )
-from qtile_bonsai.core.utils import UnitRect, validate_unit_range
+from qtile_bonsai.core.utils import validate_unit_range
 
 
 class TreeEvent(StrEnum):
@@ -43,8 +43,15 @@ class Tree:
         (SplitContainer, SplitContainer, TabContainer),
     ]
 
-    def __init__(self, node_factory: type[NodeFactory] | NodeFactory = NodeFactory):
-        """"""
+    def __init__(
+        self,
+        width: int,
+        height: int,
+        *,
+        node_factory: type[NodeFactory] | NodeFactory = NodeFactory,
+    ):
+        self._width: int = width
+        self._height: int = height
         self._node_factory: type[NodeFactory] | NodeFactory = node_factory
         self._root: TabContainer | None = None
         self._event_subscribers: collections.defaultdict[
@@ -52,8 +59,34 @@ class Tree:
         ] = collections.defaultdict(dict)
 
     @property
+    def width(self) -> int:
+        return self._width
+
+    @property
+    def height(self) -> int:
+        return self._height
+
+    @property
     def is_empty(self):
         return self._root is None
+
+    def reset_dimensions(self, width: int, height: int):
+        width_diff = width - self._width
+        height_diff = height - self._height
+
+        self._width = width
+        self._height = height
+
+        # Ensure the tree nodes get resized proportionally
+        if self._root is not None:
+            if width_diff > 0:
+                self._root.grow(Axis.x, width_diff, 0)
+            else:
+                self._root.shrink(Axis.x, abs(width_diff), 0)
+            if height_diff > 0:
+                self._root.grow(Axis.y, height_diff, 0)
+            else:
+                self._root.shrink(Axis.y, abs(height_diff), 0)
 
     def tab(
         self,
@@ -118,22 +151,13 @@ class Tree:
 
         self._maybe_morph_split_container(pane_container, axis)
 
-        r = pane.rect
-        if axis == "x":
-            p1_size = r.w * ratio
-            p1_rect = UnitRect(r.x, r.y, p1_size, r.h)
-            p2_rect = UnitRect(r.x + p1_size, r.y, r.w - p1_size, r.h)
-        else:
-            p1_size = r.h * ratio
-            p1_rect = UnitRect(r.x, r.y, r.w, p1_size)
-            p2_rect = UnitRect(r.x, r.y + p1_size, r.w, r.h - p1_size)
-
-        pane.rect = p1_rect
+        p1_rect, p2_rect = pane.principal_rect.split(axis, ratio)
+        pane.principal_rect = p1_rect
 
         # During the flow below, we try to ensure `new_pane` is created after any other
         # new nodes to maintain ID sequence.
         if pane_container.axis == axis:
-            new_pane = self._node_factory.Pane(p2_rect)
+            new_pane = self._node_factory.Pane(principal_rect=p2_rect)
             new_pane.parent = pane_container
             pane_container.children.insert(pane_index + 1, new_pane)
         else:
@@ -148,7 +172,7 @@ class Tree:
             pane.parent = new_split_container
             new_split_container.children.append(pane)
 
-            new_pane = self._node_factory.Pane(p2_rect)
+            new_pane = self._node_factory.Pane(principal_rect=p2_rect)
             new_pane.parent = new_split_container
             new_split_container.children.append(new_pane)
 
@@ -158,10 +182,7 @@ class Tree:
 
         return new_pane
 
-    def resize(self, pane: Pane, axis: AxisParam, amount: float):
-        if not -1 <= amount <= 1:
-            raise ValueError("`amount` must be between -1 and 1")
-
+    def resize(self, pane: Pane, axis: AxisParam, amount: int):
         axis = Axis(axis)
 
         super_node = self._find_super_node_to_resize(pane, axis)
@@ -176,7 +197,7 @@ class Tree:
 
         if actual_amount > 0:
             b1, b2 = operational_pair
-            b1_rect = b1.rect
+            b1_rect = b1.principal_rect
             b1_start = b1_rect.coord(axis)
             b1_end = b1_rect.coord2(axis)
             if amount > 0:
@@ -206,9 +227,9 @@ class Tree:
 
         # Handle space redistribution if applicable
         if isinstance(container, SplitContainer):
-            free_space = br_remove.rect
+            free_space = br_remove.principal_rect
             axis = container.axis
-            start = min(free_space.coord(axis), br_sibling.rect.coord(axis))
+            start = min(free_space.coord(axis), br_sibling.principal_rect.coord(axis))
             br_sibling.grow(axis, free_space.dim(axis), start)
 
         removed_nodes.extend(self._do_post_removal_pruning(br_sibling))
@@ -297,8 +318,12 @@ class Tree:
         adjacent = []
         inv_axis = direction.axis.inv
         for candidate in self._find_panes_along_border(super_node_sibling, direction):
-            coord1_ok = candidate.rect.coord(inv_axis) < pane.rect.coord2(inv_axis)
-            coord2_ok = candidate.rect.coord2(inv_axis) > pane.rect.coord(inv_axis)
+            coord1_ok = candidate.principal_rect.coord(
+                inv_axis
+            ) < pane.principal_rect.coord2(inv_axis)
+            coord2_ok = candidate.principal_rect.coord2(
+                inv_axis
+            ) > pane.principal_rect.coord(inv_axis)
             if coord1_ok and coord2_ok:
                 adjacent.append(candidate)
 
@@ -369,10 +394,10 @@ class Tree:
         added_nodes = []
 
         # Max sized rect for top level tab bar
-        tab_bar_rect = UnitRect(0, 0, 1, TabBar.default_height)
+        tab_bar_rect = Rect(0, 0, self.width, TabBar.default_height)
 
         tab_container = self._node_factory.TabContainer()
-        tab_container.tab_bar.rect = tab_bar_rect
+        tab_container.tab_bar.box.principal_rect = tab_bar_rect
         added_nodes.append(tab_container)
 
         new_tab_title = f"{len(tab_container.children) + 1}"
@@ -388,9 +413,11 @@ class Tree:
         added_nodes.append(new_split_container)
 
         # Max sized rect, allowing for top level tab bar
-        new_pane_rect = UnitRect(tab_bar_rect.x, tab_bar_rect.y2, 1, 1 - tab_bar_rect.h)
+        new_pane_rect = Rect(
+            0, tab_bar_rect.y2, self.width, self.height - tab_bar_rect.h
+        )
 
-        new_pane = self._node_factory.Pane(new_pane_rect)
+        new_pane = self._node_factory.Pane(principal_rect=new_pane_rect)
         new_pane.parent = new_split_container
         new_split_container.children.append(new_pane)
         added_nodes.append(new_pane)
@@ -415,7 +442,7 @@ class Tree:
 
         new_pane_rect = tab_container.get_inner_rect()
 
-        new_pane = self._node_factory.Pane(new_pane_rect)
+        new_pane = self._node_factory.Pane(principal_rect=new_pane_rect)
         new_pane.parent = new_split_container
         new_split_container.children.append(new_pane)
         added_nodes.append(new_pane)
@@ -444,10 +471,10 @@ class Tree:
 
         # The new tab container's dimensions are derived from the space that was
         # occupied by `at_pane`
-        new_tab_container.tab_bar.rect = UnitRect(
-            at_pane.rect.x,
-            at_pane.rect.y,
-            at_pane.rect.w,
+        new_tab_container.tab_bar.box.principal_rect = Rect(
+            at_pane.principal_rect.x,
+            at_pane.principal_rect.y,
+            at_pane.principal_rect.w,
             TabBar.default_height,
         )
 
@@ -465,8 +492,10 @@ class Tree:
         split_container1.children.append(at_pane)
 
         # Adjust `at_pane's` dimensions to account for the new tab bar
-        at_pane.rect.y = new_tab_container.tab_bar.rect.y2
-        at_pane.rect.h -= new_tab_container.tab_bar.rect.h
+        at_pane_rect = at_pane.principal_rect
+        at_pane_rect.y = new_tab_container.tab_bar.box.principal_rect.y2
+        at_pane_rect.h -= new_tab_container.tab_bar.box.principal_rect.h
+        at_pane.box.principal_rect = at_pane_rect
 
         # Start adding the real new tab that was requested and mark it as the active
         # tab.
@@ -484,7 +513,7 @@ class Tree:
 
         # The new tab's pane will have the same dimensions as `at_pane` after it was
         # adjusted above.
-        new_pane = self._node_factory.Pane(at_pane.rect)
+        new_pane = self._node_factory.Pane(principal_rect=at_pane.principal_rect)
         new_pane.parent = split_container2
         split_container2.children.append(new_pane)
         added_nodes.append(new_pane)

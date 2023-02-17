@@ -21,9 +21,9 @@ def test_when_bonsai_layout_is_inactive_and_windows_are_added_in_another_active_
         - tc:1
             - t:2
                 - sc.x:3
-                    - p:4 | {x: 0.0, y: 0.02, w: 1.0, h: 0.98}
+                    - p:4 | {x: 0, y: 20, w: 800, h: 580}
             - t:5
                 - sc.x:6
-                    - p:7 | {x: 0.0, y: 0.02, w: 1.0, h: 0.98}
+                    - p:7 | {x: 0, y: 20, w: 800, h: 580}
         """,
     )

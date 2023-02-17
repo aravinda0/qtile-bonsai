@@ -35,9 +35,14 @@ class BonsaiConfig(Config):
     reconfigure_screens = False
 
 
+# For now set to default of what headless wayland seems to default to. Need to figure
+# out how to control this in wayland env.
+test_display_resolution = (800, 600)
+
+
 @pytest.fixture()
 def qtile_x11():
-    display = Display(backend="xvfb")
+    display = Display(backend="xvfb", size=test_display_resolution)
     display.start()
 
     def run_qtile():

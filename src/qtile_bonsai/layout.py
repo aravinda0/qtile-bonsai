@@ -12,6 +12,7 @@ from libqtile.layout.base import Layout
 from libqtile.log_utils import logger
 
 from qtile_bonsai.colors import Gruvbox
+from qtile_bonsai.core.geometry import Rect
 from qtile_bonsai.core.tree import (
     Axis,
     NodeFactory,
@@ -22,7 +23,6 @@ from qtile_bonsai.core.tree import (
     Tree,
     TreeEvent,
 )
-from qtile_bonsai.core.utils import UnitRect
 
 
 class BonsaiNodeMixin:
@@ -68,13 +68,8 @@ class BonsaiTabContainer(TabContainer, BonsaiNodeMixin):
         )
 
     def render(self, screen_rect: ScreenRect, layout: "Bonsai"):
-        r = self.tab_bar.rect.to_screen_space(screen_rect)
-
         tab_bar_border_color = self._resolve_level_config(
             "tab_bar.border.color", layout
-        )
-        tab_bar_border_width = self._resolve_level_config(
-            "tab_bar.border.width", layout
         )
         tab_bar_bg_color = self._resolve_level_config("tab_bar.bg_color", layout)
 
@@ -95,13 +90,14 @@ class BonsaiTabContainer(TabContainer, BonsaiNodeMixin):
             "tab_bar.tab.inactive_fg_color", layout
         )
 
+        r = self.tab_bar.box.content_rect
         self.bar_window.place(
-            r.x, r.y, r.width, r.height, tab_bar_border_width, tab_bar_border_color
+            r.x, r.y, r.w, r.h, self.tab_bar.box.border, tab_bar_border_color
         )
         self.bar_window.unhide()
 
-        self.bar_drawer.width = r.width
-        self.bar_drawer.height = r.height
+        self.bar_drawer.width = r.w
+        self.bar_drawer.height = r.h
         self.bar_drawer.clear(tab_bar_bg_color)
 
         offset = 0
@@ -117,12 +113,12 @@ class BonsaiTabContainer(TabContainer, BonsaiNodeMixin):
                 [tab.title], tab_font_family, tab_font_size
             )
             w = max(w + tab_padding * 2, tab_min_width)
-            self.bar_drawer.fillrect(offset, 0, w, r.height)
+            self.bar_drawer.fillrect(offset, 0, w, r.h)
             self.bar_text_layout.text = tab.title
             self.bar_text_layout.draw(offset + tab_padding, 0)
             offset += w
 
-        self.bar_drawer.draw(0, 0, r.width, r.height)
+        self.bar_drawer.draw(0, 0, r.w, r.h)
 
     def hide(self):
         self.bar_window.hide()
@@ -152,18 +148,36 @@ class BonsaiSplitContainer(SplitContainer, BonsaiNodeMixin):
 
 
 class BonsaiPane(Pane, BonsaiNodeMixin):
-    def __init__(self, rect: UnitRect):
-        super().__init__(rect)
+    def __init__(
+        self,
+        *,
+        content_rect: Rect | None = None,
+        principal_rect: Rect | None = None,
+        margin: int = 0,
+        border: int = 1,
+        padding: int = 0,
+    ):
+        super().__init__(
+            content_rect=content_rect,
+            principal_rect=principal_rect,
+            margin=margin,
+            border=border,
+            padding=padding,
+        )
 
         self.window: Window
 
     def render(self, screen_rect: ScreenRect, layout: "Bonsai"):
         window_border_color = getattr(layout, "window.border.color")
-        window_border_width = getattr(layout, "window.border.width")
 
-        r = self.rect.to_screen_space(screen_rect)
+        content_rect = self.box.content_rect
         self.window.place(
-            r.x, r.y, r.width, r.height, window_border_width, window_border_color
+            content_rect.x,
+            content_rect.y,
+            content_rect.w,
+            content_rect.h,
+            self.box.border,
+            window_border_color,
         )
         self.window.unhide()
 
@@ -333,6 +347,19 @@ class Bonsai(Layout):
             return panes[i - 1].window
         return None
 
+    def show(self, screen_rect: ScreenRect):
+        width_changed = screen_rect.width != self._tree.width
+        height_changed = screen_rect.height != self._tree.height
+        if width_changed or height_changed:
+            self._tree.reset_dimensions(screen_rect.width, screen_rect.height)
+
+    def hide(self):
+        # While other layouts are active, ensure that any new windows are captured
+        # consistenty with the default tab layout here.
+        self._on_next_window = self._handle_default_next_window
+
+        self._hide_all_internal_windows()
+
     def cmd_next(self):
         next_window = self.focus_next(self.focused_window)
         if next_window is not None:
@@ -342,13 +369,6 @@ class Bonsai(Layout):
         prev_window = self.focus_previous(self.focused_window)
         if prev_window is not None:
             self._request_focus(self._windows_to_panes[prev_window])
-
-    def hide(self):
-        # While other layouts are active, ensure that any new windows are captured
-        # consistenty with the default tab layout here.
-        self._on_next_window = self._handle_default_next_window
-
-        self._hide_all_internal_windows()
 
     def cmd_spawn_split(self, program: str, axis: Axis, ratio: float = 0.5):
         if self._tree.is_empty:
@@ -416,14 +436,14 @@ class Bonsai(Layout):
         if next_pane is not None:
             self._request_focus(next_pane)
 
-    def cmd_resize_x(self, amount: float = 0.05):
+    def cmd_resize_x(self, amount: int = 5):
         if self._tree.is_empty:
             return
 
         self._tree.resize(self.focused_pane, Axis.x, amount)
         self._request_relayout()
 
-    def cmd_resize_y(self, amount: float = 0.05):
+    def cmd_resize_y(self, amount: int = 5):
         if self._tree.is_empty:
             return
 
@@ -448,7 +468,10 @@ class Bonsai(Layout):
         return self._tree.tab()
 
     def _reset(self):
-        self._tree = Tree(node_factory=UINodeFactory)
+        # We initialize the tree with arbitrary dimensions. These get reset soon as this
+        # layout's group is assigned to a screen.
+        self._tree = Tree(100, 100, node_factory=UINodeFactory)
+
         self._tree.subscribe(
             TreeEvent.node_added, lambda nodes: self._handle_added_tree_nodes(nodes)
         )

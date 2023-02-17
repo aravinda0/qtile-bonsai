@@ -7,8 +7,7 @@ from __future__ import annotations
 import abc
 from typing import TypeVar
 
-from qtile_bonsai.core.geometry import Axis, AxisParam
-from qtile_bonsai.core.utils import UnitRect
+from qtile_bonsai.core.geometry import Axis, AxisParam, Box, Rect
 
 
 class Node(metaclass=abc.ABCMeta):
@@ -25,19 +24,19 @@ class Node(metaclass=abc.ABCMeta):
 
     @property
     @abc.abstractmethod
-    def rect(self) -> UnitRect:
+    def principal_rect(self) -> Rect:
         raise NotImplementedError
 
     @abc.abstractmethod
-    def shrinkability(self, axis: AxisParam) -> float:
+    def shrinkability(self, axis: AxisParam) -> int:
         raise NotImplementedError
 
     @abc.abstractmethod
-    def shrink(self, axis: AxisParam, amount: float, start_pos: float):
+    def shrink(self, axis: AxisParam, amount: int, start_pos: int):
         raise NotImplementedError
 
     @abc.abstractmethod
-    def grow(self, axis: AxisParam, amount: float, start_pos: float):
+    def grow(self, axis: AxisParam, amount: int, start_pos: int):
         raise NotImplementedError
 
     @property
@@ -163,14 +162,34 @@ class Node(metaclass=abc.ABCMeta):
 
 
 class Pane(Node):
-    min_size = 0.02
+    min_size: int = 50
 
-    def __init__(self, rect: UnitRect):
+    def __init__(
+        self,
+        *,
+        content_rect: Rect | None = None,
+        padding_rect: Rect | None = None,
+        border_rect: Rect | None = None,
+        margin_rect: Rect | None = None,
+        principal_rect: Rect | None = None,
+        margin: int = 0,
+        border: int = 1,
+        padding: int = 0,
+    ):
         super().__init__()
 
         self.parent: SplitContainer
+        self.box = Box(
+            content_rect=content_rect,
+            padding_rect=padding_rect,
+            border_rect=border_rect,
+            margin_rect=margin_rect,
+            principal_rect=principal_rect,
+            margin=margin,
+            border=border,
+            padding=padding,
+        )
         self.recency: int = 0
-        self.rect = UnitRect.from_rect(rect)
 
     @property
     def is_nearest_under_tab_container(self):
@@ -186,31 +205,39 @@ class Pane(Node):
         return ()
 
     @property
-    def rect(self) -> UnitRect:
-        return self._rect
+    def principal_rect(self) -> Rect:
+        return self.box.principal_rect
 
-    @rect.setter
-    def rect(self, value: UnitRect):
-        self._rect = value
+    @principal_rect.setter
+    def principal_rect(self, value: Rect):
+        self.box.principal_rect = value
 
-    def shrinkability(self, axis: AxisParam) -> float:
-        return self.rect.dim(axis) - self.min_size
+    def shrinkability(self, axis: AxisParam) -> int:
+        return self.principal_rect.dim(axis) - self.min_size
 
-    def shrink(self, axis: AxisParam, amount: float, start_pos: float):
+    def shrink(self, axis: AxisParam, amount: int, start_pos: int):
         axis = Axis(axis)
-        setattr(self.rect, axis, start_pos)
-        new_dimension = max(self.rect.dim(axis) - amount, self.min_size)
-        setattr(self.rect, axis.dim, new_dimension)
+        rect = self.box.principal_rect
 
-    def grow(self, axis: AxisParam, amount: float, start_pos: float):
+        setattr(rect, axis, start_pos)
+        new_dimension = max(rect.dim(axis) - amount, self.min_size)
+        setattr(rect, axis.dim, new_dimension)
+
+        self.box.principal_rect = rect
+
+    def grow(self, axis: AxisParam, amount: int, start_pos: int):
         axis = Axis(axis)
-        setattr(self.rect, axis, start_pos)
-        new_dimension = min(self.rect.dim(axis) + amount, 1)
-        setattr(self.rect, axis.dim, new_dimension)
+        rect = self.box.principal_rect
+
+        setattr(rect, axis, start_pos)
+        new_dimension = rect.dim(axis) + amount
+        setattr(rect, axis.dim, new_dimension)
+
+        self.box.principal_rect = rect
 
     def __repr__(self) -> str:
-        r = self.rect
-        return f"p:{self.id} | {{x: {r.x:.4}, y: {r.y:.4}, w: {r.w:.4}, h: {r.h:.4}}}"
+        r = self.principal_rect
+        return f"p:{self.id} | {{x: {r.x}, y: {r.y}, w: {r.w}, h: {r.h}}}"
 
 
 class SplitContainer(Node):
@@ -226,19 +253,19 @@ class SplitContainer(Node):
         return isinstance(self.parent.parent, TabContainer)
 
     @property
-    def rect(self) -> UnitRect:
-        rect = self.children[0].rect
+    def principal_rect(self) -> Rect:
+        rect = self.children[0].principal_rect
         for node in self.children[1:]:
-            rect = rect.union(node.rect)
+            rect = rect.union(node.principal_rect)
         return rect
 
-    def shrinkability(self, axis: AxisParam) -> float:
+    def shrinkability(self, axis: AxisParam) -> int:
         shrinkability_summary = (child.shrinkability(axis) for child in self.children)
         if self.axis == axis:
             return sum(shrinkability_summary)
         return min(shrinkability_summary)
 
-    def shrink(self, axis: AxisParam, amount: float, start_pos: float):
+    def shrink(self, axis: AxisParam, amount: int, start_pos: int):
         branch_shrinkability = self.shrinkability(axis)
         actual_amount = min(amount, branch_shrinkability)
         if self.axis == axis:
@@ -247,24 +274,26 @@ class SplitContainer(Node):
             s = start_pos
             for child in self.children:
                 child_shrinkability = child.shrinkability(axis)
-                allotment = (child_shrinkability / branch_shrinkability) * actual_amount
+                allotment = round(
+                    (child_shrinkability / branch_shrinkability) * actual_amount
+                )
                 child.shrink(axis, allotment, s)
-                s += child.rect.dim(axis)
+                s += child.principal_rect.dim(axis)
         else:
             # Resizing against `self.axis` will shrink all contained nodes by the same
             # amount.
             for child in self.children:
                 child.shrink(axis, actual_amount, start_pos)
 
-    def grow(self, axis: AxisParam, amount: float, start_pos: float):
+    def grow(self, axis: AxisParam, amount: int, start_pos: int):
         if self.axis == axis:
             # Resizing along `self.axis` will grow each contained node in proportion
             # to its size.
-            branch_size = self.rect.dim(axis)
+            branch_size = self.principal_rect.dim(axis)
             s = start_pos
             for child in self.children:
-                child_size = child.rect.dim(axis)
-                allotment = (child_size / branch_size) * amount
+                child_size = child.principal_rect.dim(axis)
+                allotment = round((child_size / branch_size) * amount)
                 child.grow(axis, allotment, s)
                 s += child_size + allotment
         else:
@@ -290,16 +319,16 @@ class Tab(Node):
         self.title: str = title
 
     @property
-    def rect(self) -> UnitRect:
-        return self.children[0].rect
+    def principal_rect(self) -> Rect:
+        return self.children[0].principal_rect
 
-    def shrinkability(self, axis: AxisParam) -> float:
+    def shrinkability(self, axis: AxisParam) -> int:
         return self.children[0].shrinkability(axis)
 
-    def shrink(self, axis: AxisParam, amount: float, start_pos: float):
+    def shrink(self, axis: AxisParam, amount: int, start_pos: int):
         self.children[0].shrink(axis, amount, start_pos)
 
-    def grow(self, axis: AxisParam, amount: float, start_pos: float):
+    def grow(self, axis: AxisParam, amount: int, start_pos: int):
         self.children[0].grow(axis, amount, start_pos)
 
     def __repr__(self) -> str:
@@ -313,45 +342,49 @@ class TabContainer(Node):
         self.parent: SplitContainer | None
         self.children: list[Tab]
         self.active_child: Tab | None = None
-        self.tab_bar = TabBar()
+        self.tab_bar = TabBar(principal_rect=Rect(0, 0, 100, TabBar.default_height))
 
     @property
-    def rect(self) -> UnitRect:
-        return self.get_inner_rect().union(self.tab_bar.rect)
+    def principal_rect(self) -> Rect:
+        return self.get_inner_rect().union(self.tab_bar.box.principal_rect)
 
-    def get_inner_rect(self) -> UnitRect:
+    def get_inner_rect(self) -> Rect:
         """Returns the space used by this TabContainer excluding its tab bar.
 
         All of the tabs under a tab container occupy the same total space, so we can
         just pick one.
         """
-        return self.children[0].rect
+        return self.children[0].principal_rect
 
-    def shrinkability(self, axis: AxisParam) -> float:
+    def shrinkability(self, axis: AxisParam) -> int:
         # We are limited by what is contained in the nested tabs. The entire TC can only
         # shrink as much as the least shrinkable tab.
         return min(tab.shrinkability(axis) for tab in self.children)
 
-    def shrink(self, axis: AxisParam, amount: float, start_pos: float):
+    def shrink(self, axis: AxisParam, amount: int, start_pos: int):
         actual_amount = min(amount, self.shrinkability(axis))
 
+        bar_rect = self.tab_bar.box.principal_rect
         if axis == "x":
-            self.tab_bar.rect.x = start_pos
-            self.tab_bar.rect.w -= actual_amount
+            bar_rect.x = start_pos
+            bar_rect.w -= actual_amount
         else:
-            self.tab_bar.rect.y = start_pos
-            start_pos += self.tab_bar.rect.h
+            bar_rect.y = start_pos
+            start_pos += bar_rect.h
+        self.tab_bar.box.principal_rect = bar_rect
 
         for child in self.children:
             child.shrink(axis, actual_amount, start_pos)
 
-    def grow(self, axis: AxisParam, amount: float, start_pos: float):
+    def grow(self, axis: AxisParam, amount: int, start_pos: int):
+        bar_rect = self.tab_bar.box.principal_rect
         if axis == "x":
-            self.tab_bar.rect.x = start_pos
-            self.tab_bar.rect.w += amount
+            bar_rect.x = start_pos
+            bar_rect.w += amount
         else:
-            self.tab_bar.rect.y = start_pos
-            start_pos += self.tab_bar.rect.h
+            bar_rect.y = start_pos
+            start_pos += bar_rect.h
+        self.tab_bar.box.principal_rect = bar_rect
 
         for child in self.children:
             child.grow(axis, amount, start_pos)
@@ -361,10 +394,30 @@ class TabContainer(Node):
 
 
 class TabBar:
-    default_height = 0.02
+    default_height: int = 20
 
-    def __init__(self):
-        self.rect = UnitRect(0, 0, 1, self.default_height)
+    def __init__(
+        self,
+        *,
+        content_rect: Rect | None = None,
+        padding_rect: Rect | None = None,
+        border_rect: Rect | None = None,
+        margin_rect: Rect | None = None,
+        principal_rect: Rect | None = None,
+        margin: int = 0,
+        border: int = 1,
+        padding: int = 0,
+    ):
+        self.box = Box(
+            content_rect=content_rect,
+            padding_rect=padding_rect,
+            border_rect=border_rect,
+            margin_rect=margin_rect,
+            principal_rect=principal_rect,
+            margin=margin,
+            border=border,
+            padding=padding,
+        )
         self.bg_color = "#000000"
         self.fg_color = "#ff0000"
         self.active_tab_color = "#0000ff"
