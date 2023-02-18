@@ -7,9 +7,7 @@ from unittest import mock
 import pytest
 from qtile_bonsai.core.geometry import Rect
 from qtile_bonsai.core.tree import (
-    NodeFactory,
     Pane,
-    SplitContainer,
     Tab,
     TabContainer,
     Tree,
@@ -2913,70 +2911,3 @@ class TestSubscribe:
 class TestRepr:
     def test_empty_tree(self, tree):
         assert repr(tree) == "<empty>"
-
-
-class TestNodeFactoryExtensions:
-    def test_when_user_provides_custom_node_classes_then_they_are_used_internally(self):
-        class CustomTC(TabContainer):
-            pass
-
-        class CustomT(Tab):
-            pass
-
-        class CustomSC(SplitContainer):
-            pass
-
-        class CustomP(Pane):
-            pass
-
-        class CustomNodeFactory(NodeFactory):
-            TabContainer = CustomTC
-            Tab = CustomT
-            SplitContainer = CustomSC
-            Pane = CustomP
-
-        tree = Tree(400, 300, node_factory=CustomNodeFactory)
-        p1 = tree.tab()
-        p2 = tree.split(p1, "x")
-        p3 = tree.split(p2, "y")
-        p4 = tree.tab(p3, new_level=True)
-
-        assert type(p1) == CustomP
-        assert type(p2) == CustomP
-        assert type(p3) == CustomP
-        assert type(p4) == CustomP
-
-        sc1, t1, tc1, sc2, sc3, t2, tc2 = p4.get_ancestors()
-
-        assert type(sc1) == CustomSC
-        assert type(t1) == CustomT
-        assert type(tc1) == CustomTC
-        assert type(sc2) == CustomSC
-        assert type(sc3) == CustomSC
-        assert type(t2) == CustomT
-        assert type(tc2) == CustomTC
-
-    def test_when_user_provides_only_some_custom_node_classes_then_default_node_classes_are_used_for_unspecified_node_types(
-        self,
-    ):
-        class CustomSC(SplitContainer):
-            pass
-
-        class CustomNodeFactory(NodeFactory):
-            SplitContainer = CustomSC
-
-        tree = Tree(400, 300, node_factory=CustomNodeFactory)
-        p1 = tree.tab()
-        p2 = tree.split(p1, "x")
-        p3 = tree.split(p2, "y")
-
-        assert type(p1) == Pane
-        assert type(p2) == Pane
-        assert type(p3) == Pane
-
-        sc1, sc2, t, tc = p3.get_ancestors()
-
-        assert type(sc1) == CustomSC
-        assert type(sc2) == CustomSC
-        assert type(t) == Tab
-        assert type(tc) == TabContainer

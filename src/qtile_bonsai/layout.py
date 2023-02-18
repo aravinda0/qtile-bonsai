@@ -4,9 +4,9 @@
 
 from typing import Callable
 
-from libqtile import qtile
-from libqtile.backend.base import Drawer, Window
+from libqtile.backend.base import Drawer, Internal, Window
 from libqtile.config import ScreenRect
+from libqtile.core.manager import Qtile
 from libqtile.drawer import TextLayout
 from libqtile.layout.base import Layout
 from libqtile.log_utils import logger
@@ -15,7 +15,6 @@ from qtile_bonsai.colors import Gruvbox
 from qtile_bonsai.core.geometry import Rect
 from qtile_bonsai.core.tree import (
     Axis,
-    NodeFactory,
     Pane,
     SplitContainer,
     Tab,
@@ -28,8 +27,18 @@ from qtile_bonsai.core.tree import (
 class BonsaiNodeMixin:
     """A mixin that formalizes UI operations for nodes."""
 
-    def init_ui(self, qtile):
-        """Handles any initialization for UI resources that may represent a node"""
+    def init_ui(self, qtile: Qtile):
+        """Handles any initialization of UI elements that are part of this node's
+        representation.
+        """
+        pass
+
+    def load_config(self, layout: "Bonsai"):
+        """Reads relevant user configuration and applies it to node state.
+
+        This is something that may not be possible in __init__ as the node's level in
+        the tree is only clear post-init when `node.parent` gets set.
+        """
         pass
 
     def render(self, screen_rect: ScreenRect, layout: "Bonsai"):
@@ -50,49 +59,56 @@ class BonsaiNodeMixin:
         pass
 
 
-class BonsaiTabContainer(TabContainer, BonsaiNodeMixin):
+class BonsaiTabContainer(BonsaiNodeMixin, TabContainer):
     def __init__(self):
         super().__init__()
 
-        self.bar_window: Window
+        self.bar_window: Internal
         self.bar_drawer: Drawer
         self.bar_text_layout: TextLayout
 
-    def init_ui(self, qtile):
+    def init_ui(self, qtile: Qtile):
         # Arbitrary coords on init. Will get rendered to proper screen position
         # during layout phase.
         self.bar_window = qtile.core.create_internal(0, 0, 1, 1)
+
         self.bar_drawer = self.bar_window.create_drawer(1, 1)
         self.bar_text_layout = self.bar_drawer.textlayout(
             "", "000000", "mono", 15, None
         )
 
-    def render(self, screen_rect: ScreenRect, layout: "Bonsai"):
-        tab_bar_border_color = self._resolve_level_config(
-            "tab_bar.border.color", layout
-        )
-        tab_bar_bg_color = self._resolve_level_config("tab_bar.bg_color", layout)
+    def load_config(self, layout: "Bonsai"):
+        tab_bar = self.tab_bar
+        tab_bar.box.margin = layout.get_config("tab_bar.margin", self.tab_level)
+        tab_bar.box.border = layout.get_config("tab_bar.border_size", self.tab_level)
 
-        tab_min_width = self._resolve_level_config("tab_bar.tab.min_width", layout)
-        tab_font_family = self._resolve_level_config("tab_bar.tab.font_family", layout)
-        tab_font_size = self._resolve_level_config("tab_bar.tab.font_size", layout)
-        tab_padding = self._resolve_level_config("tab_bar.tab.padding", layout)
-        tab_active_bg_color = self._resolve_level_config(
-            "tab_bar.tab.active_bg_color", layout
-        )
-        tab_active_fg_color = self._resolve_level_config(
-            "tab_bar.tab.active_fg_color", layout
-        )
-        tab_inactive_bg_color = self._resolve_level_config(
-            "tab_bar.tab.inactive_bg_color", layout
-        )
-        tab_inactive_fg_color = self._resolve_level_config(
-            "tab_bar.tab.inactive_fg_color", layout
-        )
+    def render(self, screen_rect: ScreenRect, layout: "Bonsai"):
+        level = self.tab_level
+
+        tab_bar_border_color = layout.get_config("tab_bar.border_color", level)
+        tab_bar_bg_color = layout.get_config("tab_bar.bg_color", level)
+
+        tab_min_width = layout.get_config("tab_bar.tab.min_width", level)
+        layout.get_config("tab_bar.tab.margin", level)  # TODO: use
+        layout.get_config("tab_bar.tab.border_color", level)  # TODO: use
+        tab_padding = layout.get_config("tab_bar.tab.padding", level)
+        tab_font_family = layout.get_config("tab_bar.tab.font_family", level)
+        tab_font_size = layout.get_config("tab_bar.tab.font_size", level)
+        tab_bg_color = layout.get_config("tab_bar.tab.bg_color", level)
+        tab_fg_color = layout.get_config("tab_bar.tab.fg_color", level)
+
+        tab_active_bg_color = layout.get_config("tab_bar.tab.active.bg_color", level)
+        tab_active_fg_color = layout.get_config("tab_bar.tab.active.fg_color", level)
 
         r = self.tab_bar.box.content_rect
         self.bar_window.place(
-            r.x, r.y, r.w, r.h, self.tab_bar.box.border, tab_bar_border_color
+            r.x,
+            r.y,
+            r.w,
+            r.h,
+            borderwidth=self.tab_bar.box.border,
+            bordercolor=tab_bar_border_color,
+            margin=self.tab_bar.box.margin,
         )
         self.bar_window.unhide()
 
@@ -106,8 +122,8 @@ class BonsaiTabContainer(TabContainer, BonsaiNodeMixin):
                 self.bar_drawer.set_source_rgb(tab_active_bg_color)
                 self.bar_text_layout.colour = tab_active_fg_color
             else:
-                self.bar_drawer.set_source_rgb(tab_inactive_bg_color)
-                self.bar_text_layout.colour = tab_inactive_fg_color
+                self.bar_drawer.set_source_rgb(tab_bg_color)
+                self.bar_text_layout.colour = tab_fg_color
 
             w, _ = self.bar_drawer.max_layout_size(
                 [tab.title], tab_font_family, tab_font_size
@@ -128,26 +144,16 @@ class BonsaiTabContainer(TabContainer, BonsaiNodeMixin):
         self.bar_drawer.finalize()
         self.bar_window.kill()
 
-    def _resolve_level_config(self, key: str, layout: "Bonsai"):
-        # Include this TC node when determining level for applying configuration
-        level = self.tab_level + 1
 
-        level_key = f"L{level}.{key}"
-        if not hasattr(layout, level_key):
-            level_key = key
-
-        return getattr(layout, level_key)
-
-
-class BonsaiTab(Tab, BonsaiNodeMixin):
+class BonsaiTab(BonsaiNodeMixin, Tab):
     pass
 
 
-class BonsaiSplitContainer(SplitContainer, BonsaiNodeMixin):
+class BonsaiSplitContainer(BonsaiNodeMixin, SplitContainer):
     pass
 
 
-class BonsaiPane(Pane, BonsaiNodeMixin):
+class BonsaiPane(BonsaiNodeMixin, Pane):
     def __init__(
         self,
         *,
@@ -155,20 +161,25 @@ class BonsaiPane(Pane, BonsaiNodeMixin):
         principal_rect: Rect | None = None,
         margin: int = 0,
         border: int = 1,
-        padding: int = 0,
     ):
         super().__init__(
             content_rect=content_rect,
             principal_rect=principal_rect,
             margin=margin,
             border=border,
-            padding=padding,
+            padding=0,
         )
 
         self.window: Window
 
+    def load_config(self, layout: "Bonsai"):
+        self.box.margin = layout.get_config("window.margin", self.tab_level)
+        self.box.border = layout.get_config("window.border_size", self.tab_level)
+
     def render(self, screen_rect: ScreenRect, layout: "Bonsai"):
-        window_border_color = getattr(layout, "window.border.color")
+        level = self.tab_level
+
+        window_border_color = layout.get_config("window.border_color", level)
 
         content_rect = self.box.content_rect
         self.window.place(
@@ -176,8 +187,9 @@ class BonsaiPane(Pane, BonsaiNodeMixin):
             content_rect.y,
             content_rect.w,
             content_rect.h,
-            self.box.border,
-            window_border_color,
+            borderwidth=self.box.border,
+            bordercolor=window_border_color,
+            margin=self.box.margin,
         )
         self.window.unhide()
 
@@ -185,63 +197,104 @@ class BonsaiPane(Pane, BonsaiNodeMixin):
         self.window.hide()
 
 
-class UINodeFactory(NodeFactory):
-    TabContainer = BonsaiTabContainer
-    Tab = BonsaiTab
-    SplitContainer = BonsaiSplitContainer
-    Pane = BonsaiPane
+class BonsaiTree(Tree):
+    def create_pane(
+        self,
+        *,
+        content_rect: Rect | None = None,
+        principal_rect: Rect | None = None,
+        margin: int = 0,
+        border: int = 1,
+    ) -> BonsaiPane:
+        return BonsaiPane(
+            content_rect=content_rect,
+            principal_rect=principal_rect,
+            margin=margin,
+            border=border,
+        )
+
+    def create_split_container(self) -> BonsaiSplitContainer:
+        return BonsaiSplitContainer()
+
+    def create_tab(self, title) -> BonsaiTab:
+        return BonsaiTab(title)
+
+    def create_tab_container(self) -> BonsaiTabContainer:
+        return BonsaiTabContainer()
 
 
 class Bonsai(Layout):
     defaults = [
         (
-            "window.border.color",
-            Gruvbox.dark_yellow,
-            "Color of the border around windows",
+            "window.margin",
+            0,
+            "Size of the margin space around windows",
         ),
         (
-            "window.border.width",
+            "window.border_size",
             1,
             "Width of the border around windows",
         ),
         (
-            "tab_bar.border.color",
+            "window.border_color",
             Gruvbox.dark_yellow,
-            "Background color the tab bar, beind the tabs",
+            "Color of the border around windows",
         ),
         (
-            "tab_bar.border.width",
+            "window.active.border_color",
+            Gruvbox.bright_yellow,
+            "Color of the border around an active window",
+        ),
+        (
+            "tab_bar.margin",
+            0,
+            "Size of the margin space around tab bars",
+        ),
+        (
+            "tab_bar.border_size",
             1,
-            "Background color the tab bar, beind the tabs",
+            "Size of the border around tab bars",
+        ),
+        (
+            "tab_bar.border_color",
+            Gruvbox.dark_yellow,
+            "Color of border around tab bars",
         ),
         (
             "tab_bar.bg_color",
             Gruvbox.bg0,
-            "Background color the tab bar, beind the tabs",
+            "Background color of tab bars, beind their tabs",
         ),
         ("tab_bar.tab.min_width", 50, "Minimum width of a tab on a tab bar"),
+        ("tab_bar.tab.margin", 0, "Size of the margin space around individual tabs"),
+        ("tab_bar.tab.border_size", 1, "Size of the border around individual tabs"),
+        (
+            "tab_bar.tab.border_color",
+            Gruvbox.dark_yellow,
+            "Color of the border around individual tabs",
+        ),
+        ("tab_bar.tab.padding", 20, "Size of the padding space inside individual tabs"),
+        (
+            "tab_bar.tab.bg_color",
+            Gruvbox.bg1,
+            "Background color of individual tabs",
+        ),
+        (
+            "tab_bar.tab.fg_color",
+            Gruvbox.fg1,
+            "Foreground text color of individual tabs",
+        ),
         ("tab_bar.tab.font_family", "Mono", "Font family to use for tab titles"),
         ("tab_bar.tab.font_size", 15, "Font size to use for tab titles"),
-        ("tab_bar.tab.padding", 20, "Font size to use for tab titles"),
         (
-            "tab_bar.tab.active_bg_color",
+            "tab_bar.tab.active.bg_color",
             Gruvbox.bg4,
-            "Background color of the active tab",
+            "Background color of active tabs",
         ),
         (
-            "tab_bar.tab.active_fg_color",
+            "tab_bar.tab.active.fg_color",
             Gruvbox.fg1,
             "Foreground text color of the active tab",
-        ),
-        (
-            "tab_bar.tab.inactive_bg_color",
-            Gruvbox.bg1,
-            "Background color of inactive tabs",
-        ),
-        (
-            "tab_bar.tab.inactive_fg_color",
-            Gruvbox.fg1,
-            "Foreground text color of inactive tabs",
         ),
     ]
 
@@ -271,7 +324,7 @@ class Bonsai(Layout):
 
         This is a bit different from traditional copying/cloning of any 'current' state
         of the layout instance. In qtile, the config file holds the 'first' instance of
-        the layout, then each Group instance 'clones' that original instance (which
+        the layout, then each Group instance 'clones' of that original instance (which
         likely remains in its initial state) and uses the new instance for all future
         operations.
         """
@@ -360,6 +413,13 @@ class Bonsai(Layout):
 
         self._hide_all_internal_windows()
 
+    def get_config(self, key: str, level: int = 1):
+        level_key = f"L{level}.{key}"
+        if not hasattr(self, level_key):
+            level_key = key
+
+        return getattr(self, level_key)
+
     def cmd_next(self):
         next_window = self.focus_next(self.focused_window)
         if next_window is not None:
@@ -380,7 +440,7 @@ class Bonsai(Layout):
 
         self._on_next_window = _handle_next_window
 
-        qtile.cmd_spawn(program)
+        self.group.qtile.cmd_spawn(program)
 
     def cmd_spawn_tab(
         self, program: str, *, new_level: bool = False, level: int | None = None
@@ -390,7 +450,7 @@ class Bonsai(Layout):
 
         self._on_next_window = _handle_next_window
 
-        qtile.cmd_spawn(program)
+        self.group.qtile.cmd_spawn(program)
 
     def cmd_left(self, *, wrap: bool = True):
         if self._tree.is_empty:
@@ -470,7 +530,7 @@ class Bonsai(Layout):
     def _reset(self):
         # We initialize the tree with arbitrary dimensions. These get reset soon as this
         # layout's group is assigned to a screen.
-        self._tree = Tree(100, 100, node_factory=UINodeFactory)
+        self._tree = BonsaiTree(100, 100)
 
         self._tree.subscribe(
             TreeEvent.node_added, lambda nodes: self._handle_added_tree_nodes(nodes)
@@ -489,6 +549,7 @@ class Bonsai(Layout):
     def _handle_added_tree_nodes(self, nodes: list[BonsaiNodeMixin]):
         for node in nodes:
             node.init_ui(self.group.qtile)
+            node.load_config(self)
 
     def _handle_removed_tree_nodes(self, nodes: list[BonsaiNodeMixin]):
         for node in nodes:
