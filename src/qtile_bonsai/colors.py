@@ -36,3 +36,5 @@ class Gruvbox:
     dark_aqua = "#689d6a"
     dark_gray = "#a89984"
     dark_orange = "#d65d0e"
+
+    darker_yellow = "#6d531f"

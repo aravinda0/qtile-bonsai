@@ -179,7 +179,10 @@ class BonsaiPane(BonsaiNodeMixin, Pane):
     def render(self, screen_rect: ScreenRect, layout: "Bonsai"):
         level = self.tab_level
 
-        window_border_color = layout.get_config("window.border_color", level)
+        if self.window.has_focus:
+            window_border_color = layout.get_config("window.active.border_color", level)
+        else:
+            window_border_color = layout.get_config("window.border_color", level)
 
         # Use principal rect as qtile windows start with provided x/y/w/h and adjust
         # internally to account for border, margin.
@@ -239,12 +242,12 @@ class Bonsai(Layout):
         ),
         (
             "window.border_color",
-            Gruvbox.dark_yellow,
+            Gruvbox.darker_yellow,
             "Color of the border around windows",
         ),
         (
             "window.active.border_color",
-            Gruvbox.bright_yellow,
+            Gruvbox.dark_yellow,
             "Color of the border around an active window",
         ),
         (
