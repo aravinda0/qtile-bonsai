@@ -100,20 +100,20 @@ class BonsaiTabContainer(BonsaiNodeMixin, TabContainer):
         tab_active_bg_color = layout.get_config("tab_bar.tab.active.bg_color", level)
         tab_active_fg_color = layout.get_config("tab_bar.tab.active.fg_color", level)
 
-        r = self.tab_bar.box.content_rect
+        rect = self.tab_bar.box.principal_rect
         self.bar_window.place(
-            r.x,
-            r.y,
-            r.w,
-            r.h,
+            rect.x,
+            rect.y,
+            rect.w,
+            rect.h,
             borderwidth=self.tab_bar.box.border,
             bordercolor=tab_bar_border_color,
             margin=self.tab_bar.box.margin,
         )
         self.bar_window.unhide()
 
-        self.bar_drawer.width = r.w
-        self.bar_drawer.height = r.h
+        self.bar_drawer.width = rect.w
+        self.bar_drawer.height = rect.h
         self.bar_drawer.clear(tab_bar_bg_color)
 
         offset = 0
@@ -129,12 +129,12 @@ class BonsaiTabContainer(BonsaiNodeMixin, TabContainer):
                 [tab.title], tab_font_family, tab_font_size
             )
             w = max(w + tab_padding * 2, tab_min_width)
-            self.bar_drawer.fillrect(offset, 0, w, r.h)
+            self.bar_drawer.fillrect(offset, 0, w, rect.h)
             self.bar_text_layout.text = tab.title
             self.bar_text_layout.draw(offset + tab_padding, 0)
             offset += w
 
-        self.bar_drawer.draw(0, 0, r.w, r.h)
+        self.bar_drawer.draw(0, 0, rect.w, rect.h)
 
     def hide(self):
         self.bar_window.hide()
@@ -181,12 +181,14 @@ class BonsaiPane(BonsaiNodeMixin, Pane):
 
         window_border_color = layout.get_config("window.border_color", level)
 
-        content_rect = self.box.content_rect
+        # Use principal rect as qtile windows start with provided x/y/w/h and adjust
+        # internally to account for border, margin.
+        rect = self.box.principal_rect
         self.window.place(
-            content_rect.x,
-            content_rect.y,
-            content_rect.w,
-            content_rect.h,
+            rect.x,
+            rect.y,
+            rect.w,
+            rect.h,
             borderwidth=self.box.border,
             bordercolor=window_border_color,
             margin=self.box.margin,

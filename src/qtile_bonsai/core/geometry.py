@@ -174,35 +174,42 @@ class Rect:
 
 
 class Box:
-    """Provides rect-geometry similar to the CSS box model.
+    """Provides rect-geometry akin to the CSS box model.
 
     The concentric rects, innermost to outermost are:
-        1. content_rect
-        2. padding_rect
-        3. border_rect
-        4. margin_rect
-
-    The `principal_rect` is a synonym for the outermost rect - in the current model, it
-    is the same as the `margin_rect`. This is the maximum space occupied by the
-    instance.
+        1. margin_rect/principal_rect
+        2. border_rect
+        3. padding_rect
+        4. content_rect
 
     We can set any of the rects and the internals will be sync'd according to the
-    margin/border/padding values.
-    eg. `box.principal_rect = Rect(...)` will ensure that `box.content_rect` gets reset
-    appropriately, after which other rects are derived correctly too.
+    margin/border/padding values, so that accessing any rect property subsequently will
+    work correctly.
+
+    The `principal_rect` is a synonym for the outermost rect and represents the maximum
+    space occupied by the box. In the current model, it is the same as `margin_rect`.
+
+    Comparing to CSS, where the box semantics default to 'content-box', our Box class
+    defaults to what could be defined as 'margin-box' or 'principal-box'.
+
+    This 'principal-box' model is more suitable for use in tiling window managers, where
+    we start out with a full screen-sized rect, and keep dividing that rect into smaller
+    ones. So even if we keep tweaking margins/borders/padding, the principal_rect
+    relationships between different windows remains constant and simplifies
+    calculations.
 
     NOTE: At the moment, we must be wary of doing something like
-    `box.principal_rect.x = 100` - which cant't trigger the sync logic.
+    `box.content_rect.x = 100` - which cant't trigger the sync logic.
     """
 
     def __init__(
         self,
         *,
-        content_rect: Rect | None = None,
-        padding_rect: Rect | None = None,
-        border_rect: Rect | None = None,
-        margin_rect: Rect | None = None,
         principal_rect: Rect | None = None,
+        margin_rect: Rect | None = None,
+        border_rect: Rect | None = None,
+        padding_rect: Rect | None = None,
+        content_rect: Rect | None = None,
         margin: int = 0,
         border: int = 1,
         padding: int = 0,
@@ -211,43 +218,12 @@ class Box:
         self.border: int = border
         self.padding: int = padding
         self._init_rect(
-            content_rect, padding_rect, border_rect, margin_rect, principal_rect
+            principal_rect,
+            margin_rect,
+            border_rect,
+            padding_rect,
+            content_rect,
         )
-
-    @property
-    def content_rect(self) -> Rect:
-        return self._content_rect
-
-    @content_rect.setter
-    def content_rect(self, value: Rect):
-        self._content_rect = value
-
-    @property
-    def padding_rect(self) -> Rect:
-        return self._get_enclosing_rect(self.padding)
-
-    @padding_rect.setter
-    def padding_rect(self, value: Rect):
-        excess_per_side = self.padding
-        self._set_content_rect(value, excess_per_side)
-
-    @property
-    def border_rect(self) -> Rect:
-        return self._get_enclosing_rect(self.padding + self.border)
-
-    @border_rect.setter
-    def border_rect(self, value: Rect):
-        excess_per_side = self.padding + self.border
-        self._set_content_rect(value, excess_per_side)
-
-    @property
-    def margin_rect(self) -> Rect:
-        return self._get_enclosing_rect(self.padding + self.border + self.margin)
-
-    @margin_rect.setter
-    def margin_rect(self, value: Rect):
-        excess_per_side = self.padding + self.border + self.margin
-        self._set_content_rect(value, excess_per_side)
 
     @property
     def principal_rect(self) -> Rect:
@@ -257,20 +233,55 @@ class Box:
     def principal_rect(self, value: Rect):
         self.margin_rect = value
 
+    @property
+    def margin_rect(self) -> Rect:
+        return self._margin_rect
+
+    @margin_rect.setter
+    def margin_rect(self, value: Rect):
+        self._margin_rect = Rect.from_rect(value)
+
+    @property
+    def border_rect(self) -> Rect:
+        return self._get_inner_rect(self.margin)
+
+    @border_rect.setter
+    def border_rect(self, value: Rect):
+        excess_per_side = self.margin
+        self._set_principal_rect(value, excess_per_side)
+
+    @property
+    def padding_rect(self) -> Rect:
+        return self._get_inner_rect(self.margin + self.border)
+
+    @padding_rect.setter
+    def padding_rect(self, value: Rect):
+        excess_per_side = self.margin + self.padding
+        self._set_principal_rect(value, excess_per_side)
+
+    @property
+    def content_rect(self) -> Rect:
+        return self._get_inner_rect(self.margin + self.border + self.padding)
+
+    @content_rect.setter
+    def content_rect(self, value: Rect):
+        excess_per_side = self.margin + self.border + self.padding
+        self._set_principal_rect(value, excess_per_side)
+
     def _init_rect(
         self,
-        content_rect: Rect | None = None,
-        padding_rect: Rect | None = None,
-        border_rect: Rect | None = None,
-        margin_rect: Rect | None = None,
         principal_rect: Rect | None = None,
+        margin_rect: Rect | None = None,
+        border_rect: Rect | None = None,
+        padding_rect: Rect | None = None,
+        content_rect: Rect | None = None,
     ):
         rect_args = [
-            content_rect,
-            padding_rect,
-            border_rect,
-            margin_rect,
             principal_rect,
+            margin_rect,
+            border_rect,
+            padding_rect,
+            content_rect,
         ]
         non_null_rect_args = len([rect for rect in rect_args if rect is not None])
         if non_null_rect_args != 1:
@@ -280,27 +291,27 @@ class Box:
                 "have been provided."
             )
 
-        if content_rect is not None:
-            self.content_rect = content_rect
-        elif padding_rect is not None:
-            self.padding_rect = padding_rect
-        elif border_rect is not None:
-            self.border_rect = border_rect
+        if principal_rect is not None:
+            self.principal_rect = principal_rect
         elif margin_rect is not None:
             self.margin_rect = margin_rect
-        elif principal_rect is not None:
-            self.principal_rect = principal_rect
+        elif border_rect is not None:
+            self.border_rect = border_rect
+        elif padding_rect is not None:
+            self.padding_rect = padding_rect
+        elif content_rect is not None:
+            self.content_rect = content_rect
 
-    def _get_enclosing_rect(self, excess_per_side: int) -> Rect:
-        x = self.content_rect.x - excess_per_side
-        y = self.content_rect.y - excess_per_side
-        w = self.content_rect.w + (2 * excess_per_side)
-        h = self.content_rect.h + (2 * excess_per_side)
+    def _get_inner_rect(self, excess_per_side: int) -> Rect:
+        x = self.principal_rect.x + excess_per_side
+        y = self.principal_rect.y + excess_per_side
+        w = self.principal_rect.w - (2 * excess_per_side)
+        h = self.principal_rect.h - (2 * excess_per_side)
         return Rect(x, y, w, h)
 
-    def _set_content_rect(self, enclosing_rect: Rect, excess_per_side: int):
-        x = enclosing_rect.x + excess_per_side
-        y = enclosing_rect.y + excess_per_side
-        w = enclosing_rect.w - (2 * excess_per_side)
-        h = enclosing_rect.h - (2 * excess_per_side)
-        self._content_rect = Rect(x, y, w, h)
+    def _set_principal_rect(self, inner_rect: Rect, excess_per_side: int):
+        x = inner_rect.x - excess_per_side
+        y = inner_rect.y - excess_per_side
+        w = inner_rect.w + (2 * excess_per_side)
+        h = inner_rect.h + (2 * excess_per_side)
+        self.margin_rect = Rect(x, y, w, h)
