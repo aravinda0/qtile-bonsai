@@ -44,7 +44,7 @@ dependencies = [
   "pytest-cov",
   "pytest-xdist",
   "pyvirtualdisplay",
-  "pywlroots",
+  "pywlroots==0.15.24",
   "pywayland",
   "xkbcommon",
   "pyside6",
