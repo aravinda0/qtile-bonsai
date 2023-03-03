@@ -566,11 +566,11 @@ def place_window_using_box(window: Window | Internal, box: Box, border_color: st
     the content excluding borders. Margins are processed separately and enclose the
     provided x/y coords.
     """
-    principal_rect = box.principal_rect
+    border_rect = box.border_rect
     content_rect = box.content_rect
     window.place(
-        principal_rect.x,
-        principal_rect.y,
+        border_rect.x,
+        border_rect.y,
         content_rect.w,
         content_rect.h,
         borderwidth=box.border,
