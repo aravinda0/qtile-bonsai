@@ -12,7 +12,7 @@ from libqtile.layout.base import Layout
 from libqtile.log_utils import logger
 
 from qtile_bonsai.colors import Gruvbox
-from qtile_bonsai.core.geometry import Rect
+from qtile_bonsai.core.geometry import Box, Rect
 from qtile_bonsai.core.tree import (
     Axis,
     Pane,
@@ -100,17 +100,10 @@ class BonsaiTabContainer(BonsaiNodeMixin, TabContainer):
         tab_active_bg_color = layout.get_config("tab_bar.tab.active.bg_color", level)
         tab_active_fg_color = layout.get_config("tab_bar.tab.active.fg_color", level)
 
-        rect = self.tab_bar.box.principal_rect
-        self.bar_window.place(
-            rect.x,
-            rect.y,
-            rect.w,
-            rect.h,
-            borderwidth=self.tab_bar.box.border,
-            bordercolor=tab_bar_border_color,
-            margin=self.tab_bar.box.margin,
-        )
+        place_window_using_box(self.bar_window, self.tab_bar.box, tab_bar_border_color)
         self.bar_window.unhide()
+
+        rect = self.tab_bar.box.principal_rect
 
         self.bar_drawer.width = rect.w
         self.bar_drawer.height = rect.h
@@ -184,18 +177,7 @@ class BonsaiPane(BonsaiNodeMixin, Pane):
         else:
             window_border_color = layout.get_config("window.border_color", level)
 
-        # Use principal rect as qtile windows start with provided x/y/w/h and adjust
-        # internally to account for border, margin.
-        rect = self.box.principal_rect
-        self.window.place(
-            rect.x,
-            rect.y,
-            rect.w,
-            rect.h,
-            borderwidth=self.box.border,
-            bordercolor=window_border_color,
-            margin=self.box.margin,
-        )
+        place_window_using_box(self.window, self.box, window_border_color)
         self.window.unhide()
 
     def hide(self):
@@ -574,3 +556,24 @@ class Bonsai(Layout):
 
     def _request_relayout(self):
         self.group.layout_all()
+
+
+def place_window_using_box(window: Window | Internal, box: Box, border_color: str):
+    """Invokes window.place on qtile window instances, translating coordinates from a
+    Box instance.
+
+    qtile window x/y coordinates include borders, but their width/height are those of
+    the content excluding borders. Margins are processed separately and enclose the
+    provided x/y coords.
+    """
+    principal_rect = box.principal_rect
+    content_rect = box.content_rect
+    window.place(
+        principal_rect.x,
+        principal_rect.y,
+        content_rect.w,
+        content_rect.h,
+        borderwidth=box.border,
+        bordercolor=border_color,
+        margin=box.margin,
+    )
