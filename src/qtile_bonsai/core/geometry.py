@@ -268,6 +268,11 @@ class Box:
         excess_per_side = self.margin + self.border + self.padding
         self._set_principal_rect(value, excess_per_side)
 
+    def __repr__(self):
+        r = self.principal_rect
+        m, b, p = self.margin, self.border, self.padding
+        return f"{{x: {r.x}, y: {r.y}, w: {r.w}, h: {r.h}, m: {m}, b: {b}, p: {p}}}"
+
     def _init_rect(
         self,
         principal_rect: Rect | None = None,
