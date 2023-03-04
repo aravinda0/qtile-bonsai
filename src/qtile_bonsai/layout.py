@@ -89,6 +89,7 @@ class BonsaiTabContainer(BonsaiNodeMixin, TabContainer):
         tab_bar_bg_color = layout.get_config("tab_bar.bg_color", level)
 
         tab_min_width = layout.get_config("tab_bar.tab.min_width", level)
+        tab_margin = layout.get_config("tab_bar.tab.margin", level)
         tab_padding = layout.get_config("tab_bar.tab.padding", level)
         tab_font_family = layout.get_config("tab_bar.tab.font_family", level)
         tab_font_size = layout.get_config("tab_bar.tab.font_size", level)
@@ -101,14 +102,15 @@ class BonsaiTabContainer(BonsaiNodeMixin, TabContainer):
         place_window_using_box(self.bar_window, self.tab_bar.box, tab_bar_border_color)
         self.bar_window.unhide()
 
-        rect = self.tab_bar.box.principal_rect
+        bar_rect = self.tab_bar.box.principal_rect
 
-        self.bar_drawer.width = rect.w
-        self.bar_drawer.height = rect.h
+        self.bar_drawer.width = bar_rect.w
+        self.bar_drawer.height = bar_rect.h
         self.bar_drawer.clear(tab_bar_bg_color)
 
         offset = 0
         for tab in self.children:
+            # Prime drawers with colors
             if tab is self.active_child:
                 self.bar_drawer.set_source_rgb(tab_active_bg_color)
                 self.bar_text_layout.colour = tab_active_fg_color
@@ -116,16 +118,28 @@ class BonsaiTabContainer(BonsaiNodeMixin, TabContainer):
                 self.bar_drawer.set_source_rgb(tab_bg_color)
                 self.bar_text_layout.colour = tab_fg_color
 
-            w, _ = self.bar_drawer.max_layout_size(
+            # Compute space for the tab rect
+            tab_box = Box(
+                principal_rect=Rect(offset, 0, 0, bar_rect.h),  # We set width below
+                margin=tab_margin,
+                border=0,  # Individual tabs don't have borders
+                padding=tab_padding,
+            )
+            content_w, _ = self.bar_drawer.max_layout_size(
                 [tab.title], tab_font_family, tab_font_size
             )
-            w = max(w + tab_padding * 2, tab_min_width)
-            self.bar_drawer.fillrect(offset, 0, w, rect.h)
-            self.bar_text_layout.text = tab.title
-            self.bar_text_layout.draw(offset + tab_padding, 0)
-            offset += w
+            tab_box.principal_rect.w = max(content_w, tab_min_width)
 
-        self.bar_drawer.draw(0, 0, rect.w, rect.h)
+            # Draw the tab
+            self.bar_drawer.fillrect(
+                tab_box.border_rect.x, 0, tab_box.border_rect.w, bar_rect.h
+            )
+            self.bar_text_layout.text = tab.title
+            self.bar_text_layout.draw(tab_box.content_rect.x, 0)
+
+            offset += tab_box.principal_rect.w
+
+        self.bar_drawer.draw(0, 0, bar_rect.w, bar_rect.h)
 
     def hide(self):
         self.bar_window.hide()
