@@ -89,8 +89,6 @@ class BonsaiTabContainer(BonsaiNodeMixin, TabContainer):
         tab_bar_bg_color = layout.get_config("tab_bar.bg_color", level)
 
         tab_min_width = layout.get_config("tab_bar.tab.min_width", level)
-        layout.get_config("tab_bar.tab.margin", level)  # TODO: use
-        layout.get_config("tab_bar.tab.border_color", level)  # TODO: use
         tab_padding = layout.get_config("tab_bar.tab.padding", level)
         tab_font_family = layout.get_config("tab_bar.tab.font_family", level)
         tab_font_size = layout.get_config("tab_bar.tab.font_size", level)
@@ -254,12 +252,6 @@ class Bonsai(Layout):
         ),
         ("tab_bar.tab.min_width", 50, "Minimum width of a tab on a tab bar"),
         ("tab_bar.tab.margin", 0, "Size of the margin space around individual tabs"),
-        ("tab_bar.tab.border_size", 1, "Size of the border around individual tabs"),
-        (
-            "tab_bar.tab.border_color",
-            Gruvbox.dark_yellow,
-            "Color of the border around individual tabs",
-        ),
         ("tab_bar.tab.padding", 20, "Size of the padding space inside individual tabs"),
         (
             "tab_bar.tab.bg_color",
