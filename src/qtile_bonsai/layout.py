@@ -251,7 +251,7 @@ class Bonsai(Layout):
         ),
         (
             "tab_bar.border_size",
-            1,
+            0,
             "Size of the border around tab bars",
         ),
         (
