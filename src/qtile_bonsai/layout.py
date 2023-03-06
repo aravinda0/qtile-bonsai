@@ -109,7 +109,7 @@ class BonsaiTabContainer(BonsaiNodeMixin, TabContainer):
         self.bar_drawer.clear(tab_bar_bg_color)
 
         offset = 0
-        for tab in self.children:
+        for i, tab in enumerate(self.children):
             # Prime drawers with colors
             if tab is self.active_child:
                 self.bar_drawer.set_source_rgb(tab_active_bg_color)
@@ -125,8 +125,9 @@ class BonsaiTabContainer(BonsaiNodeMixin, TabContainer):
                 border=0,  # Individual tabs don't have borders
                 padding=tab_padding,
             )
+            tab_title = f"{i + 1}: {tab.title}" if tab.title else f"{i + 1}"
             content_w, _ = self.bar_drawer.max_layout_size(
-                [tab.title], tab_font_family, tab_font_size
+                [tab_title], tab_font_family, tab_font_size
             )
             tab_box.principal_rect.w = max(content_w, tab_min_width)
 
@@ -134,7 +135,7 @@ class BonsaiTabContainer(BonsaiNodeMixin, TabContainer):
             self.bar_drawer.fillrect(
                 tab_box.border_rect.x, 0, tab_box.border_rect.w, bar_rect.h
             )
-            self.bar_text_layout.text = tab.title
+            self.bar_text_layout.text = tab_title
             self.bar_text_layout.draw(tab_box.content_rect.x, 0)
 
             offset += tab_box.principal_rect.w
@@ -215,7 +216,7 @@ class BonsaiTree(Tree):
     def create_split_container(self) -> BonsaiSplitContainer:
         return BonsaiSplitContainer()
 
-    def create_tab(self, title) -> BonsaiTab:
+    def create_tab(self, title: str = "") -> BonsaiTab:
         return BonsaiTab(title)
 
     def create_tab_container(self) -> BonsaiTabContainer:

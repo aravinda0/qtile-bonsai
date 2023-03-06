@@ -90,7 +90,7 @@ class Tree:
         """Factory method for creating a new SplitContainer instance"""
         return SplitContainer()
 
-    def create_tab(self, title) -> Tab:
+    def create_tab(self, title: str = "") -> Tab:
         """Factory method for creating a new Tab instance"""
         return Tab(title)
 
@@ -428,8 +428,7 @@ class Tree:
         tab_container.tab_bar.box.principal_rect = tab_bar_rect
         added_nodes.append(tab_container)
 
-        new_tab_title = f"{len(tab_container.children) + 1}"
-        new_tab = self.create_tab(title=new_tab_title)
+        new_tab = self.create_tab()
         new_tab.parent = tab_container
         tab_container.children.append(new_tab)
         tab_container.active_child = new_tab
@@ -457,8 +456,7 @@ class Tree:
     def _add_tab(self, tab_container: TabContainer) -> tuple[Pane, list[Node]]:
         added_nodes = []
 
-        new_tab_title = f"{len(tab_container.children) + 1}"
-        new_tab = self.create_tab(title=new_tab_title)
+        new_tab = self.create_tab()
         new_tab.parent = tab_container
         tab_container.children.append(new_tab)
         added_nodes.append(new_tab)
