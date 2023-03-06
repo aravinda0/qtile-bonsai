@@ -119,17 +119,19 @@ class BonsaiTabContainer(BonsaiNodeMixin, TabContainer):
                 self.bar_text_layout.colour = tab_fg_color
 
             # Compute space for the tab rect
-            tab_box = Box(
-                principal_rect=Rect(offset, 0, 0, bar_rect.h),  # We set width below
-                margin=tab_margin,
-                border=0,  # Individual tabs don't have borders
-                padding=tab_padding,
-            )
             tab_title = f"{i + 1}: {tab.title}" if tab.title else f"{i + 1}"
             content_w, _ = self.bar_drawer.max_layout_size(
                 [tab_title], tab_font_family, tab_font_size
             )
-            tab_box.principal_rect.w = max(content_w, tab_min_width)
+            principal_w = max(
+                tab_min_width, content_w + (2 * tab_margin) + (2 * tab_padding)
+            )
+            tab_box = Box(
+                principal_rect=Rect(offset, 0, principal_w, bar_rect.h),
+                margin=tab_margin,
+                border=0,  # Individual tabs don't have borders
+                padding=tab_padding,
+            )
 
             # Draw the tab
             self.bar_drawer.fillrect(
@@ -138,7 +140,7 @@ class BonsaiTabContainer(BonsaiNodeMixin, TabContainer):
             self.bar_text_layout.text = tab_title
             self.bar_text_layout.draw(tab_box.content_rect.x, 0)
 
-            offset += tab_box.principal_rect.w
+            offset += principal_w
 
         self.bar_drawer.draw(0, 0, bar_rect.w, bar_rect.h)
 
