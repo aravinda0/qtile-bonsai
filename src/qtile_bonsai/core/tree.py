@@ -504,8 +504,7 @@ class Tree:
             TabBar.default_height,
         )
 
-        tab1_title = f"{len(new_tab_container.children) + 1}"
-        tab1 = self.create_tab(title=tab1_title)
+        tab1 = self.create_tab()
         tab1.parent = new_tab_container
         new_tab_container.children.append(tab1)
 
@@ -525,8 +524,7 @@ class Tree:
 
         # Start adding the real new tab that was requested and mark it as the active
         # tab.
-        tab2_title = f"{len(new_tab_container.children) + 1}"
-        tab2 = self.create_tab(title=tab2_title)
+        tab2 = self.create_tab()
         tab2.parent = new_tab_container
         new_tab_container.children.append(tab2)
         new_tab_container.active_child = tab2
