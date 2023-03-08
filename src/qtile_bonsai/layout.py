@@ -99,7 +99,9 @@ class BonsaiTabContainer(BonsaiNodeMixin, TabContainer):
         tab_active_bg_color = layout.get_config("tab_bar.tab.active.bg_color", level)
         tab_active_fg_color = layout.get_config("tab_bar.tab.active.fg_color", level)
 
-        place_window_using_box(self.bar_window, self.tab_bar.box, tab_bar_border_color)
+        place_window_using_box(
+            self.bar_window, self.tab_bar.box, tab_bar_border_color, screen_rect
+        )
         self.bar_window.unhide()
 
         bar_rect = self.tab_bar.box.principal_rect
@@ -192,7 +194,7 @@ class BonsaiPane(BonsaiNodeMixin, Pane):
         else:
             window_border_color = layout.get_config("window.border_color", level)
 
-        place_window_using_box(self.window, self.box, window_border_color)
+        place_window_using_box(self.window, self.box, window_border_color, screen_rect)
         self.window.unhide()
 
     def hide(self):
@@ -567,7 +569,9 @@ class Bonsai(Layout):
         self.group.layout_all()
 
 
-def place_window_using_box(window: Window | Internal, box: Box, border_color: str):
+def place_window_using_box(
+    window: Window | Internal, box: Box, border_color: str, screen_rect: ScreenRect
+):
     """Invokes window.place on qtile window instances, translating coordinates from a
     Box instance.
 
@@ -578,8 +582,8 @@ def place_window_using_box(window: Window | Internal, box: Box, border_color: st
     border_rect = box.border_rect
     content_rect = box.content_rect
     window.place(
-        border_rect.x,
-        border_rect.y,
+        border_rect.x + screen_rect.x,
+        border_rect.y + screen_rect.y,
         content_rect.w,
         content_rect.h,
         borderwidth=box.border,
