@@ -421,16 +421,3 @@ class TabBar:
         self.bg_color = "#000000"
         self.fg_color = "#ff0000"
         self.active_tab_color = "#0000ff"
-
-
-class NodeFactory:
-    """Abstract factory class that enables consumers to extend the default `Node` family
-    of classes to add any WM-specific constructs.
-
-    These are the classes will be used internally by the `Tree` implementation.
-    """
-
-    TabContainer: type[TabContainer] = TabContainer
-    Tab: type[Tab] = Tab
-    SplitContainer: type[SplitContainer] = SplitContainer
-    Pane: type[Pane] = Pane
