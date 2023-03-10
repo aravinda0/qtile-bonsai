@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: MIT
 
 
+import re
 from typing import Callable
 
 from libqtile.backend.base import Drawer, Internal, Window
@@ -33,21 +34,8 @@ class BonsaiNodeMixin:
         """
         pass
 
-    def load_config(self, layout: "Bonsai"):
-        """Reads relevant user configuration and applies it to node state.
-
-        This is something that may not be possible in __init__ as the node's level in
-        the tree is only clear post-init when `node.parent` gets set.
-        """
-        pass
-
-    def render(self, screen_rect: ScreenRect, layout: "Bonsai"):
-        """Renders UI elements of this node.
-
-        The `layout` is accepted as a parameter since qtile stores user-passed config
-        directly on the `Layout` instance as attributes. The builtin qtile-layouts also
-        pass around the entire layout to access user-config.
-        """
+    def render(self, screen_rect: ScreenRect, tree: "BonsaiTree"):
+        """Renders UI elements of this node."""
         pass
 
     def hide(self):
@@ -77,27 +65,26 @@ class BonsaiTabContainer(BonsaiNodeMixin, TabContainer):
             "", "000000", "mono", 15, None
         )
 
-    def load_config(self, layout: "Bonsai"):
-        tab_bar = self.tab_bar
-        tab_bar.box.margin = layout.get_config("tab_bar.margin", self.tab_level)
-        tab_bar.box.border = layout.get_config("tab_bar.border_size", self.tab_level)
-
-    def render(self, screen_rect: ScreenRect, layout: "Bonsai"):
+    def render(self, screen_rect: ScreenRect, tree: "BonsaiTree"):
         level = self.tab_level
 
-        tab_bar_border_color = layout.get_config("tab_bar.border_color", level)
-        tab_bar_bg_color = layout.get_config("tab_bar.bg_color", level)
+        tab_bar_border_color = tree.get_config("tab_bar.border_color", for_level=level)
+        tab_bar_bg_color = tree.get_config("tab_bar.bg_color", for_level=level)
 
-        tab_min_width = layout.get_config("tab_bar.tab.min_width", level)
-        tab_margin = layout.get_config("tab_bar.tab.margin", level)
-        tab_padding = layout.get_config("tab_bar.tab.padding", level)
-        tab_font_family = layout.get_config("tab_bar.tab.font_family", level)
-        tab_font_size = layout.get_config("tab_bar.tab.font_size", level)
-        tab_bg_color = layout.get_config("tab_bar.tab.bg_color", level)
-        tab_fg_color = layout.get_config("tab_bar.tab.fg_color", level)
+        tab_min_width = tree.get_config("tab_bar.tab.min_width", for_level=level)
+        tab_margin = tree.get_config("tab_bar.tab.margin", for_level=level)
+        tab_padding = tree.get_config("tab_bar.tab.padding", for_level=level)
+        tab_font_family = tree.get_config("tab_bar.tab.font_family", for_level=level)
+        tab_font_size = tree.get_config("tab_bar.tab.font_size", for_level=level)
+        tab_bg_color = tree.get_config("tab_bar.tab.bg_color", for_level=level)
+        tab_fg_color = tree.get_config("tab_bar.tab.fg_color", for_level=level)
 
-        tab_active_bg_color = layout.get_config("tab_bar.tab.active.bg_color", level)
-        tab_active_fg_color = layout.get_config("tab_bar.tab.active.fg_color", level)
+        tab_active_bg_color = tree.get_config(
+            "tab_bar.tab.active.bg_color", for_level=level
+        )
+        tab_active_fg_color = tree.get_config(
+            "tab_bar.tab.active.fg_color", for_level=level
+        )
 
         place_window_using_box(
             self.bar_window, self.tab_bar.box, tab_bar_border_color, screen_rect
@@ -182,17 +169,15 @@ class BonsaiPane(BonsaiNodeMixin, Pane):
 
         self.window: Window
 
-    def load_config(self, layout: "Bonsai"):
-        self.box.margin = layout.get_config("window.margin", self.tab_level)
-        self.box.border = layout.get_config("window.border_size", self.tab_level)
-
-    def render(self, screen_rect: ScreenRect, layout: "Bonsai"):
-        level = self.tab_level
-
+    def render(self, screen_rect: ScreenRect, tree: "BonsaiTree"):
         if self.window.has_focus:
-            window_border_color = layout.get_config("window.active.border_color", level)
+            window_border_color = tree.get_config(
+                "window.active.border_color", for_level=self.tab_level
+            )
         else:
-            window_border_color = layout.get_config("window.border_color", level)
+            window_border_color = tree.get_config(
+                "window.border_color", for_level=self.tab_level
+            )
 
         place_window_using_box(self.window, self.box, window_border_color, screen_rect)
         self.window.unhide()
@@ -205,14 +190,20 @@ class BonsaiTree(Tree):
     def create_pane(
         self,
         *,
-        content_rect: Rect | None = None,
         principal_rect: Rect | None = None,
-        margin: int = 0,
-        border: int = 1,
+        content_rect: Rect | None = None,
+        margin: int | None = None,
+        border: int | None = None,
+        tab_level: int = 1,
     ) -> BonsaiPane:
+        if margin is None:
+            margin = self.get_config("window.margin", for_level=tab_level)
+        if border is None:
+            border = self.get_config("window.border_size", for_level=tab_level)
+
         return BonsaiPane(
-            content_rect=content_rect,
             principal_rect=principal_rect,
+            content_rect=content_rect,
             margin=margin,
             border=border,
         )
@@ -228,6 +219,7 @@ class BonsaiTree(Tree):
 
 
 class Bonsai(Layout):
+    multi_level_config_format = re.compile(r"^L(\d+)\..+")
     defaults = [
         (
             "window.margin",
@@ -339,7 +331,7 @@ class Bonsai(Layout):
         """
         for node in self._tree.iter_walk():
             if self._tree.is_visible(node):
-                node.render(screen_rect, self)
+                node.render(screen_rect, self._tree)
             else:
                 node.hide()
 
@@ -410,13 +402,6 @@ class Bonsai(Layout):
         self._on_next_window = self._handle_default_next_window
 
         self._hide_all_internal_windows()
-
-    def get_config(self, key: str, level: int = 1):
-        level_key = f"L{level}.{key}"
-        if not hasattr(self, level_key):
-            level_key = key
-
-        return getattr(self, level_key)
 
     def cmd_next(self):
         next_window = self.focus_next(self.focused_window)
@@ -530,6 +515,8 @@ class Bonsai(Layout):
         # layout's group is assigned to a screen.
         self._tree = BonsaiTree(100, 100)
 
+        self._parse_config(self._tree)
+
         self._tree.subscribe(
             TreeEvent.node_added, lambda nodes: self._handle_added_tree_nodes(nodes)
         )
@@ -544,10 +531,15 @@ class Bonsai(Layout):
 
         self._on_next_window = _handle_next_window
 
+    def _parse_config(self, tree: BonsaiTree):
+        for [key, value, *_] in self.defaults:
+            multi_level_key = self.multi_level_config_format.match(key)
+            level = int(multi_level_key.group(1)) if multi_level_key is not None else 1
+            tree.set_config(key, value, for_level=level)
+
     def _handle_added_tree_nodes(self, nodes: list[BonsaiNodeMixin]):
         for node in nodes:
             node.init_ui(self.group.qtile)
-            node.load_config(self)
 
     def _handle_removed_tree_nodes(self, nodes: list[BonsaiNodeMixin]):
         for node in nodes:

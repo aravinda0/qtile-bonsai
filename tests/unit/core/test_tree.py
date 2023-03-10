@@ -17,7 +17,7 @@ from qtile_bonsai.core.tree import (
 
 
 @pytest.fixture()
-def tree():
+def tree() -> Tree:
     return Tree(400, 300)
 
 
@@ -2868,6 +2868,86 @@ class TestTabMotions:
 
             p = tree.prev_tab(p1, wrap=False)
             assert p is None
+
+
+class TestConfig:
+    def test_pane_config_is_respected(self, tree):
+        tree.set_config("window.margin", 1)
+        tree.set_config("window.border_size", 2)
+        tree.set_config("window.padding", 3)
+
+        tree.set_config("window.margin", 20, for_level=2)
+        tree.set_config("window.border_size", 21, for_level=2)
+        tree.set_config("window.padding", 22, for_level=2)
+
+        tree.set_config("window.margin", 30, for_level=3)
+        tree.set_config("window.border_size", 31, for_level=3)
+        tree.set_config("window.padding", 32, for_level=3)
+
+        p1 = tree.tab()
+        p2 = tree.split(p1, "x")
+        p3 = tree.tab(p2, new_level=True)
+
+        assert p1.box.margin == 1
+        assert p1.box.border == 2
+        assert p1.box.padding == 3
+
+        assert p2.box.margin == 20
+        assert p2.box.border == 21
+        assert p2.box.padding == 22
+
+        assert p3.box.margin == 20
+        assert p3.box.border == 21
+        assert p3.box.padding == 22
+
+    def test_tab_bar_config_is_respected(self, tree):
+        tree.set_config("tab_bar.margin", 1)
+        tree.set_config("tab_bar.border_size", 2)
+        tree.set_config("tab_bar.padding", 3)
+
+        tree.set_config("tab_bar.margin", 4, for_level=2)
+        tree.set_config("tab_bar.border_size", 5, for_level=2)
+        tree.set_config("tab_bar.padding", 6, for_level=2)
+
+        p1 = tree.tab()
+        p2 = tree.split(p1, "x")
+        p3 = tree.tab(p2, new_level=True)
+
+        tc1, *_ = p1.get_ancestors(of_type=TabContainer)
+        tc2, *_ = p3.get_ancestors(of_type=TabContainer)
+
+        assert tc1.tab_bar.box.margin == 1
+        assert tc1.tab_bar.box.border == 2
+        assert tc1.tab_bar.box.padding == 3
+
+        assert tc2.tab_bar.box.margin == 4
+        assert tc2.tab_bar.box.border == 5
+        assert tc2.tab_bar.box.padding == 6
+
+    def test_when_config_for_a_level_is_not_provided_then_level_1_config_is_used_as_fallback(
+        self, tree
+    ):
+        tree.set_config("window.margin", 10)
+        tree.set_config("window.border_size", 20)
+        tree.set_config("window.padding", 30)
+
+        tree.set_config("tab_bar.margin", 1)
+        tree.set_config("tab_bar.border_size", 2)
+        tree.set_config("tab_bar.padding", 3)
+
+        p1 = tree.tab()
+        p2 = tree.split(p1, "x")
+        p3 = tree.tab(p2, new_level=True)
+
+        assert p3.box.margin == 10
+        assert p3.box.border == 20
+        assert p3.box.padding == 30
+
+        tc, *_ = p3.get_ancestors(of_type=TabContainer)
+
+        assert tc.tab_bar.box.margin == 1
+        assert tc.tab_bar.box.border == 2
+        assert tc.tab_bar.box.padding == 3
 
 
 class TestIterWalk:

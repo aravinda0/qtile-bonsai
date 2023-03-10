@@ -7,11 +7,18 @@ from __future__ import annotations
 import collections
 import textwrap
 import uuid
-from typing import Callable, Iterable, Iterator
+from typing import Any, Callable, Iterable, Iterator
 
 from strenum import StrEnum
 
-from qtile_bonsai.core.geometry import Axis, AxisParam, Direction, DirectionParam, Rect
+from qtile_bonsai.core.geometry import (
+    Axis,
+    AxisParam,
+    Box,
+    Direction,
+    DirectionParam,
+    Rect,
+)
 from qtile_bonsai.core.nodes import (
     Node,
     Pane,
@@ -45,6 +52,7 @@ class Tree:
     def __init__(self, width: int, height: int):
         self._width: int = width
         self._height: int = height
+        self._config: collections.defaultdict[int, dict] = self.make_default_config()
         self._root: TabContainer | None = None
         self._event_subscribers: collections.defaultdict[
             TreeEvent, dict[str, Tree.TreeEventCallback]
@@ -62,6 +70,36 @@ class Tree:
     def is_empty(self) -> bool:
         return self._root is None
 
+    def make_default_config(self) -> collections.defaultdict[int, dict[str, Any]]:
+        config = collections.defaultdict(dict)
+        config[1] = {
+            "window.margin": 0,
+            "window.border_size": 1,
+            "window.padding": 0,
+            "tab_bar.margin": 0,
+            "tab_bar.border_size": 0,
+            "tab_bar.padding": 0,
+        }
+        return config
+
+    def set_config(self, key: str, value: Any, *, for_level: int = 1):
+        if for_level < 1:
+            raise ValueError("`for_level` must be a positive number")
+
+        self._config[for_level][key] = value
+
+    def get_config(
+        self, key: str, *, for_level: int = 1, fall_back_to_level_1: bool = True
+    ) -> Any:
+        if for_level < 1:
+            raise ValueError("`for_level` must be a positive number")
+
+        level_config = self._config[for_level]
+        if key not in level_config and fall_back_to_level_1:
+            return self._config[1][key]
+
+        return level_config[key]
+
     def create_pane(
         self,
         *,
@@ -70,11 +108,20 @@ class Tree:
         border_rect: Rect | None = None,
         margin_rect: Rect | None = None,
         principal_rect: Rect | None = None,
-        margin: int = 0,
-        border: int = 1,
-        padding: int = 0,
+        margin: int | None = None,
+        border: int | None = None,
+        padding: int | None = None,
+        tab_level: int = 1,
     ) -> Pane:
         """Factory method for creating a new Pane instance"""
+
+        if margin is None:
+            margin = self.get_config("window.margin", for_level=tab_level)
+        if border is None:
+            border = self.get_config("window.border_size", for_level=tab_level)
+        if padding is None:
+            padding = self.get_config("window.padding", for_level=tab_level)
+
         return Pane(
             content_rect=content_rect,
             padding_rect=padding_rect,
@@ -185,7 +232,9 @@ class Tree:
         # During the flow below, we try to ensure `new_pane` is created after any other
         # new nodes to maintain ID sequence.
         if pane_container.axis == axis:
-            new_pane = self.create_pane(principal_rect=p2_rect)
+            new_pane = self.create_pane(
+                principal_rect=p2_rect, tab_level=pane.tab_level
+            )
             new_pane.parent = pane_container
             pane_container.children.insert(pane_index + 1, new_pane)
         else:
@@ -200,7 +249,9 @@ class Tree:
             pane.parent = new_split_container
             new_split_container.children.append(pane)
 
-            new_pane = self.create_pane(principal_rect=p2_rect)
+            new_pane = self.create_pane(
+                principal_rect=p2_rect, tab_level=pane.tab_level
+            )
             new_pane.parent = new_split_container
             new_split_container.children.append(new_pane)
 
@@ -421,11 +472,17 @@ class Tree:
         """
         added_nodes = []
 
-        # Max sized rect for top level tab bar
-        tab_bar_rect = Rect(0, 0, self.width, TabBar.default_height)
-
         tab_container = self.create_tab_container()
-        tab_container.tab_bar.box.principal_rect = tab_bar_rect
+
+        # Max width rect for top level tab bar
+        tab_bar_rect = Rect(0, 0, self.width, TabBar.default_height)
+        tab_container.tab_bar.box = Box(
+            principal_rect=tab_bar_rect,
+            margin=self.get_config("tab_bar.margin"),
+            border=self.get_config("tab_bar.border_size"),
+            padding=self.get_config("tab_bar.padding"),
+        )
+
         added_nodes.append(tab_container)
 
         new_tab = self.create_tab()
@@ -468,7 +525,9 @@ class Tree:
 
         new_pane_rect = tab_container.get_inner_rect()
 
-        new_pane = self.create_pane(principal_rect=new_pane_rect)
+        new_pane = self.create_pane(
+            principal_rect=new_pane_rect, tab_level=tab_container.tab_level
+        )
         new_pane.parent = new_split_container
         new_split_container.children.append(new_pane)
         added_nodes.append(new_pane)
@@ -494,6 +553,19 @@ class Tree:
         new_tab_container.parent = at_split_container
         at_split_container.children.insert(at_pane_pos, new_tab_container)
         added_nodes.append(new_tab_container)
+
+        new_tab_level = at_pane.tab_level + 1
+        new_tab_container.tab_bar.box = Box(
+            principal_rect=Rect(
+                at_pane.principal_rect.x,
+                at_pane.principal_rect.y,
+                at_pane.principal_rect.w,
+                TabBar.default_height,
+            ),
+            margin=self.get_config("tab_bar.margin", for_level=new_tab_level),
+            border=self.get_config("tab_bar.border_size", for_level=new_tab_level),
+            padding=self.get_config("tab_bar.padding", for_level=new_tab_level),
+        )
 
         # The new tab container's dimensions are derived from the space that was
         # occupied by `at_pane`
@@ -522,6 +594,14 @@ class Tree:
         at_pane_rect.h -= new_tab_container.tab_bar.box.principal_rect.h
         at_pane.box.principal_rect = at_pane_rect
 
+        # `at_pane` is now at tab_level = n + 1. We modify properties to align
+        # with n + 1 level config.
+        at_pane.box.margin = self.get_config("window.margin", for_level=new_tab_level)
+        at_pane.box.border = self.get_config(
+            "window.border_size", for_level=new_tab_level
+        )
+        at_pane.box.padding = self.get_config("window.padding", for_level=new_tab_level)
+
         # Start adding the real new tab that was requested and mark it as the active
         # tab.
         tab2 = self.create_tab()
@@ -537,7 +617,9 @@ class Tree:
 
         # The new tab's pane will have the same dimensions as `at_pane` after it was
         # adjusted above.
-        new_pane = self.create_pane(principal_rect=at_pane.principal_rect)
+        new_pane = self.create_pane(
+            principal_rect=at_pane.principal_rect, tab_level=new_tab_level
+        )
         new_pane.parent = split_container2
         split_container2.children.append(new_pane)
         added_nodes.append(new_pane)
