@@ -10,8 +10,6 @@ from libqtile.config import ScreenRect
 from libqtile.layout.base import Layout
 from libqtile.log_utils import logger
 
-from qtile_bonsai.colors import Gruvbox
-from qtile_bonsai.core.geometry import Box
 from qtile_bonsai.core.tree import (
     Axis,
     Pane,
@@ -19,6 +17,7 @@ from qtile_bonsai.core.tree import (
     Tree,
     TreeEvent,
 )
+from qtile_bonsai.theme import Gruvbox
 from qtile_bonsai.tree import BonsaiNodeMixin, BonsaiPane, BonsaiTree
 
 
