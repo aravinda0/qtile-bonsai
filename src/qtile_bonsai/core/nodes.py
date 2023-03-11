@@ -346,7 +346,7 @@ class TabContainer(Node):
         self.parent: SplitContainer | None
         self.children: list[Tab]
         self.active_child: Tab | None = None
-        self.tab_bar = TabBar(principal_rect=Rect(0, 0, 100, TabBar.default_height))
+        self.tab_bar = TabBar(principal_rect=Rect(0, 0, 0, 0))
 
     @property
     def principal_rect(self) -> Rect:
@@ -398,8 +398,6 @@ class TabContainer(Node):
 
 
 class TabBar:
-    default_height: int = 20
-
     def __init__(
         self,
         *,

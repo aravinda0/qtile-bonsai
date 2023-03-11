@@ -24,7 +24,6 @@ from qtile_bonsai.core.nodes import (
     Pane,
     SplitContainer,
     Tab,
-    TabBar,
     TabContainer,
 )
 from qtile_bonsai.core.utils import validate_unit_range
@@ -76,6 +75,7 @@ class Tree:
             "window.margin": 0,
             "window.border_size": 1,
             "window.padding": 0,
+            "tab_bar.height": 20,
             "tab_bar.margin": 0,
             "tab_bar.border_size": 0,
             "tab_bar.padding": 0,
@@ -475,7 +475,7 @@ class Tree:
         tab_container = self.create_tab_container()
 
         # Max width rect for top level tab bar
-        tab_bar_rect = Rect(0, 0, self.width, TabBar.default_height)
+        tab_bar_rect = Rect(0, 0, self.width, self.get_config("tab_bar.height"))
         tab_container.tab_bar.box = Box(
             principal_rect=tab_bar_rect,
             margin=self.get_config("tab_bar.margin"),
@@ -554,26 +554,19 @@ class Tree:
         at_split_container.children.insert(at_pane_pos, new_tab_container)
         added_nodes.append(new_tab_container)
 
+        # The new tab container's dimensions are derived from the space that was
+        # occupied by `at_pane`
         new_tab_level = at_pane.tab_level + 1
         new_tab_container.tab_bar.box = Box(
             principal_rect=Rect(
                 at_pane.principal_rect.x,
                 at_pane.principal_rect.y,
                 at_pane.principal_rect.w,
-                TabBar.default_height,
+                self.get_config("tab_bar.height", for_level=new_tab_level),
             ),
             margin=self.get_config("tab_bar.margin", for_level=new_tab_level),
             border=self.get_config("tab_bar.border_size", for_level=new_tab_level),
             padding=self.get_config("tab_bar.padding", for_level=new_tab_level),
-        )
-
-        # The new tab container's dimensions are derived from the space that was
-        # occupied by `at_pane`
-        new_tab_container.tab_bar.box.principal_rect = Rect(
-            at_pane.principal_rect.x,
-            at_pane.principal_rect.y,
-            at_pane.principal_rect.w,
-            TabBar.default_height,
         )
 
         tab1 = self.create_tab()

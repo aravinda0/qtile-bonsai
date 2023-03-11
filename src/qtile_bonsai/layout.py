@@ -45,6 +45,11 @@ class Bonsai(Layout):
             "Color of the border around an active window",
         ),
         (
+            "tab_bar.height",
+            20,
+            "Height of tab bars",
+        ),
+        (
             "tab_bar.margin",
             0,
             "Size of the margin space around tab bars",

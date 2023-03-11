@@ -2923,6 +2923,21 @@ class TestConfig:
             assert p3.box.padding == 11
 
     class TestTabBarConfig:
+        def test_height(self, tree: Tree):
+            tree.set_config("tab_bar.height", 20)
+            tree.set_config("tab_bar.height", 10, for_level=2)
+            tree.set_config("tab_bar.height", 5, for_level=3)
+
+            p1 = tree.tab()
+            p2 = tree.split(p1, "x")
+            p3 = tree.tab(p2, new_level=True)
+
+            tc1, *_ = p1.get_ancestors(of_type=TabContainer)
+            tc2, *_ = p3.get_ancestors(of_type=TabContainer)
+
+            assert tc1.tab_bar.box.principal_rect.h == 20
+            assert tc2.tab_bar.box.principal_rect.h == 10
+
         def test_margin(self, tree: Tree):
             tree.set_config("tab_bar.margin", 10)
             tree.set_config("tab_bar.margin", 11, for_level=2)
