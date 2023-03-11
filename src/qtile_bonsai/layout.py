@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: MIT
 
 
+import itertools
 import re
 from typing import Callable
 
@@ -22,7 +23,7 @@ from qtile_bonsai.tree import BonsaiNodeMixin, BonsaiPane, BonsaiTree
 
 
 class Bonsai(Layout):
-    multi_level_config_format = re.compile(r"^L(\d+)\..+")
+    multi_level_config_format = re.compile(r"^L(\d+)\.(.+)")
     defaults = [
         (
             "window.margin",
@@ -322,8 +323,7 @@ class Bonsai(Layout):
         # We initialize the tree with arbitrary dimensions. These get reset soon as this
         # layout's group is assigned to a screen.
         self._tree = BonsaiTree(100, 100)
-
-        self._parse_config(self._tree)
+        self._parse_config()
 
         self._tree.subscribe(
             TreeEvent.node_added, lambda nodes: self._handle_added_tree_nodes(nodes)
@@ -339,11 +339,18 @@ class Bonsai(Layout):
 
         self._on_next_window = _handle_next_window
 
-    def _parse_config(self, tree: BonsaiTree):
-        for [key, value, *_] in self.defaults:
+    def _parse_config(self):
+        config = itertools.chain(
+            ((c[0], c[1]) for c in self.defaults),
+            ((k, v) for k, v in self._user_config.items()),
+        )
+        for [key, value] in config:
             multi_level_key = self.multi_level_config_format.match(key)
-            level = int(multi_level_key.group(1)) if multi_level_key is not None else 1
-            tree.set_config(key, value, for_level=level)
+            level = 1
+            if multi_level_key is not None:
+                level = int(multi_level_key.group(1))
+                key = multi_level_key.group(2)
+            self._tree.set_config(key, value, for_level=level)
 
     def _handle_added_tree_nodes(self, nodes: list[BonsaiNodeMixin]):
         for node in nodes:
