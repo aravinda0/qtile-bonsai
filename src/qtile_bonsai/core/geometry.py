@@ -176,7 +176,7 @@ class Rect:
 class Box:
     """Provides rect-geometry akin to the CSS box model.
 
-    The concentric rects, innermost to outermost are:
+    The concentric rects, outermost to innermost are:
         1. margin_rect/principal_rect
         2. border_rect
         3. padding_rect
