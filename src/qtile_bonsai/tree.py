@@ -186,7 +186,7 @@ class BonsaiTree(Tree):
         content_rect: Rect | None = None,
         margin: int | None = None,
         border: int | None = None,
-        tab_level: int = 1,
+        tab_level: int | None = None,
     ) -> BonsaiPane:
         if margin is None:
             margin = self.get_config("window.margin", for_level=tab_level)

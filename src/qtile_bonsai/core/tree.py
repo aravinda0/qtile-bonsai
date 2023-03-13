@@ -48,6 +48,10 @@ class Tree:
         (SplitContainer, SplitContainer, TabContainer),
     ]
 
+    # Tab levels of trees begin from 1 for the topmost level. Use 'level 0' to store
+    # defaults.
+    _default_config_key = 0
+
     def __init__(self, width: int, height: int):
         self._width: int = width
         self._height: int = height
@@ -71,7 +75,7 @@ class Tree:
 
     def make_default_config(self) -> collections.defaultdict[int, dict[str, Any]]:
         config = collections.defaultdict(dict)
-        config[1] = {
+        config[self._default_config_key] = {
             "window.margin": 0,
             "window.border_size": 1,
             "window.padding": 0,
@@ -82,23 +86,29 @@ class Tree:
         }
         return config
 
-    def set_config(self, key: str, value: Any, *, for_level: int = 1):
-        if for_level < 1:
+    def set_config(self, key: str, value: Any, *, for_level: int = _default_config_key):
+        if for_level < self._default_config_key:
             raise ValueError("`for_level` must be a positive number")
 
         self._config[for_level][key] = value
 
     def get_config(
-        self, key: str, *, for_level: int = 1, fall_back_to_level_1: bool = True
+        self,
+        key: str,
+        *,
+        for_level: int | None = None,
+        fall_back_to_default: bool = True,
     ) -> Any:
-        if for_level < 1:
+        for_level = for_level if for_level is not None else self._default_config_key
+        if for_level < self._default_config_key:
             raise ValueError("`for_level` must be a positive number")
 
-        level_config = self._config[for_level]
-        if key not in level_config and fall_back_to_level_1:
-            return self._config[1][key]
+        if fall_back_to_default and (
+            for_level not in self._config or key not in self._config[for_level]
+        ):
+            for_level = self._default_config_key
 
-        return level_config[key]
+        return self._config[for_level][key]
 
     def create_pane(
         self,
@@ -111,9 +121,13 @@ class Tree:
         margin: int | None = None,
         border: int | None = None,
         padding: int | None = None,
-        tab_level: int = 1,
+        tab_level: int | None = None,
     ) -> Pane:
-        """Factory method for creating a new Pane instance"""
+        """Factory method for creating a new Pane instance.
+
+        Passing `tab_level` allows us to apply appropriate level-based configuration to
+        the pane.
+        """
 
         if margin is None:
             margin = self.get_config("window.margin", for_level=tab_level)
@@ -478,9 +492,9 @@ class Tree:
         tab_bar_rect = Rect(0, 0, self.width, self.get_config("tab_bar.height"))
         tab_container.tab_bar.box = Box(
             principal_rect=tab_bar_rect,
-            margin=self.get_config("tab_bar.margin"),
-            border=self.get_config("tab_bar.border_size"),
-            padding=self.get_config("tab_bar.padding"),
+            margin=self.get_config("tab_bar.margin", for_level=1),
+            border=self.get_config("tab_bar.border_size", for_level=1),
+            padding=self.get_config("tab_bar.padding", for_level=1),
         )
 
         added_nodes.append(tab_container)
@@ -501,7 +515,7 @@ class Tree:
             0, tab_bar_rect.y2, self.width, self.height - tab_bar_rect.h
         )
 
-        new_pane = self.create_pane(principal_rect=new_pane_rect)
+        new_pane = self.create_pane(principal_rect=new_pane_rect, tab_level=1)
         new_pane.parent = new_split_container
         new_split_container.children.append(new_pane)
         added_nodes.append(new_pane)

@@ -2871,20 +2871,26 @@ class TestTabMotions:
 
 
 class TestConfig:
-    def test_fallback_to_level_1(self, tree: Tree):
+    def test_fall_back_to_default(self, tree: Tree):
         tree.set_config("window.margin", 10)
 
         assert (
-            tree.get_config("window.margin", for_level=3, fall_back_to_level_1=True)
+            tree.get_config("window.margin", for_level=1, fall_back_to_default=True)
+            == 10
+        )
+        assert (
+            tree.get_config("window.margin", for_level=3, fall_back_to_default=True)
             == 10
         )
 
         with pytest.raises(KeyError):
-            tree.get_config("window.margin", for_level=3, fall_back_to_level_1=False)
+            tree.get_config("window.margin", for_level=3, fall_back_to_default=False)
+        with pytest.raises(KeyError):
+            tree.get_config("window.margin", for_level=1, fall_back_to_default=False)
 
     class TestWindowConfig:
         def test_margin(self, tree: Tree):
-            tree.set_config("window.margin", 10)
+            tree.set_config("window.margin", 10, for_level=1)
             tree.set_config("window.margin", 11, for_level=2)
             tree.set_config("window.margin", 12, for_level=3)
 
@@ -2897,7 +2903,7 @@ class TestConfig:
             assert p3.box.margin == 11
 
         def test_border_size(self, tree: Tree):
-            tree.set_config("window.border_size", 10)
+            tree.set_config("window.border_size", 10, for_level=1)
             tree.set_config("window.border_size", 11, for_level=2)
             tree.set_config("window.border_size", 12, for_level=3)
 
@@ -2910,7 +2916,7 @@ class TestConfig:
             assert p3.box.border == 11
 
         def test_padding(self, tree: Tree):
-            tree.set_config("window.padding", 10)
+            tree.set_config("window.padding", 10, for_level=1)
             tree.set_config("window.padding", 11, for_level=2)
             tree.set_config("window.padding", 12, for_level=3)
 
@@ -2924,7 +2930,7 @@ class TestConfig:
 
     class TestTabBarConfig:
         def test_height(self, tree: Tree):
-            tree.set_config("tab_bar.height", 20)
+            tree.set_config("tab_bar.height", 20, for_level=1)
             tree.set_config("tab_bar.height", 10, for_level=2)
             tree.set_config("tab_bar.height", 5, for_level=3)
 
@@ -2939,7 +2945,7 @@ class TestConfig:
             assert tc2.tab_bar.box.principal_rect.h == 10
 
         def test_margin(self, tree: Tree):
-            tree.set_config("tab_bar.margin", 10)
+            tree.set_config("tab_bar.margin", 10, for_level=1)
             tree.set_config("tab_bar.margin", 11, for_level=2)
             tree.set_config("tab_bar.margin", 12, for_level=3)
 
@@ -2954,7 +2960,7 @@ class TestConfig:
             assert tc2.tab_bar.box.margin == 11
 
         def test_border_size(self, tree: Tree):
-            tree.set_config("tab_bar.border_size", 10)
+            tree.set_config("tab_bar.border_size", 10, for_level=1)
             tree.set_config("tab_bar.border_size", 11, for_level=2)
             tree.set_config("tab_bar.border_size", 12, for_level=3)
 
@@ -2969,7 +2975,7 @@ class TestConfig:
             assert tc2.tab_bar.box.border == 11
 
         def test_padding(self, tree: Tree):
-            tree.set_config("tab_bar.padding", 10)
+            tree.set_config("tab_bar.padding", 10, for_level=1)
             tree.set_config("tab_bar.padding", 11, for_level=2)
             tree.set_config("tab_bar.padding", 12, for_level=3)
 
