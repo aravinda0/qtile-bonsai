@@ -346,7 +346,7 @@ class Bonsai(Layout):
         )
         for [key, value] in config:
             multi_level_key = self.multi_level_config_format.match(key)
-            level = 1
+            level = None
             if multi_level_key is not None:
                 level = int(multi_level_key.group(1))
                 key = multi_level_key.group(2)

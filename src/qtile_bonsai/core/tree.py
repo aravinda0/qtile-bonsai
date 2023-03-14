@@ -86,7 +86,8 @@ class Tree:
         }
         return config
 
-    def set_config(self, key: str, value: Any, *, for_level: int = _default_config_key):
+    def set_config(self, key: str, value: Any, *, for_level: int | None = None):
+        for_level = for_level if for_level is not None else self._default_config_key
         if for_level < self._default_config_key:
             raise ValueError("`for_level` must be a positive number")
 
