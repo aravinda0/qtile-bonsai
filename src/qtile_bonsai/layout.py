@@ -23,7 +23,7 @@ from qtile_bonsai.tree import BonsaiNodeMixin, BonsaiPane, BonsaiTree
 
 
 class Bonsai(Layout):
-    multi_level_config_format = re.compile(r"^L(\d+)\.(.+)")
+    level_specific_config_format = re.compile(r"^L(\d+)\.(.+)")
     defaults = [
         (
             "window.margin",
@@ -345,11 +345,11 @@ class Bonsai(Layout):
             ((k, v) for k, v in self._user_config.items()),
         )
         for [key, value] in config:
-            multi_level_key = self.multi_level_config_format.match(key)
+            level_specific_key = self.level_specific_config_format.match(key)
             level = None
-            if multi_level_key is not None:
-                level = int(multi_level_key.group(1))
-                key = multi_level_key.group(2)
+            if level_specific_key is not None:
+                level = int(level_specific_key.group(1))
+                key = level_specific_key.group(2)
             self._tree.set_config(key, value, for_level=level)
 
     def _handle_added_tree_nodes(self, nodes: list[BonsaiNodeMixin]):
