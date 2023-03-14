@@ -486,15 +486,16 @@ class Tree:
         """
         added_nodes = []
 
+        top_level = 1
         tab_container = self.create_tab_container()
 
         # Max width rect for top level tab bar
         tab_bar_rect = Rect(0, 0, self.width, self.get_config("tab_bar.height"))
         tab_container.tab_bar.box = Box(
             principal_rect=tab_bar_rect,
-            margin=self.get_config("tab_bar.margin", for_level=1),
-            border=self.get_config("tab_bar.border_size", for_level=1),
-            padding=self.get_config("tab_bar.padding", for_level=1),
+            margin=self.get_config("tab_bar.margin", for_level=top_level),
+            border=self.get_config("tab_bar.border_size", for_level=top_level),
+            padding=self.get_config("tab_bar.padding", for_level=top_level),
         )
 
         added_nodes.append(tab_container)
@@ -515,7 +516,7 @@ class Tree:
             0, tab_bar_rect.y2, self.width, self.height - tab_bar_rect.h
         )
 
-        new_pane = self.create_pane(principal_rect=new_pane_rect, tab_level=1)
+        new_pane = self.create_pane(principal_rect=new_pane_rect, tab_level=top_level)
         new_pane.parent = new_split_container
         new_split_container.children.append(new_pane)
         added_nodes.append(new_pane)
