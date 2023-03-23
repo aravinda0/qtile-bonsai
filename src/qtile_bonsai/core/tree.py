@@ -28,6 +28,8 @@ from qtile_bonsai.core.nodes import (
 )
 from qtile_bonsai.core.utils import validate_unit_range
 
+_PruningCase = collections.namedtuple("_PruningCase", ("chain", "prune"))
+
 
 class TreeEvent(StrEnum):
     node_added = "node_added"
@@ -40,13 +42,8 @@ class InvalidTreeStructureError(Exception):
 
 class Tree:
     TreeEventCallback = Callable[[list[Node]], None]
+
     _recency_seq = 0
-    _prunable_chains = [
-        (SplitContainer, SplitContainer, Pane),
-        (Tab, SplitContainer, SplitContainer),
-        (SplitContainer, SplitContainer, SplitContainer),
-        (SplitContainer, SplitContainer, TabContainer),
-    ]
 
     # Tab levels of trees begin from 1 for the topmost level. Use 'level 0' to store
     # defaults.
@@ -60,6 +57,7 @@ class Tree:
         self._event_subscribers: collections.defaultdict[
             TreeEvent, dict[str, Tree.TreeEventCallback]
         ] = collections.defaultdict(dict)
+        self._pruning_cases = self._get_pruning_cases()
 
     @property
     def width(self) -> int:
@@ -481,6 +479,24 @@ class Tree:
 
         return "\n".join(walk(self._root))
 
+    def _get_pruning_cases(self) -> list[_PruningCase]:
+        return [
+            _PruningCase(
+                chain=(SplitContainer, SplitContainer, Pane), prune=self._prune_sc_sc_p
+            ),
+            _PruningCase(
+                chain=(Tab, SplitContainer, SplitContainer), prune=self._prune_t_sc_sc
+            ),
+            _PruningCase(
+                chain=(SplitContainer, SplitContainer, SplitContainer),
+                prune=self._prune_sc_sc_sc,
+            ),
+            _PruningCase(
+                chain=(SplitContainer, SplitContainer, TabContainer),
+                prune=self._prune_sc_sc_tc,
+            ),
+        ]
+
     def _add_very_first_tab(self) -> tuple[Pane, list[Node]]:
         """Add the first tab and its pane on an empty tree. A special case where the
         root is set and initial rects are set for use by all subsequent tabs and panes.
@@ -659,8 +675,11 @@ class Tree:
 
         This arises when the provided `node` is now a sole remnant child wrt its parent.
         We take `node` and look at its two ancestors, `n2` and `n1`, giving us a
-        top-down chain of `[n1, n2, n3]`. We look for opportunities to merge `n3` into
-        `n1` and discard `n2`.
+        top-down chain of `[n1, n2, n3]`.
+
+        We then look for opportunities to merge `n3` or its children into `n1` and
+        discard whatever nodes we can. The tree configuration options can also play a
+        role in determining whether or not pruning happens.
 
         All the `[n1, n2, n3]` possibilities are listed below.
         The arrows point to the parent node. The chains that are prunable are marked
@@ -680,7 +699,7 @@ class Tree:
                  │
           *SC ◄──┘
 
-           SC ◄─┐
+          *SC ◄─┐
                 │
                 ├── TC ◄────── T
                 │
@@ -693,46 +712,73 @@ class Tree:
           *SC ◄─┘
 
 
-        Aside from the scenarios marked with *, the case of `TC ◄─ T ◄─ SC` cannot occur
-        if n3 is to be left as a sole remnant child (the T can only have one child).
+        Note that the case of `TC ◄─ T ◄─ SC` cannot occur after a removal operation. As
+        a T can only ever have a single child.
         """
-        assert node.parent is not None
         nodes_to_remove = []
-
         n1, n2, n3 = node.parent.parent, node.parent, node
-        if n3.is_sole_child and self._is_prunable_chain(n1, n2, n3):
-            assert n1 is not None
 
-            index = n1.children.index(n2)
-            n1.children.remove(n2)
-
-            if isinstance(n1, SplitContainer) and isinstance(n3, SplitContainer):
-                # Here, even n3 gets discarded with n2. Only n1 remains which
-                # absorbs the children of n3.
-                for child in n3.children:
-                    child.parent = n1
-                    n1.children.insert(index, child)
-                    index += 1
-                nodes_to_remove.append(n3)
-            else:
-                n3.parent = n1
-                n1.children.insert(index, n3)
-
-            nodes_to_remove.append(n2)
+        if n3.is_sole_child:
+            active_pruning_case = next(
+                (
+                    case
+                    for case in self._pruning_cases
+                    if all(
+                        [
+                            isinstance(n1, case.chain[0]),
+                            isinstance(n2, case.chain[1]),
+                            isinstance(n3, case.chain[2]),
+                        ]
+                    )
+                ),
+                None,
+            )
+            if active_pruning_case is not None:
+                nodes_to_remove.extend(active_pruning_case.prune(n1, n2, n3))
 
         return nodes_to_remove
 
-    def _is_prunable_chain(self, n1: Node, n2: Node, n3: Node) -> bool:
-        for chain in self._prunable_chains:
-            if all(
-                [
-                    isinstance(n1, chain[0]),
-                    isinstance(n2, chain[1]),
-                    isinstance(n3, chain[2]),
-                ]
-            ):
-                return True
-        return False
+    def _prune_sc_sc_p(
+        self, n1: SplitContainer, n2: SplitContainer, n3: Pane
+    ) -> list[Node]:
+        """n1 and n3 are linked together, n2 is discarded."""
+        n2_position = n1.children.index(n2)
+        n1.children.remove(n2)
+        n3.parent = n1
+        n1.children.insert(n2_position, n3)
+        return [n2]
+
+    def _prune_t_sc_sc(
+        self, n1: Tab, n2: SplitContainer, n3: SplitContainer
+    ) -> list[Node]:
+        """n1 and n3 are linked together, n2 is discarded."""
+        n2_position = n1.children.index(n2)
+        n1.children.remove(n2)
+        n3.parent = n1
+        n1.children.insert(n2_position, n3)
+        return [n2]
+
+    def _prune_sc_sc_sc(
+        self, n1: SplitContainer, n2: SplitContainer, n3: SplitContainer
+    ) -> list[Node]:
+        """n1 absorbs the children of n3. n2 and n3 are discarded."""
+        n2_position = n1.children.index(n2)
+        n1.children.remove(n2)
+        for child in n3.children:
+            child.parent = n1
+            n1.children.insert(n2_position, child)
+            n2_position += 1
+        return [n3, n2]
+
+    def _prune_sc_sc_tc(
+        self, n1: SplitContainer, n2: SplitContainer, n3: TabContainer
+    ) -> list[Node]:
+        """n1 and n3 are linked together, n2 is discarded."""
+        n2_position = n1.children.index(n2)
+        n1.children.remove(n2)
+        n3.parent = n1
+        n1.children.insert(n2_position, n3)
+        return [n2]
 
     def _find_super_node_to_resize(self, pane: Pane, axis: Axis) -> Node | None:
         """Finds the first node in the ancestor chain that is under a SC of the
