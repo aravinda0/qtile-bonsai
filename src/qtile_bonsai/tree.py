@@ -58,6 +58,9 @@ class BonsaiTabContainer(BonsaiNodeMixin, TabContainer):
         )
 
     def render(self, screen_rect: ScreenRect, tree: "BonsaiTree"):
+        if self.tab_bar.is_hidden:
+            return
+
         level = self.tab_level
 
         tab_bar_border_color = tree.get_config("tab_bar.border_color", for_level=level)

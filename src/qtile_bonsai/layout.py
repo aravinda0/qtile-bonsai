@@ -51,6 +51,21 @@ class Bonsai(Layout):
             "Height of tab bars",
         ),
         (
+            "tab_bar.hide_when",
+            "single_tab",
+            """
+            When to hide the tab bar. Allowed values are 'never', 'always',
+            'single_tab'.
+
+            When 'single_tab' is configured, the bar is not shown whenever there is a
+            lone tab remaining, but shows up again when another tab is added. 
+
+            For nested tab levels, configuring 'always' or 'single_tab' actually means
+            that when only a single tab remains, its contents get 'merged' upwards,
+            eliminating the sub-tab level.
+            """,
+        ),
+        (
             "tab_bar.margin",
             0,
             "Size of the margin space around tab bars",

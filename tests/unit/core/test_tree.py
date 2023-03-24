@@ -1961,6 +1961,74 @@ class TestRemove:
                     mock.call([p2, p2.parent]),
                 ]
 
+            class TestWhenN1_N2_N3_Is_SC_TC_T:  # noqa: N801
+                @pytest.mark.parametrize("tab_bar_hide_when", ["always", "single_tab"])
+                def test_when_tab_bar_is_hidden_and_t_child_and_n1_have_same_orientation_then_subtab_level_is_eliminated_with_t_child_descendents_absorbed_into_n1(
+                    self, make_tree_with_subscriber, tab_bar_hide_when
+                ):
+                    tree, callback = make_tree_with_subscriber(TreeEvent.node_removed)
+                    tree.set_config("tab_bar.hide_when", tab_bar_hide_when)
+
+                    p1 = tree.tab()
+                    p2 = tree.split(p1, "x")
+                    p3 = tree.tab(p2, new_level=True)
+                    tree.split(p2, "x")
+                    sc, t, tc, _, _, _ = p3.get_ancestors()
+                    sc2, t2, _, _, _, _ = p2.get_ancestors()
+
+                    tree.remove(p3)
+
+                    assert tree_matches_repr(
+                        tree,
+                        """
+                        - tc:1
+                            - t:2
+                                - sc.x:3
+                                    - p:4 | {x: 0, y: 0, w: 200, h: 300}
+                                    - p:5 | {x: 200, y: 0, w: 100, h: 300}
+                                    - p:12 | {x: 300, y: 0, w: 100, h: 300}
+                        """,
+                    )
+
+                    assert callback.mock_calls == [
+                        mock.call([p3, sc, t, sc2, t2, tc]),
+                    ]
+
+                @pytest.mark.parametrize("tab_bar_hide_when", ["always", "single_tab"])
+                def test_when_tab_bar_is_hidden_and_t_child_and_n1_have_different_orientation_then_subtab_level_is_eliminated_with_t_child_absorbed_into_t1(
+                    self, make_tree_with_subscriber, tab_bar_hide_when
+                ):
+                    tree, callback = make_tree_with_subscriber(TreeEvent.node_removed)
+                    tree.set_config("tab_bar.hide_when", tab_bar_hide_when)
+
+                    p1 = tree.tab()
+                    p2 = tree.split(p1, "x")
+                    p3 = tree.tab(p2, new_level=True)
+                    tree.split(p2, "y")
+                    sc, t, tc, _, _, _ = p3.get_ancestors()
+                    _, t2, _, _, _, _ = p2.get_ancestors()
+                    print(tree)
+
+                    tree.remove(p3)
+                    print(tree)
+
+                    assert tree_matches_repr(
+                        tree,
+                        """
+                        - tc:1
+                            - t:2
+                                - sc.x:3
+                                    - p:4 | {x: 0, y: 0, w: 200, h: 300}
+                                    - sc.y:8
+                                        - p:5 | {x: 200, y: 0, w: 200, h: 150}
+                                        - p:12 | {x: 200, y: 150, w: 200, h: 150}
+                        """,
+                    )
+
+                    assert callback.mock_calls == [
+                        mock.call([p3, sc, t, t2, tc]),
+                    ]
+
         class TestNegativeCases:
             def test_when_n1_n2_n3_chain_is_t_sc_p_then_no_pruning_happens(
                 self, make_tree_with_subscriber
@@ -2066,6 +2134,39 @@ class TestRemove:
 
                 assert callback.mock_calls == [
                     mock.call([p1]),
+                ]
+
+            def test_when_n1_n2_n3_chain_is_sc_tc_t_and_tab_bar_is_not_hidden_then_no_pruning_happens(
+                self, make_tree_with_subscriber
+            ):
+                tree, callback = make_tree_with_subscriber(TreeEvent.node_removed)
+                tree.set_config("tab_bar.hide_when", "never")
+
+                p1 = tree.tab()
+                p2 = tree.split(p1, "x")
+                p3 = tree.tab(p2, new_level=True)
+                tree.split(p2, "y")
+                sc, t, _, _, _, _ = p3.get_ancestors()
+
+                tree.remove(p3)
+
+                assert tree_matches_repr(
+                    tree,
+                    """
+                    - tc:1
+                        - t:2
+                            - sc.x:3
+                                - p:4 | {x: 0, y: 20, w: 200, h: 280}
+                                - tc:6
+                                    - t:7
+                                        - sc.y:8
+                                            - p:5 | {x: 200, y: 40, w: 200, h: 130}
+                                            - p:12 | {x: 200, y: 170, w: 200, h: 130}
+                    """,
+                )
+
+                assert callback.mock_calls == [
+                    mock.call([p3, sc, t]),
                 ]
 
 

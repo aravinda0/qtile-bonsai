@@ -14,7 +14,6 @@ from strenum import StrEnum
 from qtile_bonsai.core.geometry import (
     Axis,
     AxisParam,
-    Box,
     Direction,
     DirectionParam,
     Rect,
@@ -24,6 +23,7 @@ from qtile_bonsai.core.nodes import (
     Pane,
     SplitContainer,
     Tab,
+    TabBar,
     TabContainer,
 )
 from qtile_bonsai.core.utils import validate_unit_range
@@ -81,6 +81,7 @@ class Tree:
             "tab_bar.margin": 0,
             "tab_bar.border_size": 0,
             "tab_bar.padding": 0,
+            "tab_bar.hide_when": "never",
         }
         return config
 
@@ -317,8 +318,8 @@ class Tree:
         br_sibling = br_remove.operational_sibling
         container.children.remove(br_remove)
 
-        # Handle space redistribution if applicable
         if isinstance(container, SplitContainer):
+            # Space redistribution is applicable. Give space to sibling node.
             free_space = br_remove.principal_rect
             axis = container.axis
             start = min(free_space.coord(axis), br_sibling.principal_rect.coord(axis))
@@ -495,6 +496,10 @@ class Tree:
                 chain=(SplitContainer, SplitContainer, TabContainer),
                 prune=self._prune_sc_sc_tc,
             ),
+            _PruningCase(
+                chain=(SplitContainer, TabContainer, Tab),
+                prune=self._prune_sc_tc_t,
+            ),
         ]
 
     def _add_very_first_tab(self) -> tuple[Pane, list[Node]]:
@@ -505,15 +510,7 @@ class Tree:
 
         top_level = 1
         tab_container = self.create_tab_container()
-
-        # Max width rect for top level tab bar
-        tab_bar_rect = Rect(0, 0, self.width, self.get_config("tab_bar.height"))
-        tab_container.tab_bar.box = Box(
-            principal_rect=tab_bar_rect,
-            margin=self.get_config("tab_bar.margin", for_level=top_level),
-            border=self.get_config("tab_bar.border_size", for_level=top_level),
-            padding=self.get_config("tab_bar.padding", for_level=top_level),
-        )
+        tab_container.tab_bar = self._build_tab_bar(0, 0, self.width, top_level, 1)
 
         added_nodes.append(tab_container)
 
@@ -529,6 +526,7 @@ class Tree:
         added_nodes.append(new_split_container)
 
         # Max sized rect, allowing for top level tab bar
+        tab_bar_rect = tab_container.tab_bar.box.principal_rect
         new_pane_rect = Rect(
             0, tab_bar_rect.y2, self.width, self.height - tab_bar_rect.h
         )
@@ -544,6 +542,8 @@ class Tree:
 
     def _add_tab(self, tab_container: TabContainer) -> tuple[Pane, list[Node]]:
         added_nodes = []
+
+        self._maybe_restore_tab_bar(tab_container)
 
         new_tab = self.create_tab()
         new_tab.parent = tab_container
@@ -586,19 +586,13 @@ class Tree:
         at_split_container.children.insert(at_pane_pos, new_tab_container)
         added_nodes.append(new_tab_container)
 
-        # The new tab container's dimensions are derived from the space that was
-        # occupied by `at_pane`
         new_tab_level = at_pane.tab_level + 1
-        new_tab_container.tab_bar.box = Box(
-            principal_rect=Rect(
-                at_pane.principal_rect.x,
-                at_pane.principal_rect.y,
-                at_pane.principal_rect.w,
-                self.get_config("tab_bar.height", for_level=new_tab_level),
-            ),
-            margin=self.get_config("tab_bar.margin", for_level=new_tab_level),
-            border=self.get_config("tab_bar.border_size", for_level=new_tab_level),
-            padding=self.get_config("tab_bar.padding", for_level=new_tab_level),
+        new_tab_container.tab_bar = self._build_tab_bar(
+            at_pane.principal_rect.x,
+            at_pane.principal_rect.y,
+            at_pane.principal_rect.w,
+            new_tab_level,
+            2,
         )
 
         tab1 = self.create_tab()
@@ -650,6 +644,46 @@ class Tree:
         added_nodes.append(new_pane)
 
         return new_pane, added_nodes
+
+    def _build_tab_bar(
+        self, x: int, y: int, w: int, tab_level: int, tab_count: int
+    ) -> TabBar:
+        bar_height = self.get_config("tab_bar.height", for_level=tab_level)
+
+        # hide the tab bar when relevant, by setting its height to 0
+        bar_hide_when = self.get_config("tab_bar.hide_when", for_level=tab_level)
+        if bar_hide_when == "always" or (
+            bar_hide_when == "single_tab" and tab_count == 1
+        ):
+            bar_height = 0
+
+        return TabBar(
+            principal_rect=Rect(x, y, w, bar_height),
+            margin=self.get_config("tab_bar.margin", for_level=tab_level),
+            border=self.get_config("tab_bar.border_size", for_level=tab_level),
+            padding=self.get_config("tab_bar.padding", for_level=tab_level),
+        )
+
+    def _maybe_restore_tab_bar(self, tab_container: TabContainer):
+        """Depending on the `tab_bar.hide_when` config, we may require that a tab bar
+        that was previously hidden be made visible again.
+        """
+        if len(tab_container.children) > 2:
+            # If tab bar restoration was required, we'd have already done it when the
+            # 2nd tab was added.
+            return
+
+        tab_level = tab_container.tab_level
+        bar_hide_when = self.get_config("tab_bar.hide_when", for_level=tab_level)
+        bar_rect = tab_container.tab_bar.box.principal_rect
+        if bar_hide_when != "always" and bar_rect.h == 0:
+            bar_height = self.get_config("tab_bar.height", for_level=tab_level)
+            bar_rect.h = bar_height
+
+            # We need to adjust the contents of the first tab after the bar takes up its
+            # space.
+            first_tab = tab_container._children[0]
+            first_tab.shrink("y", bar_height, start_pos=bar_rect.y2)
 
     def _maybe_morph_split_container(
         self, split_container: SplitContainer, requested_axis
@@ -779,6 +813,44 @@ class Tree:
         n3.parent = n1
         n1.children.insert(n2_position, n3)
         return [n2]
+
+    def _prune_sc_tc_t(
+        self, n1: SplitContainer, n2: TabContainer, n3: Tab
+    ) -> list[Node]:
+        """Depending on what is configured, this may lead to elimination of a subtab
+        level - so n2 and n3 get discarded, linking n1 with n3's children.
+
+        If the above pruning does happen, it leaves us with another possible opportunity
+        to prune things if n1 and n3's child SC are of the same orientation.
+
+        Elimination of a TC also leads to geometry adjustments due to the TC's tab bar
+        also being eliminated.
+        """
+        removed_nodes = []
+        hide_when = self.get_config("tab_bar.hide_when", for_level=n3.tab_level)
+        if hide_when in ["always", "single_tab"]:
+            n2_position = n1.children.index(n2)
+            n1.children.remove(n2)
+            sc = n3.children[0]
+
+            # n3's T can only have a single SC child. The sc can now either match the n1
+            # SC orientation or be different.
+            if sc.axis == n1.axis:
+                for child in sc.children:
+                    child.parent = n1
+                    n1.children.insert(n2_position, child)
+                    n2_position += 1
+                removed_nodes.append(sc)
+            else:
+                sc.parent = n1
+                n1.children.insert(n2_position, sc)
+
+            removed_nodes.extend([n3, n2])
+
+            # Consume space left by tab bar after n2 is eliminated
+            sc.grow("y", n2.tab_bar.box.padding_rect.h, start_pos=n2.principal_rect.y)
+
+        return removed_nodes
 
     def _find_super_node_to_resize(self, pane: Pane, axis: Axis) -> Node | None:
         """Finds the first node in the ancestor chain that is under a SC of the

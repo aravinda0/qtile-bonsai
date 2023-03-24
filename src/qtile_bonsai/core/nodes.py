@@ -423,3 +423,7 @@ class TabBar:
         self.bg_color = "#000000"
         self.fg_color = "#ff0000"
         self.active_tab_color = "#0000ff"
+
+    @property
+    def is_hidden(self):
+        return self.box.principal_rect.h == 0
