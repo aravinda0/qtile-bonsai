@@ -365,7 +365,7 @@ class Bonsai(Layout):
             if level_specific_key is not None:
                 level = int(level_specific_key.group(1))
                 key = level_specific_key.group(2)
-            self._tree.set_config(key, value, for_level=level)
+            self._tree.set_config(key, value, level=level)
 
     def _handle_added_tree_nodes(self, nodes: list[BonsaiNodeMixin]):
         for node in nodes:

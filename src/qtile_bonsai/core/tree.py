@@ -85,30 +85,30 @@ class Tree:
         }
         return config
 
-    def set_config(self, key: str, value: Any, *, for_level: int | None = None):
-        for_level = for_level if for_level is not None else self._default_config_key
-        if for_level < self._default_config_key:
-            raise ValueError("`for_level` must be a positive number")
+    def set_config(self, key: str, value: Any, *, level: int | None = None):
+        level = level if level is not None else self._default_config_key
+        if level < self._default_config_key:
+            raise ValueError("`level` must be a positive number")
 
-        self._config[for_level][key] = value
+        self._config[level][key] = value
 
     def get_config(
         self,
         key: str,
         *,
-        for_level: int | None = None,
+        level: int | None = None,
         fall_back_to_default: bool = True,
     ) -> Any:
-        for_level = for_level if for_level is not None else self._default_config_key
-        if for_level < self._default_config_key:
-            raise ValueError("`for_level` must be a positive number")
+        level = level if level is not None else self._default_config_key
+        if level < self._default_config_key:
+            raise ValueError("`level` must be a positive number")
 
         if fall_back_to_default and (
-            for_level not in self._config or key not in self._config[for_level]
+            level not in self._config or key not in self._config[level]
         ):
-            for_level = self._default_config_key
+            level = self._default_config_key
 
-        return self._config[for_level][key]
+        return self._config[level][key]
 
     def create_pane(
         self,
@@ -130,11 +130,11 @@ class Tree:
         """
 
         if margin is None:
-            margin = self.get_config("window.margin", for_level=tab_level)
+            margin = self.get_config("window.margin", level=tab_level)
         if border is None:
-            border = self.get_config("window.border_size", for_level=tab_level)
+            border = self.get_config("window.border_size", level=tab_level)
         if padding is None:
-            padding = self.get_config("window.padding", for_level=tab_level)
+            padding = self.get_config("window.padding", level=tab_level)
 
         return Pane(
             content_rect=content_rect,
@@ -619,11 +619,9 @@ class Tree:
 
         # `at_pane` is now at tab_level = n + 1. We modify properties to align
         # with n + 1 level config.
-        at_pane.box.margin = self.get_config("window.margin", for_level=new_tab_level)
-        at_pane.box.border = self.get_config(
-            "window.border_size", for_level=new_tab_level
-        )
-        at_pane.box.padding = self.get_config("window.padding", for_level=new_tab_level)
+        at_pane.box.margin = self.get_config("window.margin", level=new_tab_level)
+        at_pane.box.border = self.get_config("window.border_size", level=new_tab_level)
+        at_pane.box.padding = self.get_config("window.padding", level=new_tab_level)
 
         # Start adding the real new tab that was requested and mark it as the active
         # tab.
@@ -652,10 +650,10 @@ class Tree:
     def _build_tab_bar(
         self, x: int, y: int, w: int, tab_level: int, tab_count: int
     ) -> TabBar:
-        bar_height = self.get_config("tab_bar.height", for_level=tab_level)
+        bar_height = self.get_config("tab_bar.height", level=tab_level)
 
         # hide the tab bar when relevant, by setting its height to 0
-        bar_hide_when = self.get_config("tab_bar.hide_when", for_level=tab_level)
+        bar_hide_when = self.get_config("tab_bar.hide_when", level=tab_level)
         if bar_hide_when == "always" or (
             bar_hide_when == "single_tab" and tab_count == 1
         ):
@@ -663,9 +661,9 @@ class Tree:
 
         return TabBar(
             principal_rect=Rect(x, y, w, bar_height),
-            margin=self.get_config("tab_bar.margin", for_level=tab_level),
-            border=self.get_config("tab_bar.border_size", for_level=tab_level),
-            padding=self.get_config("tab_bar.padding", for_level=tab_level),
+            margin=self.get_config("tab_bar.margin", level=tab_level),
+            border=self.get_config("tab_bar.border_size", level=tab_level),
+            padding=self.get_config("tab_bar.padding", level=tab_level),
         )
 
     def _maybe_restore_tab_bar(self, tab_container: TabContainer):
@@ -678,10 +676,10 @@ class Tree:
             return
 
         tab_level = tab_container.tab_level
-        bar_hide_when = self.get_config("tab_bar.hide_when", for_level=tab_level)
+        bar_hide_when = self.get_config("tab_bar.hide_when", level=tab_level)
         bar_rect = tab_container.tab_bar.box.principal_rect
         if bar_hide_when != "always" and bar_rect.h == 0:
-            bar_height = self.get_config("tab_bar.height", for_level=tab_level)
+            bar_height = self.get_config("tab_bar.height", level=tab_level)
             bar_rect.h = bar_height
 
             # We need to adjust the contents of the first tab after the bar takes up its
@@ -831,7 +829,7 @@ class Tree:
         also being eliminated.
         """
         removed_nodes = []
-        hide_when = self.get_config("tab_bar.hide_when", for_level=n3.tab_level)
+        hide_when = self.get_config("tab_bar.hide_when", level=n3.tab_level)
         if hide_when in ["always", "single_tab"]:
             n2_position = n1.children.index(n2)
             n1.children.remove(n2)
@@ -864,7 +862,7 @@ class Tree:
         So only geometry adjustments are made to consume the space of the hidden tab
         bar.
         """
-        hide_when = self.get_config("tab_bar.hide_when", for_level=n3.tab_level)
+        hide_when = self.get_config("tab_bar.hide_when", level=n3.tab_level)
         if hide_when == "single_tab":
             bar_rect = n2.tab_bar.box.principal_rect
             bar_height = bar_rect.h

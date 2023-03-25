@@ -64,22 +64,22 @@ class BonsaiTabContainer(BonsaiNodeMixin, TabContainer):
 
         level = self.tab_level
 
-        tab_bar_border_color = tree.get_config("tab_bar.border_color", for_level=level)
-        tab_bar_bg_color = tree.get_config("tab_bar.bg_color", for_level=level)
+        tab_bar_border_color = tree.get_config("tab_bar.border_color", level=level)
+        tab_bar_bg_color = tree.get_config("tab_bar.bg_color", level=level)
 
-        tab_min_width = tree.get_config("tab_bar.tab.min_width", for_level=level)
-        tab_margin = tree.get_config("tab_bar.tab.margin", for_level=level)
-        tab_padding = tree.get_config("tab_bar.tab.padding", for_level=level)
-        tab_font_family = tree.get_config("tab_bar.tab.font_family", for_level=level)
-        tab_font_size = tree.get_config("tab_bar.tab.font_size", for_level=level)
-        tab_bg_color = tree.get_config("tab_bar.tab.bg_color", for_level=level)
-        tab_fg_color = tree.get_config("tab_bar.tab.fg_color", for_level=level)
+        tab_min_width = tree.get_config("tab_bar.tab.min_width", level=level)
+        tab_margin = tree.get_config("tab_bar.tab.margin", level=level)
+        tab_padding = tree.get_config("tab_bar.tab.padding", level=level)
+        tab_font_family = tree.get_config("tab_bar.tab.font_family", level=level)
+        tab_font_size = tree.get_config("tab_bar.tab.font_size", level=level)
+        tab_bg_color = tree.get_config("tab_bar.tab.bg_color", level=level)
+        tab_fg_color = tree.get_config("tab_bar.tab.fg_color", level=level)
 
         tab_active_bg_color = tree.get_config(
-            "tab_bar.tab.active.bg_color", for_level=level
+            "tab_bar.tab.active.bg_color", level=level
         )
         tab_active_fg_color = tree.get_config(
-            "tab_bar.tab.active.fg_color", for_level=level
+            "tab_bar.tab.active.fg_color", level=level
         )
 
         place_window_using_box(
@@ -168,11 +168,11 @@ class BonsaiPane(BonsaiNodeMixin, Pane):
     def render(self, screen_rect: ScreenRect, tree: "BonsaiTree"):
         if self.window.has_focus:
             window_border_color = tree.get_config(
-                "window.active.border_color", for_level=self.tab_level
+                "window.active.border_color", level=self.tab_level
             )
         else:
             window_border_color = tree.get_config(
-                "window.border_color", for_level=self.tab_level
+                "window.border_color", level=self.tab_level
             )
 
         place_window_using_box(self.window, self.box, window_border_color, screen_rect)
@@ -193,9 +193,9 @@ class BonsaiTree(Tree):
         tab_level: int | None = None,
     ) -> BonsaiPane:
         if margin is None:
-            margin = self.get_config("window.margin", for_level=tab_level)
+            margin = self.get_config("window.margin", level=tab_level)
         if border is None:
-            border = self.get_config("window.border_size", for_level=tab_level)
+            border = self.get_config("window.border_size", level=tab_level)
 
         return BonsaiPane(
             principal_rect=principal_rect,
