@@ -500,6 +500,10 @@ class Tree:
                 chain=(SplitContainer, TabContainer, Tab),
                 prune=self._prune_sc_tc_t,
             ),
+            _PruningCase(
+                chain=(type(None), TabContainer, Tab),
+                prune=self._prune_none_tc_t,
+            ),
         ]
 
     def _add_very_first_tab(self) -> tuple[Pane, list[Node]]:
@@ -737,7 +741,7 @@ class Tree:
                 │
                 ├── TC ◄────── T
                 │
-         None ◄─┘
+        *None ◄─┘
 
             T ◄─┐
                 │
@@ -851,6 +855,22 @@ class Tree:
             sc.grow("y", n2.tab_bar.box.padding_rect.h, start_pos=n2.principal_rect.y)
 
         return removed_nodes
+
+    def _prune_none_tc_t(self, n1: None, n2: TabContainer, n3: Tab) -> list[Node]:
+        """As n1 is `None`, this is only applicable at the topmost tab level. There's no
+        'pruning' per se, but when `tab_bar.hide_when` is configured to be `single_tab`,
+        we need to hide the tab bar in this case.
+
+        So only geometry adjustments are made to consume the space of the hidden tab
+        bar.
+        """
+        hide_when = self.get_config("tab_bar.hide_when", for_level=n3.tab_level)
+        if hide_when == "single_tab":
+            bar_rect = n2.tab_bar.box.principal_rect
+            bar_height = bar_rect.h
+            bar_rect.h = 0
+            n3.grow("y", bar_height, start_pos=bar_rect.y)
+        return []
 
     def _find_super_node_to_resize(self, pane: Pane, axis: Axis) -> Node | None:
         """Finds the first node in the ancestor chain that is under a SC of the

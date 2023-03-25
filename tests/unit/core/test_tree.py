@@ -2029,6 +2029,33 @@ class TestRemove:
                         mock.call([p3, sc, t, t2, tc]),
                     ]
 
+            @pytest.mark.parametrize("tab_bar_hide_when", ["always", "single_tab"])
+            def test_when_n1_n2_n3_chain_is_none_tc_t_and_tab_bar_must_be_hidden_then_no_pruning_happens_but_tab_bar_space_is_consumed(
+                self, make_tree_with_subscriber, tab_bar_hide_when
+            ):
+                tree, callback = make_tree_with_subscriber(TreeEvent.node_removed)
+                tree.set_config("tab_bar.hide_when", tab_bar_hide_when)
+
+                tree.tab()
+                p2 = tree.tab()
+                sc, t, _ = p2.get_ancestors()
+
+                tree.remove(p2)
+
+                assert tree_matches_repr(
+                    tree,
+                    """
+                    - tc:1
+                        - t:2
+                            - sc.x:3
+                                - p:4 | {x: 0, y: 0, w: 400, h: 300}
+                    """,
+                )
+
+                assert callback.mock_calls == [
+                    mock.call([p2, sc, t]),
+                ]
+
         class TestNegativeCases:
             def test_when_n1_n2_n3_chain_is_t_sc_p_then_no_pruning_happens(
                 self, make_tree_with_subscriber
@@ -2082,7 +2109,7 @@ class TestRemove:
                     mock.call([p3, sc, t]),
                 ]
 
-            def test_when_n1_n2_n3_chain_is_none_tc_t_then_no_pruning_happens(
+            def test_when_n1_n2_n3_chain_is_none_tc_t_and_tab_bar_must_be_visible_then_no_pruning_happens(
                 self, make_tree_with_subscriber
             ):
                 tree, callback = make_tree_with_subscriber(TreeEvent.node_removed)

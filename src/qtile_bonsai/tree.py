@@ -59,6 +59,7 @@ class BonsaiTabContainer(BonsaiNodeMixin, TabContainer):
 
     def render(self, screen_rect: ScreenRect, tree: "BonsaiTree"):
         if self.tab_bar.is_hidden:
+            self.hide()
             return
 
         level = self.tab_level
