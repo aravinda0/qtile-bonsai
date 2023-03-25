@@ -2998,6 +2998,32 @@ class TestTabMotions:
             assert p is None
 
 
+class TestSwap:
+    def test_swap(self, tree):
+        p1 = tree.tab()
+        p2 = tree.split(p1, "x")
+        p3 = tree.split(p2, "y")
+        tree.tab()
+
+        tree.swap(p1, p3)
+
+        assert tree_matches_repr(
+            tree,
+            """
+            - tc:1
+                - t:2
+                    - sc.x:3
+                        - p:7 | {x: 0, y: 20, w: 200, h: 280}
+                        - sc.y:6
+                            - p:5 | {x: 200, y: 20, w: 200, h: 140}
+                            - p:4 | {x: 200, y: 160, w: 200, h: 140}
+                - t:8
+                    - sc.x:9
+                        - p:10 | {x: 0, y: 20, w: 400, h: 280}
+            """,
+        )
+
+
 class TestConfig:
     def test_fall_back_to_default(self, tree: Tree):
         tree.set_config("window.margin", 10)

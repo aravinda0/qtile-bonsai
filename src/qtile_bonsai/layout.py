@@ -317,6 +317,50 @@ class Bonsai(Layout):
         self._tree.resize(self.focused_pane, Axis.y, amount)
         self._request_relayout()
 
+    def cmd_swap_up(self, *, wrap: bool = False):
+        if self._tree.is_empty:
+            return
+
+        other_pane = self._tree.up(self.focused_pane, wrap=wrap)
+        if other_pane is self.focused_pane:
+            return
+
+        self._tree.swap(self.focused_pane, other_pane)
+        self._request_relayout()
+
+    def cmd_swap_down(self, *, wrap: bool = False):
+        if self._tree.is_empty:
+            return
+
+        other_pane = self._tree.down(self.focused_pane, wrap=wrap)
+        if other_pane is self.focused_pane:
+            return
+
+        self._tree.swap(self.focused_pane, other_pane)
+        self._request_relayout()
+
+    def cmd_swap_left(self, *, wrap: bool = False):
+        if self._tree.is_empty:
+            return
+
+        other_pane = self._tree.left(self.focused_pane, wrap=wrap)
+        if other_pane is self.focused_pane:
+            return
+
+        self._tree.swap(self.focused_pane, other_pane)
+        self._request_relayout()
+
+    def cmd_swap_right(self, *, wrap: bool = False):
+        if self._tree.is_empty:
+            return
+
+        other_pane = self._tree.right(self.focused_pane, wrap=wrap)
+        if other_pane is self.focused_pane:
+            return
+
+        self._tree.swap(self.focused_pane, other_pane)
+        self._request_relayout()
+
     def cmd_rename_tab(self, widget: str = "prompt"):
         prompt_widget = self.group.qtile.widgets_map.get(widget)
         if prompt_widget is None:

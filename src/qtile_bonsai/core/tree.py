@@ -375,6 +375,27 @@ class Tree:
     def prev_tab(self, node: Node, *, wrap: bool = True) -> Pane | None:
         return self._next_tab(node, -1, wrap=wrap)
 
+    def swap(self, p1: Pane, p2: Pane):
+        """Swaps the two panes provided in the tree. Their geometries are modified so
+        that the overall tree geometry remains the same.
+        """
+        sc1 = p1.parent
+        p1_index = sc1.children.index(p1)
+
+        sc2 = p2.parent
+        p2_index = sc2.children.index(p2)
+
+        sc1.children.remove(p1)
+        p2.parent = sc1
+        sc1.children.insert(p1_index, p2)
+
+        sc2.children.remove(p2)
+        p1.parent = sc2
+        sc2.children.insert(p2_index, p1)
+
+        # Swap geometries
+        p1.box, p2.box = p2.box, p1.box
+
     def is_visible(self, node: Node) -> bool:
         """Whether a node is visible or not. A node is visible if all its ancestor
         tabs are active.
