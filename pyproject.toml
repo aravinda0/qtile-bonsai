@@ -97,4 +97,5 @@ ignore = [
 ]
 unfixable = [
   "T20",  # don't auto-remove print-statements
+  "F841", # don't auto-remove (seemingly) unused variables
 ]
