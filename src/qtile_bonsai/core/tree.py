@@ -160,22 +160,13 @@ class Tree:
         return TabContainer()
 
     def reset_dimensions(self, width: int, height: int):
-        width_diff = width - self._width
-        height_diff = height - self._height
-
         self._width = width
         self._height = height
 
         # Ensure the tree nodes get resized proportionally
         if self._root is not None:
-            if width_diff > 0:
-                self._root.grow(Axis.x, width_diff, 0)
-            else:
-                self._root.shrink(Axis.x, abs(width_diff), 0)
-            if height_diff > 0:
-                self._root.grow(Axis.y, height_diff, 0)
-            else:
-                self._root.shrink(Axis.y, abs(height_diff), 0)
+            self._root.transform(Axis.x, 0, width)
+            self._root.transform(Axis.y, 0, height)
 
     def tab(
         self,
@@ -229,7 +220,20 @@ class Tree:
 
         return pane
 
-    def split(self, pane: Pane, axis: AxisParam, ratio: float = 0.5) -> Pane:
+    def normalize(self, node: Node, *, recurse: bool = True):
+        sc, *_ = node.get_ancestors(SplitContainer, include_self=True)
+        per_node_dim = sc.principal_rect.dim(sc.axis) / len(sc.children)
+
+        print(per_node_dim)
+
+    def split(
+        self,
+        pane: Pane,
+        axis: AxisParam,
+        ratio: float = 0.5,
+        *,
+        normalize: bool = False,
+    ) -> Pane:
         validate_unit_range(ratio, "ratio")
         axis = Axis(axis)
 
@@ -251,6 +255,7 @@ class Tree:
             )
             new_pane.parent = pane_container
             pane_container.children.insert(pane_index + 1, new_pane)
+
         else:
             pane_container.children.remove(pane)
 
@@ -282,23 +287,23 @@ class Tree:
         if super_node is None:
             return
 
-        assert super_node.operational_pair is not None
-        operational_pair = super_node.operational_pair
+        if super_node.is_last_child:
+            br1, br2 = super_node.operational_sibling, super_node
+        else:
+            br1, br2 = super_node, super_node.operational_sibling
 
-        br_shrink = operational_pair[1] if amount > 0 else operational_pair[0]
+        br_shrink = br2 if amount > 0 else br1
         actual_amount = min(abs(amount), br_shrink.shrinkability(axis))
+        actual_amount = actual_amount if amount > 0 else -actual_amount
 
-        if actual_amount > 0:
-            b1, b2 = operational_pair
-            b1_rect = b1.principal_rect
-            b1_start = b1_rect.coord(axis)
-            b1_end = b1_rect.coord2(axis)
-            if amount > 0:
-                b1.grow(axis, actual_amount, b1_start)
-                b2.shrink(axis, actual_amount, b1_end + actual_amount)
-            else:
-                b1.shrink(axis, actual_amount, b1_start)
-                b2.grow(axis, actual_amount, b1_end - actual_amount)
+        points = [
+            br1.principal_rect.coord(axis),
+            br1.principal_rect.coord2(axis) + actual_amount,
+            br2.principal_rect.coord2(axis),
+        ]
+
+        br1.transform(axis, points[0], points[1] - points[0])
+        br2.transform(axis, points[1], points[2] - points[1])
 
     def remove(self, pane: Pane) -> Pane | None:
         removed_nodes = []
@@ -320,10 +325,13 @@ class Tree:
 
         if isinstance(container, SplitContainer):
             # Space redistribution is applicable. Give space to sibling node.
-            free_space = br_remove.principal_rect
+            br_remove_rect = br_remove.principal_rect
+            br_sibling_rect = br_sibling.principal_rect
             axis = container.axis
-            start = min(free_space.coord(axis), br_sibling.principal_rect.coord(axis))
-            br_sibling.grow(axis, free_space.dim(axis), start)
+            start = min(br_remove_rect.coord(axis), br_sibling_rect.coord(axis))
+            br_sibling.transform(
+                axis, start, br_remove_rect.dim(axis) + br_remove_rect.dim(axis)
+            )
 
         removed_nodes.extend(self._do_post_removal_pruning(br_sibling))
 
@@ -706,7 +714,9 @@ class Tree:
             # We need to adjust the contents of the first tab after the bar takes up its
             # space.
             first_tab = tab_container._children[0]
-            first_tab.shrink("y", bar_height, start_pos=bar_rect.y2)
+            first_tab.transform(
+                Axis.y, bar_rect.y2, first_tab.principal_rect.h - bar_height
+            )
 
     def _maybe_morph_split_container(
         self, split_container: SplitContainer, requested_axis
@@ -871,7 +881,11 @@ class Tree:
             removed_nodes.extend([n3, n2])
 
             # Consume space left by tab bar after n2 is eliminated
-            sc.grow("y", n2.tab_bar.box.padding_rect.h, start_pos=n2.principal_rect.y)
+            sc.transform(
+                Axis.y,
+                n2.principal_rect.y,
+                sc.principal_rect.h + n2.tab_bar.box.principal_rect.h,
+            )
 
         return removed_nodes
 
@@ -888,7 +902,7 @@ class Tree:
             bar_rect = n2.tab_bar.box.principal_rect
             bar_height = bar_rect.h
             bar_rect.h = 0
-            n3.grow("y", bar_height, start_pos=bar_rect.y)
+            n3.transform(Axis.y, bar_rect.y, n3.principal_rect.h + bar_height)
         return []
 
     def _find_super_node_to_resize(self, pane: Pane, axis: Axis) -> Node | None:

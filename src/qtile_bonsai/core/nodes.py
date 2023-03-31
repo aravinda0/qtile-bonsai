@@ -32,11 +32,7 @@ class Node(metaclass=abc.ABCMeta):
         raise NotImplementedError
 
     @abc.abstractmethod
-    def shrink(self, axis: AxisParam, amount: int, start_pos: int):
-        raise NotImplementedError
-
-    @abc.abstractmethod
-    def grow(self, axis: AxisParam, amount: int, start_pos: int):
+    def transform(self, axis: AxisParam, start: int, size: int):
         raise NotImplementedError
 
     @property
@@ -219,25 +215,15 @@ class Pane(Node):
     def shrinkability(self, axis: AxisParam) -> int:
         return self.principal_rect.dim(axis) - self.min_size
 
-    def shrink(self, axis: AxisParam, amount: int, start_pos: int):
+    def transform(self, axis: AxisParam, start: int, size: int):
         axis = Axis(axis)
         rect = self.box.principal_rect
 
-        setattr(rect, axis, start_pos)
-        new_dimension = max(rect.dim(axis) - amount, self.min_size)
-        setattr(rect, axis.dim, new_dimension)
+        if size < self.min_size:
+            raise ValueError("The new dimensions are not valid")
 
-        self.box.principal_rect = rect
-
-    def grow(self, axis: AxisParam, amount: int, start_pos: int):
-        axis = Axis(axis)
-        rect = self.box.principal_rect
-
-        setattr(rect, axis, start_pos)
-        new_dimension = rect.dim(axis) + amount
-        setattr(rect, axis.dim, new_dimension)
-
-        self.box.principal_rect = rect
+        setattr(rect, axis, start)
+        setattr(rect, axis.dim, size)
 
     def __repr__(self) -> str:
         r = self.principal_rect
@@ -269,42 +255,39 @@ class SplitContainer(Node):
             return sum(shrinkability_summary)
         return min(shrinkability_summary)
 
-    def shrink(self, axis: AxisParam, amount: int, start_pos: int):
-        branch_shrinkability = self.shrinkability(axis)
-        actual_amount = min(amount, branch_shrinkability)
-        if self.axis == axis:
-            # Resizing along `self.axis` will shrink each contained node in proportion
-            # to its ability to shrink.
-            s = start_pos
-            for child in self.children:
-                child_shrinkability = child.shrinkability(axis)
-                allotment = round(
-                    (child_shrinkability / branch_shrinkability) * actual_amount
-                )
-                child.shrink(axis, allotment, s)
-                s += child.principal_rect.dim(axis)
-        else:
-            # Resizing against `self.axis` will shrink all contained nodes by the same
-            # amount.
-            for child in self.children:
-                child.shrink(axis, actual_amount, start_pos)
+    def transform(self, axis: AxisParam, start: int, size: int):
+        axis = Axis(axis)
 
-    def grow(self, axis: AxisParam, amount: int, start_pos: int):
         if self.axis == axis:
-            # Resizing along `self.axis` will grow each contained node in proportion
-            # to its size.
+            # Resizing along `self.axis` will behave in a proportional manner.
+            # When growing, each child node is grown in proportion to its size.
+            # When shrinking, each child node is shrunk in proportion to its ability to
+            # shrink to minimum possible size.
             branch_size = self.principal_rect.dim(axis)
-            s = start_pos
+            branch_shrinkability = self.shrinkability(axis)
+            delta = size - branch_size
+            s = start
             for child in self.children:
                 child_size = child.principal_rect.dim(axis)
-                allotment = round((child_size / branch_size) * amount)
-                child.grow(axis, allotment, s)
-                s += child_size + allotment
+
+                if delta < 0:
+                    # Handle shrinking in proportion to shrinkability of each child
+                    child_shrinkability = child.shrinkability(axis)
+                    allotment = round(
+                        (child_shrinkability / branch_shrinkability) * delta
+                    )
+                else:
+                    # Handle growing in proportion to each child's size
+                    allotment = round((child_size / branch_size) * delta)
+
+                new_child_size = child_size + allotment
+                child.transform(axis, s, new_child_size)
+                s += new_child_size
         else:
-            # Resizing against `self.axis` will grow all contained nodes by the same
+            # Resizing against `self.axis` will resize all contained nodes by the same
             # amount.
             for child in self.children:
-                child.grow(axis, amount, start_pos)
+                child.transform(axis, start, size)
 
     def __repr__(self) -> str:
         return f"sc.{self.axis}:{self.id}"
@@ -329,11 +312,8 @@ class Tab(Node):
     def shrinkability(self, axis: AxisParam) -> int:
         return self.children[0].shrinkability(axis)
 
-    def shrink(self, axis: AxisParam, amount: int, start_pos: int):
-        self.children[0].shrink(axis, amount, start_pos)
-
-    def grow(self, axis: AxisParam, amount: int, start_pos: int):
-        self.children[0].grow(axis, amount, start_pos)
+    def transform(self, axis: AxisParam, start: int, size: int):
+        self.children[0].transform(axis, start, size)
 
     def __repr__(self) -> str:
         return f"t:{self.id}"
@@ -365,33 +345,20 @@ class TabContainer(Node):
         # shrink as much as the least shrinkable tab.
         return min(tab.shrinkability(axis) for tab in self.children)
 
-    def shrink(self, axis: AxisParam, amount: int, start_pos: int):
-        actual_amount = min(amount, self.shrinkability(axis))
-
+    def transform(self, axis: AxisParam, start: int, size: int):
         bar_rect = self.tab_bar.box.principal_rect
-        if axis == "x":
-            bar_rect.x = start_pos
-            bar_rect.w -= actual_amount
+        if axis == Axis.x:
+            bar_rect.x = start
+            bar_rect.w = size
         else:
-            bar_rect.y = start_pos
-            start_pos += bar_rect.h
-        self.tab_bar.box.principal_rect = bar_rect
+            bar_rect.y = start
+
+            # Adjust for tab bar before delegating to child nodes
+            start += bar_rect.h
+            size -= bar_rect.h
 
         for child in self.children:
-            child.shrink(axis, actual_amount, start_pos)
-
-    def grow(self, axis: AxisParam, amount: int, start_pos: int):
-        bar_rect = self.tab_bar.box.principal_rect
-        if axis == "x":
-            bar_rect.x = start_pos
-            bar_rect.w += amount
-        else:
-            bar_rect.y = start_pos
-            start_pos += bar_rect.h
-        self.tab_bar.box.principal_rect = bar_rect
-
-        for child in self.children:
-            child.grow(axis, amount, start_pos)
+            child.transform(axis, start, size)
 
     def __repr__(self) -> str:
         return f"tc:{self.id}"
