@@ -1575,6 +1575,110 @@ class TestResize:
             )
 
 
+class TestNormalize:
+    def test_when_recurse_is_false_then_only_the_immediate_children_of_the_node_are_normalized(
+        self, tree: Tree
+    ):
+        p1 = tree.tab()
+        p2 = tree.split(p1, "x", ratio=0.8)
+        p3 = tree.split(p2, "x")
+        tree.split(p3, "y")
+        tree.resize(p3, "y", 50)
+
+        tree.normalize(p1.parent, recurse=False)
+
+        assert tree_matches_repr(
+            tree,
+            """
+            - tc:1
+                - t:2
+                    - sc.x:3
+                        - p:4 | {x: 0, y: 20, w: 133, h: 280}
+                        - p:5 | {x: 133, y: 20, w: 133, h: 280}
+                        - sc.y:7
+                            - p:6 | {x: 266, y: 20, w: 133, h: 190}
+                            - p:8 | {x: 266, y: 210, w: 133, h: 90}
+            """,
+        )
+
+    def test_when_recurse_is_true_then_the_descendents_of_the_node_are_also_normalized(
+        self, tree: Tree
+    ):
+        p1 = tree.tab()
+        p2 = tree.split(p1, "x", ratio=0.8)
+        p3 = tree.split(p2, "x")
+        tree.split(p3, "y", ratio=0.8)
+
+        tree.normalize(p1.parent, recurse=True)
+
+        assert tree_matches_repr(
+            tree,
+            """
+            - tc:1
+                - t:2
+                    - sc.x:3
+                        - p:4 | {x: 0, y: 20, w: 133, h: 280}
+                        - p:5 | {x: 133, y: 20, w: 133, h: 280}
+                        - sc.y:7
+                            - p:6 | {x: 266, y: 20, w: 133, h: 140}
+                            - p:8 | {x: 266, y: 160, w: 133, h: 140}
+            """,
+        )
+
+    def test_when_nested_tab_containers_are_present_then_their_descendent_split_containers_are_also_normalized(
+        self, tree: Tree
+    ):
+        p1 = tree.tab()
+        p2 = tree.split(p1, "x")
+        p3 = tree.split(p2, "y")
+        p4 = tree.tab(p3, new_level=True)
+        tree.split(p3, "y", ratio=0.8)
+        tree.split(p4, "x", ratio=0.8)
+
+        tree.normalize(p1.parent)
+
+        assert tree_matches_repr(
+            tree,
+            """
+            - tc:1
+                - t:2
+                    - sc.x:3
+                        - p:4 | {x: 0, y: 20, w: 200, h: 280}
+                        - sc.y:6
+                            - p:5 | {x: 200, y: 20, w: 200, h: 140}
+                            - tc:8
+                                - t:9
+                                    - sc.y:10
+                                        - p:7 | {x: 200, y: 180, w: 200, h: 60}
+                                        - p:14 | {x: 200, y: 240, w: 200, h: 60}
+                                - t:11
+                                    - sc.x:12
+                                        - p:13 | {x: 200, y: 180, w: 100, h: 120}
+                                        - p:15 | {x: 300, y: 180, w: 100, h: 120}
+            """,
+        )
+
+    def test_nodes_outside_the_provided_node_are_not_affected(self, tree: Tree):
+        p1 = tree.tab()
+        p2 = tree.split(p1, "x", ratio=0.75)
+        p3 = tree.split(p2, "y", ratio=0.8)
+
+        tree.normalize(p3.parent)
+
+        assert tree_matches_repr(
+            tree,
+            """
+            - tc:1
+                - t:2
+                    - sc.x:3
+                        - p:4 | {x: 0, y: 20, w: 300, h: 280}
+                        - sc.y:6
+                            - p:5 | {x: 300, y: 20, w: 100, h: 140}
+                            - p:7 | {x: 300, y: 160, w: 100, h: 140}
+            """,
+        )
+
+
 class TestRemove:
     def test_when_all_panes_are_removed_then_tree_is_empty(self, tree):
         p1 = tree.tab()

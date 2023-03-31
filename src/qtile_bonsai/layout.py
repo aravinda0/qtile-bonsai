@@ -14,6 +14,7 @@ from libqtile.log_utils import logger
 from qtile_bonsai.core.tree import (
     Axis,
     Pane,
+    SplitContainer,
     Tab,
     Tree,
     TreeEvent,
@@ -368,6 +369,40 @@ class Bonsai(Layout):
             return
 
         prompt_widget.start_input("Rename tab: ", self._handle_rename_tab)
+
+    def cmd_normalize(self, *, recurse: bool = True):
+        """Starting from the focused pane's container, will make all panes in the
+        container of equal size.
+
+        If `recurse` is `True`, then nested nodes are also normalized similarly.
+        """
+        if self._tree.is_empty:
+            return
+
+        sc, *_ = self.focused_pane.get_ancestors(SplitContainer)
+        self._tree.normalize(sc, recurse=recurse)
+        self._request_relayout()
+
+    def cmd_normalize_tab(self, *, recurse: bool = True):
+        """Starting from the focused pane's tab, will make all panes in the
+        tab of equal size.
+
+        If `recurse` is `True`, then nested nodes are also normalized similarly.
+        """
+        if self._tree.is_empty:
+            return
+
+        tab, *_ = self.focused_pane.get_ancestors(Tab)
+        self._tree.normalize(tab, recurse=recurse)
+        self._request_relayout()
+
+    def cmd_normalize_all(self):
+        """Makes all windows under all tabs be of equal size."""
+        if self._tree.is_empty:
+            return
+
+        self._tree.normalize(self._tree.root, recurse=True)
+        self._request_relayout()
 
     def cmd_info(self):
         return {

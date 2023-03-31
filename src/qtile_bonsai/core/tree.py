@@ -68,8 +68,12 @@ class Tree:
         return self._height
 
     @property
+    def root(self) -> TabContainer | None:
+        return self._root
+
+    @property
     def is_empty(self) -> bool:
-        return self._root is None
+        return self.root is None
 
     def make_default_config(self) -> collections.defaultdict[int, dict[str, Any]]:
         config = collections.defaultdict(dict)
@@ -220,19 +224,11 @@ class Tree:
 
         return pane
 
-    def normalize(self, node: Node, *, recurse: bool = True):
-        sc, *_ = node.get_ancestors(SplitContainer, include_self=True)
-        per_node_dim = sc.principal_rect.size(sc.axis) / len(sc.children)
-
-        print(per_node_dim)
-
     def split(
         self,
         pane: Pane,
         axis: AxisParam,
         ratio: float = 0.5,
-        *,
-        normalize: bool = False,
     ) -> Pane:
         validate_unit_range(ratio, "ratio")
         axis = Axis(axis)
@@ -304,6 +300,22 @@ class Tree:
 
         br1.transform(axis, points[0], points[1] - points[0])
         br2.transform(axis, points[1], points[2] - points[1])
+
+    def normalize(self, node: Node, *, recurse: bool = True):
+        def _normalize(node: Node, *, recurse: bool):
+            if isinstance(node, SplitContainer):
+                per_child_size = round(
+                    node.principal_rect.size(node.axis) / len(node.children)
+                )
+                s = node.principal_rect.coord(node.axis)
+                for child in node.children:
+                    child.transform(node.axis, s, per_child_size)
+                    s += per_child_size
+            if recurse:
+                for child in node.children:
+                    _normalize(child, recurse=recurse)
+
+        _normalize(node, recurse=recurse)
 
     def remove(self, pane: Pane) -> Pane | None:
         removed_nodes = []
