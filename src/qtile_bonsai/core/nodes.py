@@ -213,7 +213,7 @@ class Pane(Node):
         self.box.principal_rect = value
 
     def shrinkability(self, axis: AxisParam) -> int:
-        return self.principal_rect.dim(axis) - self.min_size
+        return self.principal_rect.size(axis) - self.min_size
 
     def transform(self, axis: AxisParam, start: int, size: int):
         axis = Axis(axis)
@@ -263,12 +263,12 @@ class SplitContainer(Node):
             # When growing, each child node is grown in proportion to its size.
             # When shrinking, each child node is shrunk in proportion to its ability to
             # shrink to minimum possible size.
-            branch_size = self.principal_rect.dim(axis)
+            branch_size = self.principal_rect.size(axis)
             branch_shrinkability = self.shrinkability(axis)
             delta = size - branch_size
             s = start
             for child in self.children:
-                child_size = child.principal_rect.dim(axis)
+                child_size = child.principal_rect.size(axis)
 
                 if delta < 0:
                     # Handle shrinking in proportion to shrinkability of each child

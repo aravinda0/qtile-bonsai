@@ -121,7 +121,7 @@ class Rect:
     def coord2(self, axis: AxisParam):
         return getattr(self, f"{axis}2")
 
-    def dim(self, axis: AxisParam):
+    def size(self, axis: AxisParam):
         return getattr(self, Axis(axis).dim)
 
     def union(self, rect: Rect) -> Rect:

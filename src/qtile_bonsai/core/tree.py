@@ -222,7 +222,7 @@ class Tree:
 
     def normalize(self, node: Node, *, recurse: bool = True):
         sc, *_ = node.get_ancestors(SplitContainer, include_self=True)
-        per_node_dim = sc.principal_rect.dim(sc.axis) / len(sc.children)
+        per_node_dim = sc.principal_rect.size(sc.axis) / len(sc.children)
 
         print(per_node_dim)
 
@@ -330,7 +330,7 @@ class Tree:
             axis = container.axis
             start = min(br_remove_rect.coord(axis), br_sibling_rect.coord(axis))
             br_sibling.transform(
-                axis, start, br_remove_rect.dim(axis) + br_remove_rect.dim(axis)
+                axis, start, br_remove_rect.size(axis) + br_remove_rect.size(axis)
             )
 
         removed_nodes.extend(self._do_post_removal_pruning(br_sibling))
