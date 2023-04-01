@@ -352,7 +352,7 @@ class Tree:
             axis = container.axis
             start = min(br_remove_rect.coord(axis), br_sibling_rect.coord(axis))
             br_sibling.transform(
-                axis, start, br_remove_rect.size(axis) + br_remove_rect.size(axis)
+                axis, start, br_sibling_rect.size(axis) + br_remove_rect.size(axis)
             )
 
         removed_nodes.extend(self._do_post_removal_pruning(br_sibling))

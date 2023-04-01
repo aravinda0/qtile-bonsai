@@ -1796,7 +1796,7 @@ class TestRemove:
     ):
         p1 = tree.tab()
         p2 = tree.split(p1, "x")
-        tree.split(p2, "x")
+        tree.split(p2, "x", ratio=0.75)
 
         tree.remove(p2)
 
@@ -1816,7 +1816,7 @@ class TestRemove:
     ):
         p1 = tree.tab()
         p2 = tree.split(p1, "x")
-        p3 = tree.split(p2, "x")
+        p3 = tree.split(p2, "x", ratio=0.75)
 
         tree.remove(p3)
 
