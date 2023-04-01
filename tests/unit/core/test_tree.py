@@ -32,17 +32,17 @@ def make_tree_with_subscriber(tree):
 
 
 class TestIsEmpty:
-    def test_new_tree_instance_is_empty(self, tree):
+    def test_new_tree_instance_is_empty(self, tree: Tree):
         assert tree.is_empty
 
-    def test_tree_with_panes_is_not_empty(self, tree):
+    def test_tree_with_panes_is_not_empty(self, tree: Tree):
         tree.tab()
 
         assert not tree.is_empty
 
 
 class TestSplit:
-    def test_returns_correct_pane(self, tree):
+    def test_returns_correct_pane(self, tree: Tree):
         p1 = tree.tab()
 
         p2 = tree.split(p1, "x")
@@ -54,7 +54,7 @@ class TestSplit:
         assert isinstance(p3, Pane)
         assert p3.id == 6
 
-    def test_split_along_x_axis(self, tree):
+    def test_split_along_x_axis(self, tree: Tree):
         p1 = tree.tab()
 
         tree.split(p1, "x")
@@ -70,7 +70,7 @@ class TestSplit:
             """,
         )
 
-    def test_split_along_y_axis(self, tree):
+    def test_split_along_y_axis(self, tree: Tree):
         p1 = tree.tab()
 
         tree.split(p1, "y")
@@ -86,7 +86,9 @@ class TestSplit:
             """,
         )
 
-    def test_subsequent_splits_are_added_under_the_same_split_container(self, tree):
+    def test_subsequent_splits_are_added_under_the_same_split_container(
+        self, tree: Tree
+    ):
         p1 = tree.tab()
         p2 = tree.split(p1, "x")
 
@@ -105,7 +107,7 @@ class TestSplit:
         )
 
     def test_when_there_are_already_splits_present_then_new_splits_happen_at_the_requested_position(
-        self, tree
+        self, tree: Tree
     ):
         p1 = tree.tab()
         tree.split(p1, "x")
@@ -124,7 +126,7 @@ class TestSplit:
             """,
         )
 
-    def test_can_split_by_arbitrary_ratio(self, tree):
+    def test_can_split_by_arbitrary_ratio(self, tree: Tree):
         p1 = tree.tab()
 
         tree.split(p1, "x", ratio=0.8)
@@ -141,7 +143,7 @@ class TestSplit:
         )
 
     @pytest.mark.parametrize("ratio", [-1, -0.1, 1.1, 10])
-    def test_when_invalid_ratio_provided_should_raise_error(self, tree, ratio):
+    def test_when_invalid_ratio_provided_should_raise_error(self, tree: Tree, ratio):
         p1 = tree.tab()
 
         err_msg = "Value of `ratio` must be between 0 and 1 inclusive."
@@ -173,7 +175,7 @@ class TestSplit:
             """,
         )
 
-    def test_subscribers_are_notified_of_added_nodes(self, tree):
+    def test_subscribers_are_notified_of_added_nodes(self, tree: Tree):
         callback = mock.Mock()
         tree.subscribe(TreeEvent.node_added, callback)
 
@@ -205,7 +207,7 @@ class TestSplit:
 
 class TestNestedSplits:
     def test_when_y_split_happens_on_an_x_split_then_resulting_splits_are_placed_under_new_y_split_container(
-        self, tree
+        self, tree: Tree
     ):
         p1 = tree.tab()
         p2 = tree.split(p1, "x")
@@ -226,7 +228,7 @@ class TestNestedSplits:
         )
 
     def test_when_x_split_happens_on_a_y_split_then_resulting_splits_are_placed_under_new_x_split_container(
-        self, tree
+        self, tree: Tree
     ):
         p1 = tree.tab()
         p2 = tree.split(p1, "y")
@@ -246,7 +248,7 @@ class TestNestedSplits:
             """,
         )
 
-    def test_nested_x_split(self, tree):
+    def test_nested_x_split(self, tree: Tree):
         p1 = tree.tab()
         p2 = tree.split(p1, "x")
         p3 = tree.split(p2, "y")
@@ -268,7 +270,7 @@ class TestNestedSplits:
             """,
         )
 
-    def test_nested_y_split(self, tree):
+    def test_nested_y_split(self, tree: Tree):
         p1 = tree.tab()
         p2 = tree.split(p1, "y")
         p3 = tree.split(p2, "x")
@@ -319,7 +321,7 @@ class TestNestedSplits:
 class TestAddTab:
     class TestParameterValidity:
         def test_when_tree_is_empty_and_pane_reference_is_provided_then_raises_error(
-            self, tree
+            self, tree: Tree
         ):
             dummy_pane = Pane(principal_rect=Rect(0, 0, 1, 1))
 
@@ -328,21 +330,21 @@ class TestAddTab:
                 tree.tab(at_pane=dummy_pane)
 
         def test_when_tree_is_empty_and_new_level_is_requested_then_raises_error(
-            self, tree
+            self, tree: Tree
         ):
             err_msg = "The tree is empty. The provided arguments are invalid."
             with pytest.raises(ValueError, match=err_msg):
                 tree.tab(new_level=True)
 
         def test_when_tree_is_empty_and_level_is_specified_then_raises_error(
-            self, tree
+            self, tree: Tree
         ):
             err_msg = "The tree is empty. The provided arguments are invalid."
             with pytest.raises(ValueError, match=err_msg):
                 tree.tab(level=2)
 
         def test_when_new_level_is_requested_and_pane_reference_not_provided_then_raises_error(
-            self, tree
+            self, tree: Tree
         ):
             tree.tab()
 
@@ -353,7 +355,7 @@ class TestAddTab:
                 tree.tab(new_level=True)
 
         def test_when_level_specified_but_pane_reference_not_provided_then_raises_error(
-            self, tree
+            self, tree: Tree
         ):
             tree.tab()
 
@@ -363,7 +365,7 @@ class TestAddTab:
 
         @pytest.mark.parametrize("level", [-5, -1, 0])
         def test_when_level_specified_but_is_less_than_1_then_raises_error(
-            self, tree, level
+            self, tree: Tree, level
         ):
             p1 = tree.tab()
 
@@ -372,7 +374,7 @@ class TestAddTab:
                 tree.tab(p1, level=level)
 
         def test_when_level_specified_but_is_more_than_tree_level_then_raises_error(
-            self, tree
+            self, tree: Tree
         ):
             p1 = tree.tab()
             tree.tab(p1, new_level=True)
@@ -382,12 +384,12 @@ class TestAddTab:
             with pytest.raises(ValueError, match=err_msg):
                 tree.tab(p1, level=4)
 
-    def test_pane_is_returned(self, tree):
+    def test_pane_is_returned(self, tree: Tree):
         pane = tree.tab()
 
         assert isinstance(pane, Pane)
 
-    def test_add_tab_to_empty_tree(self, tree):
+    def test_add_tab_to_empty_tree(self, tree: Tree):
         tree.tab()
 
         assert tree_matches_repr(
@@ -400,7 +402,7 @@ class TestAddTab:
             """,
         )
 
-    def test_add_tab_to_non_empty_tree(self, tree):
+    def test_add_tab_to_non_empty_tree(self, tree: Tree):
         tree.tab()
 
         tree.tab()
@@ -418,12 +420,12 @@ class TestAddTab:
             """,
         )
 
-    def test_tab_container_has_active_tab(self, tree):
+    def test_tab_container_has_active_tab(self, tree: Tree):
         p1 = tree.tab()
 
         assert tree.is_visible(p1)
 
-    def test_add_tab_at_specified_pane(self, tree):
+    def test_add_tab_at_specified_pane(self, tree: Tree):
         tree.tab()
         p2 = tree.tab()
         tree.tab()
@@ -451,7 +453,7 @@ class TestAddTab:
         )
 
     def test_given_a_tree_with_nested_tab_levels_when_a_tab_is_added_without_providing_a_pane_reference_then_the_new_tab_is_added_at_the_topmost_level(
-        self, tree
+        self, tree: Tree
     ):
         p1 = tree.tab()
         tree.tab(p1, new_level=True)
@@ -478,7 +480,7 @@ class TestAddTab:
         )
 
     def test_given_a_tree_with_nested_tab_levels_when_a_tab_is_added_at_a_pane_at_nested_tab_level_and_level_is_not_specified_then_tab_is_added_at_deepest_tab_level_of_the_pane(
-        self, tree
+        self, tree: Tree
     ):
         p1 = tree.tab()
         tree.tab(p1, new_level=True)
@@ -504,7 +506,7 @@ class TestAddTab:
             """,
         )
 
-    def test_add_tab_at_new_level(self, tree):
+    def test_add_tab_at_new_level(self, tree: Tree):
         p1 = tree.tab()
 
         tree.tab(p1, new_level=True)
@@ -525,13 +527,13 @@ class TestAddTab:
             """,
         )
 
-    def test_nested_tab_containers_have_active_tab(self, tree):
+    def test_nested_tab_containers_have_active_tab(self, tree: Tree):
         p1 = tree.tab()
         p2 = tree.tab(p1, new_level=True)
 
         assert tree.is_visible(p2)
 
-    def test_add_tab_at_multiple_new_levels(self, tree):
+    def test_add_tab_at_multiple_new_levels(self, tree: Tree):
         p1 = tree.tab()
 
         p2 = tree.tab(p1, new_level=True)
@@ -566,7 +568,7 @@ class TestAddTab:
             """,
         )
 
-    def test_add_tab_at_new_level_in_split(self, tree):
+    def test_add_tab_at_new_level_in_split(self, tree: Tree):
         p1 = tree.tab()
         p2 = tree.split(p1, "x")
 
@@ -589,7 +591,7 @@ class TestAddTab:
             """,
         )
 
-    def test_add_tab_at_new_level_in_multiple_splits(self, tree):
+    def test_add_tab_at_new_level_in_multiple_splits(self, tree: Tree):
         p1 = tree.tab()
         p2 = tree.split(p1, "y")
         tree.split(p1, "x")
@@ -622,7 +624,7 @@ class TestAddTab:
             """,
         )
 
-    def test_add_tab_at_new_level_at_split_in_nested_tab_level(self, tree):
+    def test_add_tab_at_new_level_at_split_in_nested_tab_level(self, tree: Tree):
         p1 = tree.tab()
         p2 = tree.split(p1, "x")
         p3 = tree.tab(p2, new_level=True)
@@ -654,7 +656,7 @@ class TestAddTab:
             """,
         )
 
-    def test_add_tab_at_arbitrary_level(self, tree):
+    def test_add_tab_at_arbitrary_level(self, tree: Tree):
         p1 = tree.tab()
         p2 = tree.tab(p1, new_level=True)
         tree.tab(p2, new_level=True)
@@ -689,7 +691,7 @@ class TestAddTab:
         )
 
     def test_add_tab_at_level_when_different_nest_levels_present_under_different_splits(
-        self, tree
+        self, tree: Tree
     ):
         p1 = tree.tab()
         p2 = tree.split(p1, "x")
@@ -751,7 +753,7 @@ class TestAddTab:
             """,
         )
 
-    def test_subscribers_are_notified_of_added_nodes(self, tree):
+    def test_subscribers_are_notified_of_added_nodes(self, tree: Tree):
         callback = mock.Mock()
         tree.subscribe(TreeEvent.node_added, callback)
 
@@ -772,7 +774,7 @@ class TestAddTab:
 
 
 class TestSplitsUnderTabs:
-    def test_x_split_does_not_affect_dimensions_of_other_tabs(self, tree):
+    def test_x_split_does_not_affect_dimensions_of_other_tabs(self, tree: Tree):
         p1 = tree.tab()
         tree.tab()
         p3 = tree.tab()
@@ -800,7 +802,7 @@ class TestSplitsUnderTabs:
             """,
         )
 
-    def test_y_split_does_not_affect_dimensions_of_other_tabs(self, tree):
+    def test_y_split_does_not_affect_dimensions_of_other_tabs(self, tree: Tree):
         p1 = tree.tab()
         tree.tab()
         p3 = tree.tab()
@@ -828,7 +830,7 @@ class TestSplitsUnderTabs:
             """,
         )
 
-    def test_x_split_under_nested_tab(self, tree):
+    def test_x_split_under_nested_tab(self, tree: Tree):
         p1 = tree.tab()
         p2 = tree.tab(p1, new_level=True)
 
@@ -851,7 +853,7 @@ class TestSplitsUnderTabs:
             """,
         )
 
-    def test_y_split_under_nested_tab(self, tree):
+    def test_y_split_under_nested_tab(self, tree: Tree):
         p1 = tree.tab()
         p2 = tree.tab(p1, new_level=True)
 
@@ -874,7 +876,7 @@ class TestSplitsUnderTabs:
             """,
         )
 
-    def test_nested_splits_under_nested_tabs(self, tree):
+    def test_nested_splits_under_nested_tabs(self, tree: Tree):
         p1 = tree.tab()
         p2 = tree.split(p1, "y")
         tree.split(p1, "x")
@@ -923,7 +925,7 @@ class TestSplitsUnderTabs:
 
 
 class TestResize:
-    def test_resize_on_x_axis_by_positive_amount(self, tree):
+    def test_resize_on_x_axis_by_positive_amount(self, tree: Tree):
         p1 = tree.tab()
         tree.split(p1, "x")
 
@@ -940,7 +942,7 @@ class TestResize:
             """,
         )
 
-    def test_resize_on_x_axis_by_negative_amount(self, tree):
+    def test_resize_on_x_axis_by_negative_amount(self, tree: Tree):
         p1 = tree.tab()
         tree.split(p1, "x")
 
@@ -957,7 +959,7 @@ class TestResize:
             """,
         )
 
-    def test_resize_on_y_axis_by_positive_amount(self, tree):
+    def test_resize_on_y_axis_by_positive_amount(self, tree: Tree):
         p1 = tree.tab()
         tree.split(p1, "y")
 
@@ -974,7 +976,7 @@ class TestResize:
             """,
         )
 
-    def test_resize_on_y_axis_by_negative_amount(self, tree):
+    def test_resize_on_y_axis_by_negative_amount(self, tree: Tree):
         p1 = tree.tab()
         tree.split(p1, "y")
 
@@ -992,7 +994,7 @@ class TestResize:
         )
 
     def test_given_a_pane_that_is_not_the_last_child_when_resize_happens_on_x_axis_then_the_right_border_is_modified(
-        self, tree
+        self, tree: Tree
     ):
         p1 = tree.tab()
         p2 = tree.split(p1, "x")
@@ -1013,7 +1015,7 @@ class TestResize:
         )
 
     def test_given_a_pane_that_is_the_last_child_when_resize_happens_on_x_axis_then_the_left_border_is_modified(
-        self, tree
+        self, tree: Tree
     ):
         p1 = tree.tab()
         p2 = tree.split(p1, "x")
@@ -1034,7 +1036,7 @@ class TestResize:
         )
 
     def test_given_a_pane_that_is_not_the_last_child_when_resize_happens_on_y_axis_then_the_bottom_border_is_modified(
-        self, tree
+        self, tree: Tree
     ):
         p1 = tree.tab()
         p2 = tree.split(p1, "y")
@@ -1055,7 +1057,7 @@ class TestResize:
         )
 
     def test_given_a_pane_that_is_the_last_child_when_resize_happens_on_y_axis_then_the_top_border_is_modified(
-        self, tree
+        self, tree: Tree
     ):
         p1 = tree.tab()
         p2 = tree.split(p1, "y")
@@ -1078,7 +1080,7 @@ class TestResize:
     @pytest.mark.parametrize("axis", ["x", "y"])
     @pytest.mark.parametrize("amount", [50, -50])
     def test_when_lone_top_level_panes_under_top_level_tabs_are_resized_then_it_is_a_no_op(
-        self, tree, axis, amount
+        self, tree: Tree, axis, amount
     ):
         p1 = tree.tab()
         p2 = tree.tab()
@@ -1106,7 +1108,7 @@ class TestResize:
 
     @pytest.mark.parametrize("amount", [50, -50])
     def test_when_top_level_panes_under_root_tab_container_are_resized_against_axis_then_it_is_a_no_op(
-        self, tree, amount
+        self, tree: Tree, amount
     ):
         p1 = tree.tab()
         p2 = tree.split(p1, "x")
@@ -1127,7 +1129,7 @@ class TestResize:
 
     class TestResizeInvolvingNestedSplits:
         def test_resizing_nested_pane_along_axis_should_only_affect_the_pane_and_its_sibling(
-            self, tree
+            self, tree: Tree
         ):
             p1 = tree.tab()
             tree.split(p1, "x")
@@ -1155,7 +1157,7 @@ class TestResize:
             )
 
         def test_resizing_nested_pane_against_axis_should_resize_all_panes_in_enclosing_container_and_sibling_of_the_container(
-            self, tree
+            self, tree: Tree
         ):
             p1 = tree.tab()
             tree.split(p1, "x")
@@ -1186,7 +1188,7 @@ class TestResize:
         @pytest.mark.case_pixel_rounding()
         class TestWhenOperationalSiblingIsContainerBeingGrown:
             def test_should_grow_nested_items_that_are_along_resize_axis_in_proportion_to_their_size_along_that_axis(
-                self, tree
+                self, tree: Tree
             ):
                 p1 = tree.tab()
                 p2 = tree.split(p1, "x")
@@ -1220,7 +1222,7 @@ class TestResize:
                 )
 
             def test_should_grow_nested_items_that_are_against_resize_axis_by_the_same_amount(
-                self, tree
+                self, tree: Tree
             ):
                 p1 = tree.tab()
                 p2 = tree.split(p1, "x")
@@ -1257,7 +1259,7 @@ class TestResize:
         class TestWhenOperationalSiblingIsContainerBeingShrunk:
             @pytest.mark.case_pixel_rounding()
             def test_should_shrink_nested_items_that_are_along_resize_axis_in_proportion_to_their_capacity_to_shrink_along_that_axis(
-                self, tree
+                self, tree: Tree
             ):
                 p1 = tree.tab()
                 p2 = tree.split(p1, "x")
@@ -1291,7 +1293,7 @@ class TestResize:
                 )
 
             def test_should_shrink_nested_items_that_are_against_resize_axis_by_the_same_amount(
-                self, tree
+                self, tree: Tree
             ):
                 p1 = tree.tab()
                 p2 = tree.split(p1, "x")
@@ -1315,7 +1317,7 @@ class TestResize:
                 )
 
             def test_when_all_nested_panes_are_at_min_size_without_any_space_left_to_shrink_it_should_be_a_no_op(
-                self, tree
+                self, tree: Tree
             ):
                 p1 = tree.tab()
                 p2 = tree.split(p1, "x", ratio=0.9)
@@ -1347,7 +1349,7 @@ class TestResize:
                 )
 
             def test_when_nested_panes_cannot_consume_all_of_the_shrink_amount_they_should_consume_as_much_of_the_amount_as_possible(
-                self, tree
+                self, tree: Tree
             ):
                 p1 = tree.tab()
                 p2 = tree.split(p1, "x", ratio=0.8)
@@ -1375,7 +1377,7 @@ class TestResize:
 
     class TestResizeInvolvingTabs:
         def test_resizing_panes_under_one_tab_does_not_affect_panes_under_other_tabs(
-            self, tree
+            self, tree: Tree
         ):
             p1 = tree.tab()
             p2 = tree.split(p1, "x")
@@ -1407,7 +1409,7 @@ class TestResize:
             )
 
         def test_resizing_panes_under_nested_tab_container_does_not_affect_panes_under_other_tabs_in_the_tab_container(
-            self, tree
+            self, tree: Tree
         ):
             p1 = tree.tab()
             p2 = tree.tab(p1, new_level=True)
@@ -1442,7 +1444,7 @@ class TestResize:
             )
 
         def test_when_operational_sibling_is_tab_container_all_its_panes_under_all_tabs_against_resize_axis_get_resized_by_full_amount(
-            self, tree
+            self, tree: Tree
         ):
             p1 = tree.tab()
             p2 = tree.split(p1, "x")
@@ -1472,7 +1474,7 @@ class TestResize:
             )
 
         def test_resizing_lone_pane_under_nested_tab_should_resize_entire_tab_container(
-            self, tree
+            self, tree: Tree
         ):
             p1 = tree.tab()
             tree.split(p1, "x")
@@ -1507,7 +1509,7 @@ class TestResize:
             )
 
         def test_when_a_sole_pane_under_a_nested_tc_is_resized_then_it_gets_resized_as_if_it_were_a_pane_directly_under_container_of_said_tc(
-            self, tree
+            self, tree: Tree
         ):
             p1 = tree.tab()
             p2 = tree.split(p1, "x")
@@ -1536,7 +1538,7 @@ class TestResize:
             )
 
         def test_resizing_top_level_pane_with_siblings_under_nested_tab_along_axis_should_only_affect_the_pane_and_its_sibling(
-            self, tree
+            self, tree: Tree
         ):
             p1 = tree.tab()
             tree.split(p1, "x")
@@ -1565,7 +1567,7 @@ class TestResize:
             )
 
         def test_resizing_top_level_pane_with_siblings_under_nested_tab_against_axis_should_affect_the_entire_tab_container_and_the_tab_containers_sibling(
-            self, tree
+            self, tree: Tree
         ):
             p1 = tree.tab()
             tree.split(p1, "x")
@@ -1596,7 +1598,7 @@ class TestResize:
             )
 
         def test_when_tab_container_is_resized_on_y_axis_then_the_tab_bar_height_is_also_considered(
-            self, tree
+            self, tree: Tree
         ):
             p1 = tree.tab()
             p2 = tree.split(p1, "x")
@@ -1730,7 +1732,7 @@ class TestNormalize:
 
 
 class TestRemove:
-    def test_when_all_panes_are_removed_then_tree_is_empty(self, tree):
+    def test_when_all_panes_are_removed_then_tree_is_empty(self, tree: Tree):
         p1 = tree.tab()
         p2 = tree.tab(p1)
         p3 = tree.split(p2, "x")
@@ -1744,7 +1746,7 @@ class TestRemove:
         assert tree.is_empty
 
     def test_when_operational_sibling_is_pane_then_it_is_returned_as_next_focus_node(
-        self, tree
+        self, tree: Tree
     ):
         p1 = tree.tab()
         p2 = tree.split(p1, "x")
@@ -1754,7 +1756,7 @@ class TestRemove:
         assert p is p2
 
     def test_when_operational_sibling_is_sc_then_its_mru_pane_is_returned_as_next_focus_node(
-        self, tree
+        self, tree: Tree
     ):
         p1 = tree.tab()
         p2 = tree.split(p1, "x")
@@ -1768,7 +1770,7 @@ class TestRemove:
         assert p is p3
 
     def test_when_operational_sibling_is_tc_then_its_mru_pane_is_returned_as_next_focus_node(
-        self, tree
+        self, tree: Tree
     ):
         p1 = tree.tab()
         p2 = tree.split(p1, "x")
@@ -1782,7 +1784,7 @@ class TestRemove:
         assert p is p4
 
     def test_when_tree_becomes_empty_then_returns_none_as_nothing_left_for_subsequent_focus(
-        self, tree
+        self, tree: Tree
     ):
         p1 = tree.tab()
         p = tree.remove(p1)
@@ -1790,7 +1792,7 @@ class TestRemove:
         assert p is None
 
     def test_when_any_pane_except_last_pane_in_container_is_removed_then_right_sibling_consumes_space(
-        self, tree
+        self, tree: Tree
     ):
         p1 = tree.tab()
         p2 = tree.split(p1, "x")
@@ -1810,7 +1812,7 @@ class TestRemove:
         )
 
     def test_when_last_pane_in_container_is_removed_then_left_sibling_consumes_space(
-        self, tree
+        self, tree: Tree
     ):
         p1 = tree.tab()
         p2 = tree.split(p1, "x")
@@ -1830,7 +1832,7 @@ class TestRemove:
         )
 
     def test_when_sibling_that_consumes_space_has_nested_items_then_they_are_grown_in_proportion_to_their_respective_sizes(
-        self, tree
+        self, tree: Tree
     ):
         p1 = tree.tab()
         p2 = tree.split(p1, "x", ratio=0.2)
@@ -1937,7 +1939,7 @@ class TestRemove:
             mock.call([p3, sc2, t2, tc]),
         ]
 
-    def test_tab_removal_works_in_nested_tabs(self, tree):
+    def test_tab_removal_works_in_nested_tabs(self, tree: Tree):
         p1 = tree.tab()
         p2 = tree.tab(p1, new_level=True)
         tree.tab(p2)
@@ -1961,7 +1963,7 @@ class TestRemove:
         )
 
     def test_when_penultimate_tab_is_removed_from_nested_tab_level_then_the_nested_tab_level_is_maintained_without_the_last_tab_being_merged_upwards(
-        self, tree
+        self, tree: Tree
     ):
         p1 = tree.tab()
         p2 = tree.tab(p1, new_level=True)
@@ -2352,7 +2354,7 @@ class TestRemove:
 
 
 class TestFocus:
-    def test_activates_tab_chain_of_focused_pane(self, tree):
+    def test_activates_tab_chain_of_focused_pane(self, tree: Tree):
         p1 = tree.tab()
         p2 = tree.tab(p1)
         p3 = tree.split(p2, "x")
@@ -2367,7 +2369,7 @@ class TestFocus:
         assert tc2.active_child is t2
         assert tc1.active_child is t1
 
-    def test_deactivates_tab_chain_of_unfocused_pane(self, tree):
+    def test_deactivates_tab_chain_of_unfocused_pane(self, tree: Tree):
         p1 = tree.tab()
         p2 = tree.split(p1, "x")
         p3 = tree.tab(p2, new_level=True)
@@ -2388,14 +2390,14 @@ class TestFocus:
 
 class TestMotions:
     class TestRight:
-        def test_motion_along_axis(self, tree):
+        def test_motion_along_axis(self, tree: Tree):
             p1 = tree.tab()
             p2 = tree.split(p1, "x")
             p3 = tree.split(p2, "x")
 
             assert tree.right(p2) is p3
 
-        def test_motion_along_axis_in_nested_level(self, tree):
+        def test_motion_along_axis_in_nested_level(self, tree: Tree):
             p1 = tree.tab()
             p2 = tree.split(p1, "x")
             p3 = tree.split(p2, "y")
@@ -2403,14 +2405,14 @@ class TestMotions:
 
             assert tree.right(p3) is p4
 
-        def test_motion_against_axis(self, tree):
+        def test_motion_against_axis(self, tree: Tree):
             p1 = tree.tab()
             p2 = tree.split(p1, "x")
             p3 = tree.split(p1, "y")
 
             assert tree.right(p3, wrap=False) is p2
 
-        def test_motion_against_axis_in_nested_level(self, tree):
+        def test_motion_against_axis_in_nested_level(self, tree: Tree):
             p1 = tree.tab()
             p2 = tree.split(p1, "x")
             p3 = tree.split(p2, "y")
@@ -2420,7 +2422,7 @@ class TestMotions:
             assert tree.right(p5) is p4
 
         def test_when_wrap_is_true_and_pane_is_at_edge_of_screen_then_pane_from_other_edge_of_screen_is_returned(
-            self, tree
+            self, tree: Tree
         ):
             p1 = tree.tab()
             p2 = tree.split(p1, "x")
@@ -2429,7 +2431,7 @@ class TestMotions:
             assert tree.right(p3, wrap=True) is p1
 
         def test_when_wrap_is_true_and_pane_is_its_own_sibling_then_the_pane_itself_is_returned(
-            self, tree
+            self, tree: Tree
         ):
             p1 = tree.tab()
             p2 = tree.split(p1, "y")
@@ -2438,7 +2440,7 @@ class TestMotions:
             assert tree.right(p1, wrap=True) is p1
 
         def test_when_wrap_is_false_and_pane_is_at_edge_of_screen_then_the_pane_itself_is_returned(
-            self, tree
+            self, tree: Tree
         ):
             p1 = tree.tab()
             p2 = tree.split(p1, "x")
@@ -2447,7 +2449,7 @@ class TestMotions:
             assert tree.right(p3, wrap=False) is p3
 
         def test_when_there_are_multiple_adjacent_panes_then_the_most_recently_focused_one_is_chosen(
-            self, tree
+            self, tree: Tree
         ):
             p1 = tree.tab()
             p2 = tree.split(p1, "x")
@@ -2461,7 +2463,7 @@ class TestMotions:
             assert tree.right(p1) is p4
 
         def test_non_adjacent_panes_further_away_in_the_requested_direction_are_not_considered(
-            self, tree
+            self, tree: Tree
         ):
             p1 = tree.tab()
             p2 = tree.split(p1, "x", ratio=0.1)
@@ -2473,7 +2475,7 @@ class TestMotions:
             assert tree.right(p1) is p3
 
         def test_adjacent_panes_that_only_partly_share_borders_are_candidates(
-            self, tree
+            self, tree: Tree
         ):
             p1 = tree.tab()
             p2 = tree.split(p1, "x")
@@ -2492,7 +2494,7 @@ class TestMotions:
             assert tree.right(p4) is p6
 
         def test_when_there_are_panes_along_the_same_border_but_not_adjacent_then_they_are_not_considered(
-            self, tree
+            self, tree: Tree
         ):
             p1 = tree.tab()
             p2 = tree.split(p1, "x")
@@ -2511,7 +2513,7 @@ class TestMotions:
             assert tree.right(p3) is p5
 
         def test_when_adjacent_pane_is_under_tab_container_then_only_the_visible_pane_is_considered(
-            self, tree
+            self, tree: Tree
         ):
             p1 = tree.tab()
             p2 = tree.split(p1, "x")
@@ -2521,7 +2523,9 @@ class TestMotions:
 
             assert tree.right(p1) is p4
 
-        def test_deeply_nested_adjacent_panes_under_different_super_nodes(self, tree):
+        def test_deeply_nested_adjacent_panes_under_different_super_nodes(
+            self, tree: Tree
+        ):
             p1 = tree.tab()
             p2 = tree.split(p1, "x")
             p3 = tree.split(p1, "y")
@@ -2544,14 +2548,14 @@ class TestMotions:
             assert tree.right(pa4) is pb4
 
     class TestLeft:
-        def test_motion_along_axis(self, tree):
+        def test_motion_along_axis(self, tree: Tree):
             p1 = tree.tab()
             p2 = tree.split(p1, "x")
             tree.split(p2, "x")
 
             assert tree.left(p2) is p1
 
-        def test_motion_along_axis_in_nested_level(self, tree):
+        def test_motion_along_axis_in_nested_level(self, tree: Tree):
             p1 = tree.tab()
             p2 = tree.split(p1, "x")
             p3 = tree.split(p2, "y")
@@ -2559,14 +2563,14 @@ class TestMotions:
 
             assert tree.left(p4) is p3
 
-        def test_motion_against_axis(self, tree):
+        def test_motion_against_axis(self, tree: Tree):
             p1 = tree.tab()
             p2 = tree.split(p1, "x")
             p3 = tree.split(p2, "y")
 
             assert tree.left(p3, wrap=False) is p1
 
-        def test_motion_against_axis_in_nested_level(self, tree):
+        def test_motion_against_axis_in_nested_level(self, tree: Tree):
             p1 = tree.tab()
             p2 = tree.split(p1, "x")
             p3 = tree.split(p2, "y")
@@ -2576,7 +2580,7 @@ class TestMotions:
             assert tree.left(p5) is p3
 
         def test_when_wrap_is_true_and_pane_is_at_edge_of_screen_then_pane_from_other_edge_of_screen_is_returned(
-            self, tree
+            self, tree: Tree
         ):
             p1 = tree.tab()
             p2 = tree.split(p1, "x")
@@ -2585,7 +2589,7 @@ class TestMotions:
             assert tree.left(p1, wrap=True) is p3
 
         def test_when_wrap_is_true_and_pane_is_its_own_sibling_then_the_pane_itself_is_returned(
-            self, tree
+            self, tree: Tree
         ):
             p1 = tree.tab()
             p2 = tree.split(p1, "y")
@@ -2594,7 +2598,7 @@ class TestMotions:
             assert tree.left(p1, wrap=True) is p1
 
         def test_when_wrap_is_false_and_pane_is_at_edge_of_screen_then_the_pane_itself_is_returned(
-            self, tree
+            self, tree: Tree
         ):
             p1 = tree.tab()
             p2 = tree.split(p1, "x")
@@ -2603,7 +2607,7 @@ class TestMotions:
             assert tree.left(p1, wrap=False) is p1
 
         def test_when_there_are_multiple_adjacent_panes_then_the_most_recently_focused_one_is_chosen(
-            self, tree
+            self, tree: Tree
         ):
             p1 = tree.tab()
             p2 = tree.split(p1, "x")
@@ -2617,7 +2621,7 @@ class TestMotions:
             assert tree.left(p2) is p4
 
         def test_non_adjacent_panes_further_away_in_the_requested_direction_are_not_considered(
-            self, tree
+            self, tree: Tree
         ):
             p1 = tree.tab()
             p2 = tree.split(p1, "x", ratio=0.9)
@@ -2629,7 +2633,7 @@ class TestMotions:
             assert tree.left(p3) is p2
 
         def test_adjacent_panes_that_only_partly_share_borders_are_candidates(
-            self, tree
+            self, tree: Tree
         ):
             p1 = tree.tab()
             p2 = tree.split(p1, "x")
@@ -2648,7 +2652,7 @@ class TestMotions:
             assert tree.left(p6) is p4
 
         def test_when_there_are_panes_along_the_same_border_but_not_adjacent_then_they_are_not_considered(
-            self, tree
+            self, tree: Tree
         ):
             p1 = tree.tab()
             p2 = tree.split(p1, "x")
@@ -2667,7 +2671,7 @@ class TestMotions:
             assert tree.left(p5) is p3
 
         def test_when_adjacent_pane_is_under_tab_container_then_only_the_visible_pane_is_considered(
-            self, tree
+            self, tree: Tree
         ):
             p1 = tree.tab()
             p2 = tree.split(p1, "x")
@@ -2677,7 +2681,9 @@ class TestMotions:
 
             assert tree.left(p2) is p4
 
-        def test_deeply_nested_adjacent_panes_in_different_super_containers(self, tree):
+        def test_deeply_nested_adjacent_panes_in_different_super_containers(
+            self, tree: Tree
+        ):
             p1 = tree.tab()
             p2 = tree.split(p1, "x")
             p3 = tree.split(p1, "y")
@@ -2700,14 +2706,14 @@ class TestMotions:
             assert tree.left(pb4) is pa4
 
     class TestDown:
-        def test_motion_along_axis(self, tree):
+        def test_motion_along_axis(self, tree: Tree):
             p1 = tree.tab()
             p2 = tree.split(p1, "y")
             p3 = tree.split(p2, "y")
 
             assert tree.down(p2) is p3
 
-        def test_motion_along_axis_in_nested_level(self, tree):
+        def test_motion_along_axis_in_nested_level(self, tree: Tree):
             p1 = tree.tab()
             p2 = tree.split(p1, "y")
             p3 = tree.split(p2, "x")
@@ -2715,14 +2721,14 @@ class TestMotions:
 
             assert tree.down(p3) is p4
 
-        def test_motion_against_axis(self, tree):
+        def test_motion_against_axis(self, tree: Tree):
             p1 = tree.tab()
             p2 = tree.split(p1, "y")
             p3 = tree.split(p1, "x")
 
             assert tree.down(p3, wrap=False) is p2
 
-        def test_motion_against_axis_in_nested_level(self, tree):
+        def test_motion_against_axis_in_nested_level(self, tree: Tree):
             p1 = tree.tab()
             p2 = tree.split(p1, "y")
             p3 = tree.split(p2, "x")
@@ -2732,7 +2738,7 @@ class TestMotions:
             assert tree.down(p5) is p4
 
         def test_when_wrap_is_true_and_pane_is_at_edge_of_screen_then_pane_from_other_edge_of_screen_is_returned(
-            self, tree
+            self, tree: Tree
         ):
             p1 = tree.tab()
             p2 = tree.split(p1, "y")
@@ -2741,7 +2747,7 @@ class TestMotions:
             assert tree.down(p3, wrap=True) is p1
 
         def test_when_wrap_is_true_and_pane_is_its_own_sibling_then_the_pane_itself_is_returned(
-            self, tree
+            self, tree: Tree
         ):
             p1 = tree.tab()
             p2 = tree.split(p1, "x")
@@ -2750,7 +2756,7 @@ class TestMotions:
             assert tree.down(p1, wrap=True) is p1
 
         def test_when_wrap_is_false_and_pane_is_at_edge_of_screen_then_the_pane_itself_is_returned(
-            self, tree
+            self, tree: Tree
         ):
             p1 = tree.tab()
             p2 = tree.split(p1, "y")
@@ -2759,7 +2765,7 @@ class TestMotions:
             assert tree.down(p3, wrap=False) is p3
 
         def test_when_there_are_multiple_adjacent_panes_then_the_most_recently_focused_one_is_chosen(
-            self, tree
+            self, tree: Tree
         ):
             p1 = tree.tab()
             p2 = tree.split(p1, "y")
@@ -2773,7 +2779,7 @@ class TestMotions:
             assert tree.down(p1) is p4
 
         def test_non_adjacent_panes_further_away_in_the_requested_direction_are_not_considered(
-            self, tree
+            self, tree: Tree
         ):
             p1 = tree.tab()
             p2 = tree.split(p1, "y", ratio=0.1)
@@ -2785,7 +2791,7 @@ class TestMotions:
             assert tree.down(p1) is p3
 
         def test_adjacent_panes_that_only_partly_share_borders_are_candidates(
-            self, tree
+            self, tree: Tree
         ):
             p1 = tree.tab()
             p2 = tree.split(p1, "y")
@@ -2804,7 +2810,7 @@ class TestMotions:
             assert tree.down(p4) is p6
 
         def test_when_there_are_panes_along_the_same_border_but_not_adjacent_then_they_are_not_considered(
-            self, tree
+            self, tree: Tree
         ):
             p1 = tree.tab()
             p2 = tree.split(p1, "y")
@@ -2823,7 +2829,7 @@ class TestMotions:
             assert tree.down(p3) is p5
 
         def test_when_adjacent_pane_is_under_tab_container_then_only_the_visible_pane_is_considered(
-            self, tree
+            self, tree: Tree
         ):
             p1 = tree.tab()
             p2 = tree.split(p1, "y")
@@ -2833,7 +2839,9 @@ class TestMotions:
 
             assert tree.down(p1) is p4
 
-        def test_deeply_nested_adjacent_panes_in_different_super_containers(self, tree):
+        def test_deeply_nested_adjacent_panes_in_different_super_containers(
+            self, tree: Tree
+        ):
             p1 = tree.tab()
             p2 = tree.split(p1, "y")
             p3 = tree.split(p1, "x")
@@ -2856,7 +2864,7 @@ class TestMotions:
             assert tree.down(pa4) is pb4
 
         def test_when_there_are_tab_bars_between_panes_then_they_are_ignored_for_adjacency_calculations(
-            self, tree
+            self, tree: Tree
         ):
             p1 = tree.tab()
             p2 = tree.split(p1, "y")
@@ -2874,14 +2882,14 @@ class TestMotions:
             assert tree.down(p1) is p6
 
     class TestUp:
-        def test_motion_along_axis(self, tree):
+        def test_motion_along_axis(self, tree: Tree):
             p1 = tree.tab()
             p2 = tree.split(p1, "y")
             tree.split(p2, "y")
 
             assert tree.up(p2) is p1
 
-        def test_motion_along_axis_in_nested_level(self, tree):
+        def test_motion_along_axis_in_nested_level(self, tree: Tree):
             p1 = tree.tab()
             p2 = tree.split(p1, "y")
             p3 = tree.split(p2, "x")
@@ -2889,14 +2897,14 @@ class TestMotions:
 
             assert tree.up(p4) is p3
 
-        def test_motion_against_axis(self, tree):
+        def test_motion_against_axis(self, tree: Tree):
             p1 = tree.tab()
             p2 = tree.split(p1, "y")
             p3 = tree.split(p2, "x")
 
             assert tree.up(p3, wrap=False) is p1
 
-        def test_motion_against_axis_in_nested_level(self, tree):
+        def test_motion_against_axis_in_nested_level(self, tree: Tree):
             p1 = tree.tab()
             p2 = tree.split(p1, "y")
             p3 = tree.split(p2, "x")
@@ -2906,7 +2914,7 @@ class TestMotions:
             assert tree.up(p5) is p3
 
         def test_when_wrap_is_true_and_pane_is_at_edge_of_screen_then_pane_from_other_edge_of_screen_is_returned(
-            self, tree
+            self, tree: Tree
         ):
             p1 = tree.tab()
             p2 = tree.split(p1, "y")
@@ -2915,7 +2923,7 @@ class TestMotions:
             assert tree.up(p1, wrap=True) is p3
 
         def test_when_wrap_is_true_and_pane_is_its_own_sibling_then_the_pane_itself_is_returned(
-            self, tree
+            self, tree: Tree
         ):
             p1 = tree.tab()
             p2 = tree.split(p1, "x")
@@ -2924,7 +2932,7 @@ class TestMotions:
             assert tree.up(p1, wrap=True) is p1
 
         def test_when_wrap_is_false_and_pane_is_at_edge_of_screen_then_the_pane_itself_is_returned(
-            self, tree
+            self, tree: Tree
         ):
             p1 = tree.tab()
             p2 = tree.split(p1, "y")
@@ -2933,7 +2941,7 @@ class TestMotions:
             assert tree.up(p1, wrap=False) is p1
 
         def test_when_there_are_multiple_adjacent_panes_then_the_most_recently_focused_one_is_chosen(
-            self, tree
+            self, tree: Tree
         ):
             p1 = tree.tab()
             p2 = tree.split(p1, "y")
@@ -2947,7 +2955,7 @@ class TestMotions:
             assert tree.up(p2) is p4
 
         def test_non_adjacent_panes_further_away_in_the_requested_direction_are_not_considered(
-            self, tree
+            self, tree: Tree
         ):
             p1 = tree.tab()
             p2 = tree.split(p1, "y", ratio=0.9)
@@ -2959,7 +2967,7 @@ class TestMotions:
             assert tree.up(p3) is p2
 
         def test_adjacent_panes_that_only_partly_share_borders_are_candidates(
-            self, tree
+            self, tree: Tree
         ):
             p1 = tree.tab()
             p2 = tree.split(p1, "y")
@@ -2978,7 +2986,7 @@ class TestMotions:
             assert tree.up(p6) is p4
 
         def test_when_there_are_panes_along_the_same_border_but_not_adjacent_then_they_are_not_considered(
-            self, tree
+            self, tree: Tree
         ):
             p1 = tree.tab()
             p2 = tree.split(p1, "y")
@@ -2997,7 +3005,7 @@ class TestMotions:
             assert tree.up(p5) is p3
 
         def test_when_adjacent_pane_is_under_tab_container_then_only_the_visible_pane_is_considered(
-            self, tree
+            self, tree: Tree
         ):
             p1 = tree.tab()
             p2 = tree.split(p1, "y")
@@ -3007,7 +3015,9 @@ class TestMotions:
 
             assert tree.up(p2) is p4
 
-        def test_deeply_nested_adjacent_panes_in_different_super_containers(self, tree):
+        def test_deeply_nested_adjacent_panes_in_different_super_containers(
+            self, tree: Tree
+        ):
             p1 = tree.tab()
             p2 = tree.split(p1, "y")
             p3 = tree.split(p1, "x")
@@ -3033,7 +3043,7 @@ class TestMotions:
 class TestTabMotions:
     class TestNext:
         def test_when_any_node_is_provided_then_mru_pane_in_next_tab_of_nearest_tc_is_returned(
-            self, tree
+            self, tree: Tree
         ):
             p1 = tree.tab()
             p2 = tree.tab(p1)
@@ -3057,7 +3067,7 @@ class TestTabMotions:
             assert p is p2
 
         def test_when_any_node_under_nested_tc_is_provided_then_mru_pane_in_next_tab_of_nearest_tc_is_returned(
-            self, tree
+            self, tree: Tree
         ):
             p1 = tree.tab()
             p2 = tree.split(p1, "x")
@@ -3070,7 +3080,7 @@ class TestTabMotions:
             assert p is p4
 
         def test_when_a_node_is_provided_that_is_not_under_a_tc_then_an_error_is_raised(
-            self, tree
+            self, tree: Tree
         ):
             p1 = tree.tab()
             tree.tab()
@@ -3081,7 +3091,7 @@ class TestTabMotions:
             with pytest.raises(ValueError, match=err_msg):
                 tree.next_tab(tc)
 
-        def test_wrap_is_respected(self, tree):
+        def test_wrap_is_respected(self, tree: Tree):
             p1 = tree.tab()
             p2 = tree.tab(p1)
 
@@ -3093,7 +3103,7 @@ class TestTabMotions:
 
     class TestPrev:
         def test_when_any_node_is_provided_then_mru_pane_in_prev_tab_of_nearest_tc_is_returned(
-            self, tree
+            self, tree: Tree
         ):
             p1 = tree.tab()
             p2 = tree.split(p1, "x")
@@ -3117,7 +3127,7 @@ class TestTabMotions:
             assert p is p1
 
         def test_when_any_node_under_nested_tc_is_provided_then_mru_pane_in_prev_tab_of_nearest_tc_is_returned(
-            self, tree
+            self, tree: Tree
         ):
             p1 = tree.tab()
             p2 = tree.split(p1, "x")
@@ -3130,7 +3140,7 @@ class TestTabMotions:
             assert p is p4
 
         def test_when_a_node_is_provided_that_is_not_under_a_tc_then_an_error_is_raised(
-            self, tree
+            self, tree: Tree
         ):
             p1 = tree.tab()
             tree.tab()
@@ -3141,7 +3151,7 @@ class TestTabMotions:
             with pytest.raises(ValueError, match=err_msg):
                 tree.prev_tab(tc)
 
-        def test_wrap_is_respected(self, tree):
+        def test_wrap_is_respected(self, tree: Tree):
             p1 = tree.tab()
             p2 = tree.tab(p1)
 
@@ -3153,7 +3163,7 @@ class TestTabMotions:
 
 
 class TestSwap:
-    def test_swap(self, tree):
+    def test_swap(self, tree: Tree):
         p1 = tree.tab()
         p2 = tree.split(p1, "x")
         p3 = tree.split(p2, "y")
@@ -3297,12 +3307,12 @@ class TestConfig:
 
 
 class TestIterWalk:
-    def test_new_tree_instance_has_no_nodes(self, tree):
+    def test_new_tree_instance_has_no_nodes(self, tree: Tree):
         assert list(tree.iter_walk()) == []
 
 
 class TestSubscribe:
-    def test_returns_subscription_id(self, tree):
+    def test_returns_subscription_id(self, tree: Tree):
         callback = mock.Mock()
 
         subscription_id = tree.subscribe(TreeEvent.node_added, callback)
@@ -3311,5 +3321,5 @@ class TestSubscribe:
 
 
 class TestRepr:
-    def test_empty_tree(self, tree):
+    def test_empty_tree(self, tree: Tree):
         assert repr(tree) == "<empty>"
