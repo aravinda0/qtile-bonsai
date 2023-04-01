@@ -1882,6 +1882,26 @@ class TestRemove:
             """,
         )
 
+    def test_when_normalize_is_true_then_it_does_not_affect_nodes_in_tabs_other_than_the_one_in_which_removal_happened(
+        self, tree: Tree
+    ):
+        p1 = tree.tab()
+        p2 = tree.split(p1, "x", ratio=0.75)
+        p3 = tree.tab(p1)
+
+        tree.remove(p3, normalize=True)
+
+        assert tree_matches_repr(
+            tree,
+            """
+            - tc:1
+                - t:2
+                    - sc.x:3
+                        - p:4 | {x: 0, y: 20, w: 300, h: 280}
+                        - p:5 | {x: 300, y: 20, w: 100, h: 280}
+            """,
+        )
+
     def test_removal_in_nested_container(self, make_tree_with_subscriber):
         tree, callback = make_tree_with_subscriber(TreeEvent.node_removed)
 

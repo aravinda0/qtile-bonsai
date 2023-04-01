@@ -354,11 +354,10 @@ class Tree:
             br_sibling.transform(
                 axis, start, br_sibling_rect.size(axis) + br_remove_rect.size(axis)
             )
+            if normalize:
+                self.normalize(container)
 
         removed_nodes.extend(self._do_post_removal_pruning(br_sibling))
-
-        if normalize:
-            self.normalize(container)
 
         self._notify_subscribers(TreeEvent.node_removed, removed_nodes)
 
