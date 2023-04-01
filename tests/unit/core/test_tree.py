@@ -127,7 +127,7 @@ class TestSplit:
     def test_can_split_by_arbitrary_ratio(self, tree):
         p1 = tree.tab()
 
-        tree.split(p1, "x", 0.8)
+        tree.split(p1, "x", ratio=0.8)
 
         assert tree_matches_repr(
             tree,
@@ -146,7 +146,32 @@ class TestSplit:
 
         err_msg = "Value of `ratio` must be between 0 and 1 inclusive."
         with pytest.raises(ValueError, match=err_msg):
-            tree.split(p1, "x", ratio)
+            tree.split(p1, "x", ratio=ratio)
+
+    def test_when_there_are_existing_splits_along_an_axis_and_new_split_is_created_with_normalize_then_all_splits_under_the_container_are_normalized_to_be_of_equal_size(
+        self, tree: Tree
+    ):
+        p1 = tree.tab()
+        p2 = tree.split(p1, "x")
+        p3 = tree.split(p2, "x")
+        tree.split(p2, "y")
+
+        tree.split(p3, "x", normalize=True)
+
+        assert tree_matches_repr(
+            tree,
+            """
+            - tc:1
+                - t:2
+                    - sc.x:3
+                        - p:4 | {x: 0, y: 20, w: 100, h: 280}
+                        - sc.y:7
+                            - p:5 | {x: 100, y: 20, w: 100, h: 140}
+                            - p:8 | {x: 100, y: 160, w: 100, h: 140}
+                        - p:6 | {x: 200, y: 20, w: 100, h: 280}
+                        - p:9 | {x: 300, y: 20, w: 100, h: 280}
+            """,
+        )
 
     def test_subscribers_are_notified_of_added_nodes(self, tree):
         callback = mock.Mock()
@@ -262,6 +287,31 @@ class TestNestedSplits:
                             - sc.y:8
                                 - p:7 | {x: 200, y: 160, w: 200, h: 70}
                                 - p:9 | {x: 200, y: 230, w: 200, h: 70}
+            """,
+        )
+
+    def test_when_there_are_existing_nested_splits_along_an_axis_and_new_split_is_created_with_normalize_then_all_splits_under_the_container_are_normalized_to_be_of_equal_size(
+        self, tree: Tree
+    ):
+        p1 = tree.tab()
+        p2 = tree.split(p1, "x")
+        p3 = tree.split(p2, "y", ratio=0.75)
+        p4 = tree.split(p3, "y")
+
+        tree.split(p4, "y", normalize=True)
+
+        assert tree_matches_repr(
+            tree,
+            """
+            - tc:1
+                - t:2
+                    - sc.x:3
+                        - p:4 | {x: 0, y: 20, w: 200, h: 280}
+                        - sc.y:6
+                            - p:5 | {x: 200, y: 20, w: 200, h: 70}
+                            - p:7 | {x: 200, y: 90, w: 200, h: 70}
+                            - p:8 | {x: 200, y: 160, w: 200, h: 70}
+                            - p:9 | {x: 200, y: 230, w: 200, h: 70}
             """,
         )
 
@@ -1268,7 +1318,7 @@ class TestResize:
                 self, tree
             ):
                 p1 = tree.tab()
-                p2 = tree.split(p1, "x", 0.9)
+                p2 = tree.split(p1, "x", ratio=0.9)
                 p3 = tree.split(p2, "y")
                 p4 = tree.split(p3, "x")
                 tree.split(p3, "x")
@@ -1300,7 +1350,7 @@ class TestResize:
                 self, tree
             ):
                 p1 = tree.tab()
-                p2 = tree.split(p1, "x", 0.8)
+                p2 = tree.split(p1, "x", ratio=0.8)
                 p3 = tree.split(p2, "y")
                 tree.split(p3, "x")
 
@@ -1783,7 +1833,7 @@ class TestRemove:
         self, tree
     ):
         p1 = tree.tab()
-        p2 = tree.split(p1, "x", 0.2)
+        p2 = tree.split(p1, "x", ratio=0.2)
         p3 = tree.split(p2, "x")
         p4 = tree.split(p3, "y")
         p5 = tree.split(p4, "x")
@@ -2414,7 +2464,7 @@ class TestMotions:
             self, tree
         ):
             p1 = tree.tab()
-            p2 = tree.split(p1, "x", 0.1)
+            p2 = tree.split(p1, "x", ratio=0.1)
             p3 = tree.split(p1, "x")
 
             tree.focus(p3)
@@ -2428,11 +2478,11 @@ class TestMotions:
             p1 = tree.tab()
             p2 = tree.split(p1, "x")
 
-            tree.split(p1, "y", 0.6)
-            p4 = tree.split(p1, "y", 0.5)
+            tree.split(p1, "y", ratio=0.6)
+            p4 = tree.split(p1, "y", ratio=0.5)
 
-            tree.split(p2, "y", 0.8)
-            p6 = tree.split(p2, "y", 0.5)
+            tree.split(p2, "y", ratio=0.8)
+            p6 = tree.split(p2, "y", ratio=0.5)
 
             # p2 and p6 both touch p4. p6 is further down and does not touch p4.
 
@@ -2447,11 +2497,11 @@ class TestMotions:
             p1 = tree.tab()
             p2 = tree.split(p1, "x")
 
-            p3 = tree.split(p1, "y", 0.4)
-            tree.split(p3, "y", 0.5)
+            p3 = tree.split(p1, "y", ratio=0.4)
+            tree.split(p3, "y", ratio=0.5)
 
-            p5 = tree.split(p2, "y", 0.2)
-            p6 = tree.split(p5, "y", 0.8)
+            p5 = tree.split(p2, "y", ratio=0.2)
+            p6 = tree.split(p5, "y", ratio=0.8)
 
             tree.focus(p6)
             tree.focus(p2)
@@ -2485,7 +2535,7 @@ class TestMotions:
 
             pb1 = p4
             tree.split(pb1, "x")
-            pb3 = tree.split(pb1, "y", 0.2)
+            pb3 = tree.split(pb1, "y", ratio=0.2)
             pb4 = tree.split(pb3, "y")
             tree.split(pb3, "x")
 
@@ -2570,7 +2620,7 @@ class TestMotions:
             self, tree
         ):
             p1 = tree.tab()
-            p2 = tree.split(p1, "x", 0.9)
+            p2 = tree.split(p1, "x", ratio=0.9)
             p3 = tree.split(p2, "x")
 
             tree.focus(p2)
@@ -2584,11 +2634,11 @@ class TestMotions:
             p1 = tree.tab()
             p2 = tree.split(p1, "x")
 
-            p3 = tree.split(p1, "y", 0.6)
-            p4 = tree.split(p1, "y", 0.5)
+            p3 = tree.split(p1, "y", ratio=0.6)
+            p4 = tree.split(p1, "y", ratio=0.5)
 
-            tree.split(p2, "y", 0.8)
-            p6 = tree.split(p2, "y", 0.5)
+            tree.split(p2, "y", ratio=0.8)
+            p6 = tree.split(p2, "y", ratio=0.5)
 
             # p3 and p4 both touch p6. p1 is further up and does not touch p6.
 
@@ -2603,11 +2653,11 @@ class TestMotions:
             p1 = tree.tab()
             p2 = tree.split(p1, "x")
 
-            p3 = tree.split(p1, "y", 0.2)
-            tree.split(p3, "y", 0.8)
+            p3 = tree.split(p1, "y", ratio=0.2)
+            tree.split(p3, "y", ratio=0.8)
 
-            p5 = tree.split(p2, "y", 0.4)
-            p6 = tree.split(p5, "y", 0.5)
+            p5 = tree.split(p2, "y", ratio=0.4)
+            p6 = tree.split(p5, "y", ratio=0.5)
 
             tree.focus(p6)
             tree.focus(p2)
@@ -2641,7 +2691,7 @@ class TestMotions:
 
             pb1 = p4
             tree.split(pb1, "x")
-            pb3 = tree.split(pb1, "y", 0.2)
+            pb3 = tree.split(pb1, "y", ratio=0.2)
             pb4 = tree.split(pb3, "y")
             tree.split(pb3, "x")
 
@@ -2726,7 +2776,7 @@ class TestMotions:
             self, tree
         ):
             p1 = tree.tab()
-            p2 = tree.split(p1, "y", 0.1)
+            p2 = tree.split(p1, "y", ratio=0.1)
             p3 = tree.split(p1, "y")
 
             tree.focus(p3)
@@ -2740,11 +2790,11 @@ class TestMotions:
             p1 = tree.tab()
             p2 = tree.split(p1, "y")
 
-            tree.split(p1, "x", 0.6)
-            p4 = tree.split(p1, "x", 0.5)
+            tree.split(p1, "x", ratio=0.6)
+            p4 = tree.split(p1, "x", ratio=0.5)
 
-            tree.split(p2, "x", 0.8)
-            p6 = tree.split(p2, "x", 0.5)
+            tree.split(p2, "x", ratio=0.8)
+            p6 = tree.split(p2, "x", ratio=0.5)
 
             # p2 and p6 both touch p4. p6 does not touch p4.
 
@@ -2759,11 +2809,11 @@ class TestMotions:
             p1 = tree.tab()
             p2 = tree.split(p1, "y")
 
-            p3 = tree.split(p1, "x", 0.4)
-            tree.split(p3, "x", 0.5)
+            p3 = tree.split(p1, "x", ratio=0.4)
+            tree.split(p3, "x", ratio=0.5)
 
-            p5 = tree.split(p2, "x", 0.2)
-            p6 = tree.split(p5, "x", 0.8)
+            p5 = tree.split(p2, "x", ratio=0.2)
+            p6 = tree.split(p5, "x", ratio=0.8)
 
             tree.focus(p6)
             tree.focus(p2)
@@ -2797,7 +2847,7 @@ class TestMotions:
 
             pb1 = p4
             tree.split(pb1, "y")
-            pb3 = tree.split(pb1, "x", 0.2)
+            pb3 = tree.split(pb1, "x", ratio=0.2)
             pb4 = tree.split(pb3, "x")
             tree.split(pb3, "y")
 
@@ -2900,7 +2950,7 @@ class TestMotions:
             self, tree
         ):
             p1 = tree.tab()
-            p2 = tree.split(p1, "y", 0.9)
+            p2 = tree.split(p1, "y", ratio=0.9)
             p3 = tree.split(p2, "y")
 
             tree.focus(p2)
@@ -2914,11 +2964,11 @@ class TestMotions:
             p1 = tree.tab()
             p2 = tree.split(p1, "y")
 
-            p3 = tree.split(p1, "x", 0.6)
-            p4 = tree.split(p1, "x", 0.5)
+            p3 = tree.split(p1, "x", ratio=0.6)
+            p4 = tree.split(p1, "x", ratio=0.5)
 
-            tree.split(p2, "x", 0.8)
-            p6 = tree.split(p2, "x", 0.5)
+            tree.split(p2, "x", ratio=0.8)
+            p6 = tree.split(p2, "x", ratio=0.5)
 
             # p3 and p4 both touch p6. p1 does not touch p6.
 
@@ -2933,11 +2983,11 @@ class TestMotions:
             p1 = tree.tab()
             p2 = tree.split(p1, "y")
 
-            p3 = tree.split(p1, "x", 0.2)
-            tree.split(p3, "x", 0.8)
+            p3 = tree.split(p1, "x", ratio=0.2)
+            tree.split(p3, "x", ratio=0.8)
 
-            p5 = tree.split(p2, "x", 0.4)
-            p6 = tree.split(p5, "x", 0.5)
+            p5 = tree.split(p2, "x", ratio=0.4)
+            p6 = tree.split(p5, "x", ratio=0.5)
 
             tree.focus(p6)
             tree.focus(p2)
@@ -2971,7 +3021,7 @@ class TestMotions:
 
             pb1 = p4
             tree.split(pb1, "y")
-            pb3 = tree.split(pb1, "x", 0.2)
+            pb3 = tree.split(pb1, "x", ratio=0.2)
             pb4 = tree.split(pb3, "x")
             tree.split(pb3, "y")
 

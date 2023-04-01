@@ -238,13 +238,17 @@ class Bonsai(Layout):
         if prev_window is not None:
             self._request_focus(self._windows_to_panes[prev_window])
 
-    def cmd_spawn_split(self, program: str, axis: Axis, ratio: float = 0.5):
+    def cmd_spawn_split(
+        self, program: str, axis: Axis, *, ratio: float = 0.5, normalize: bool = True
+    ):
         if self._tree.is_empty:
             logger.warn("There are no windows yet to split")
             return
 
         def _handle_next_window():
-            return self._tree.split(self.focused_pane, axis, ratio)
+            return self._tree.split(
+                self.focused_pane, axis, ratio=ratio, normalize=normalize
+            )
 
         self._on_next_window = _handle_next_window
 

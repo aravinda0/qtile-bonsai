@@ -228,8 +228,16 @@ class Tree:
         self,
         pane: Pane,
         axis: AxisParam,
+        *,
         ratio: float = 0.5,
+        normalize: bool = False,
     ) -> Pane:
+        """Create a new pane next to the provided pane, adjusting dimensions as
+        necessary.
+
+        If `normalize` is provided, it takes precedence over `ratio`. In this case, the
+        new pane and all the sibling nodes will be adjusted to be of equal size.
+        """
         validate_unit_range(ratio, "ratio")
         axis = Axis(axis)
 
@@ -252,6 +260,8 @@ class Tree:
             new_pane.parent = pane_container
             pane_container.children.insert(pane_index + 1, new_pane)
 
+            if normalize:
+                self.normalize(pane_container)
         else:
             pane_container.children.remove(pane)
 
