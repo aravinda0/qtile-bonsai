@@ -2186,10 +2186,8 @@ class TestRemove:
                     tree.split(p2, "y")
                     sc, t, tc, _, _, _ = p3.get_ancestors()
                     _, t2, _, _, _, _ = p2.get_ancestors()
-                    print(tree)
 
                     tree.remove(p3)
-                    print(tree)
 
                     assert tree_matches_repr(
                         tree,
