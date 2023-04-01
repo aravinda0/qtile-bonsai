@@ -47,6 +47,15 @@ class Bonsai(Layout):
             "Color of the border around an active window",
         ),
         (
+            "window.normalize_on_remove",
+            True,
+            """
+            Whether or not to normalize the remaining windows after a window is removed.
+            If `True`, the remaining windows will all become of equal size.
+            If `False`, the next (right/down) window will take up the free space.
+            """,
+        ),
+        (
             "tab_bar.height",
             20,
             "Height of tab bars",
@@ -177,7 +186,10 @@ class Bonsai(Layout):
 
     def remove(self, window: Window) -> Window | None:
         pane = self._windows_to_panes[window]
-        next_focus_pane = self._tree.remove(pane)
+        normalize_on_remove = self._tree.get_config(
+            "window.normalize_on_remove", level=pane.tab_level
+        )
+        next_focus_pane = self._tree.remove(pane, normalize=normalize_on_remove)
         del self._windows_to_panes[window]
         if next_focus_pane is not None:
             return next_focus_pane.window

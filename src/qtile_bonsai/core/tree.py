@@ -327,7 +327,7 @@ class Tree:
 
         _normalize(node, recurse=recurse)
 
-    def remove(self, pane: Pane) -> Pane | None:
+    def remove(self, pane: Pane, *, normalize: bool = False) -> Pane | None:
         removed_nodes = []
 
         br_remove, br_remove_nodes = self._find_removal_branch(pane)
@@ -356,6 +356,9 @@ class Tree:
             )
 
         removed_nodes.extend(self._do_post_removal_pruning(br_sibling))
+
+        if normalize:
+            self.normalize(container)
 
         self._notify_subscribers(TreeEvent.node_removed, removed_nodes)
 

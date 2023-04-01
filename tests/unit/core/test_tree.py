@@ -1859,6 +1859,29 @@ class TestRemove:
                 """,
         )
 
+    def test_when_normalize_is_true_then_the_remaining_sibling_nodes_are_normalized(
+        self, tree: Tree
+    ):
+        p1 = tree.tab()
+        p2 = tree.split(p1, "x", ratio=0.8)
+        p3 = tree.split(p2, "x")
+        tree.split(p2, "y")
+
+        tree.remove(p3, normalize=True)
+
+        assert tree_matches_repr(
+            tree,
+            """
+            - tc:1
+                - t:2
+                    - sc.x:3
+                        - p:4 | {x: 0, y: 20, w: 200, h: 280}
+                        - sc.y:7
+                            - p:5 | {x: 200, y: 20, w: 200, h: 140}
+                            - p:8 | {x: 200, y: 160, w: 200, h: 140}
+            """,
+        )
+
     def test_removal_in_nested_container(self, make_tree_with_subscriber):
         tree, callback = make_tree_with_subscriber(TreeEvent.node_removed)
 
