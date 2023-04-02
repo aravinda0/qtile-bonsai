@@ -68,7 +68,11 @@ format_check = ["black --check {args}"]
 [tool.hatch.envs.ci]
 template = "default"
 [[tool.hatch.envs.ci.matrix]]
-python = ["310", "311"]
+# TODO: Bring 311 back after figuring out issues around cairocffi 1.5.0 failing to
+# install with xcffib support only in virtualenvironment.
+# Seems to work in 3.10 env but not in 3.11.
+# python = ["310", "311"]
+python = ["310"]
 
 [tool.coverage.run]
 branch = true
