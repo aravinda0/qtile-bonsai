@@ -417,13 +417,11 @@ class Tree:
         sc2 = p2.parent
         p2_index = sc2.children.index(p2)
 
-        sc1.children.remove(p1)
-        p2.parent = sc1
-        sc1.children.insert(p1_index, p2)
-
-        sc2.children.remove(p2)
-        p1.parent = sc2
-        sc2.children.insert(p2_index, p1)
+        p1.parent, p2.parent = p2.parent, p1.parent
+        sc1.children[p1_index], sc2.children[p2_index] = (
+            sc2.children[p2_index],
+            sc1.children[p1_index],
+        )
 
         # Swap geometries
         p1.box, p2.box = p2.box, p1.box
