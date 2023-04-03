@@ -3229,6 +3229,90 @@ class TestSwap:
         )
 
 
+class TestSwapTabs:
+    def test_swap_under_same_tab_container(self, tree: Tree):
+        tree.tab()
+        p2 = tree.tab()
+        p3 = tree.tab()
+        tree.split(p3, "x")
+        tree.tab()
+
+        t2 = p2.get_first_ancestor(Tab)
+        t3 = p3.get_first_ancestor(Tab)
+        tree.swap_tabs(t2, t3)
+
+        assert tree_matches_repr(
+            tree,
+            """
+            - tc:1
+                - t:2
+                    - sc.x:3
+                        - p:4 | {x: 0, y: 20, w: 400, h: 280}
+                - t:8
+                    - sc.x:9
+                        - p:10 | {x: 0, y: 20, w: 200, h: 280}
+                        - p:11 | {x: 200, y: 20, w: 200, h: 280}
+                - t:5
+                    - sc.x:6
+                        - p:7 | {x: 0, y: 20, w: 400, h: 280}
+                - t:12
+                    - sc.x:13
+                        - p:14 | {x: 0, y: 20, w: 400, h: 280}
+            """,
+        )
+
+    def test_swap_between_tabs_under_different_tab_containers(self, tree: Tree):
+        p1 = tree.tab()
+        p2 = tree.split(p1, "x")
+        p3 = tree.split(p2, "y")
+        p4 = tree.tab(p3, new_level=True)
+        p5 = tree.tab()
+
+        t4 = p4.get_first_ancestor(Tab)
+        t5 = p5.get_first_ancestor(Tab)
+        tree.swap_tabs(t4, t5)
+
+        assert tree_matches_repr(
+            tree,
+            """
+            - tc:1
+                - t:2
+                    - sc.x:3
+                        - p:4 | {x: 0, y: 20, w: 200, h: 280}
+                        - sc.y:6
+                            - p:5 | {x: 200, y: 20, w: 200, h: 140}
+                            - tc:8
+                                - t:9
+                                    - sc.x:10
+                                        - p:7 | {x: 200, y: 180, w: 200, h: 120}
+                                - t:14
+                                    - sc.x:15
+                                        - p:16 | {x: 200, y: 180, w: 200, h: 120}
+                - t:11
+                    - sc.x:12
+                        - p:13 | {x: 0, y: 20, w: 400, h: 280}
+            """,
+        )
+
+    def test_when_the_provided_tabs_are_nested_under_one_another_then_an_error_is_raised(
+        self, tree: Tree
+    ):
+        p1 = tree.tab()
+        p2 = tree.split(p1, "x")
+        p3 = tree.split(p2, "y")
+        p4 = tree.tab(p3, new_level=True)
+
+        err_msg = (
+            "`t1` and `t2` must be independent tabs such that one is not nested "
+            "under the other"
+        )
+
+        t1 = p1.get_first_ancestor(Tab)
+        t4 = p4.get_first_ancestor(Tab)
+        with pytest.raises(ValueError, match=err_msg):
+            tree.swap_tabs(t1, t4)
+
+
 class TestConfig:
     def test_fall_back_to_default(self, tree: Tree):
         tree.set_config("window.margin", 10)

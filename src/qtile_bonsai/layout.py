@@ -378,6 +378,28 @@ class Bonsai(Layout):
         self._tree.swap(self.focused_pane, other_pane)
         self._request_relayout()
 
+    def cmd_swap_prev_tab(self, *, wrap: bool = True):
+        if self._tree.is_empty:
+            return
+
+        current_tab = self.focused_pane.get_first_ancestor(Tab)
+        other_tab = current_tab.sibling(-1, wrap=wrap)
+
+        if current_tab is not other_tab and other_tab is not None:
+            self._tree.swap_tabs(current_tab, other_tab)
+            self._request_relayout()
+
+    def cmd_swap_next_tab(self, *, wrap: bool = True):
+        if self._tree.is_empty:
+            return
+
+        current_tab = self.focused_pane.get_first_ancestor(Tab)
+        other_tab = current_tab.sibling(1, wrap=wrap)
+
+        if current_tab is not other_tab and other_tab is not None:
+            self._tree.swap_tabs(current_tab, other_tab)
+            self._request_relayout()
+
     def cmd_rename_tab(self, widget: str = "prompt"):
         prompt_widget = self.group.qtile.widgets_map.get(widget)
         if prompt_widget is None:

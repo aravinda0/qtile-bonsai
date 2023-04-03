@@ -428,6 +428,36 @@ class Tree:
         # Swap geometries
         p1.box, p2.box = p2.box, p1.box
 
+    def swap_tabs(self, t1: Tab, t2: Tab):
+        """Swaps the two tabs provided in the tree and adjusts geometries as needed. The
+        provided tabs must not be nested under one another.
+        """
+        if t1 in t2.get_ancestors() or t2 in t1.get_ancestors():
+            raise ValueError(
+                "`t1` and `t2` must be independent tabs such that one is not nested "
+                "under the other"
+            )
+
+        tc1 = t1.parent
+        t1_index = tc1.children.index(t1)
+        t1_rect = Rect.from_rect(t1.principal_rect)
+
+        tc2 = t2.parent
+        t2_index = tc2.children.index(t2)
+        t2_rect = Rect.from_rect(t2.principal_rect)
+
+        t1.parent, t2.parent = t2.parent, t1.parent
+        tc1.children[t1_index], tc2.children[t2_index] = (
+            tc2.children[t2_index],
+            tc1.children[t1_index],
+        )
+
+        if tc1 is not tc2:
+            t1.transform(Axis.x, t2_rect.x, t2_rect.w)
+            t1.transform(Axis.y, t2_rect.y, t2_rect.h)
+            t2.transform(Axis.x, t1_rect.x, t1_rect.w)
+            t2.transform(Axis.y, t1_rect.y, t1_rect.h)
+
     def is_visible(self, node: Node) -> bool:
         """Whether a node is visible or not. A node is visible if all its ancestor
         tabs are active.
