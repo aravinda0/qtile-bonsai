@@ -320,14 +320,28 @@ class Bonsai(Layout):
         if next_pane is not None:
             self._request_focus(next_pane)
 
-    def cmd_resize_x(self, amount: int = 5):
+    def cmd_resize_left(self, amount: int = 10):
+        if self._tree.is_empty:
+            return
+
+        self._tree.resize(self.focused_pane, Axis.x, -amount)
+        self._request_relayout()
+
+    def cmd_resize_right(self, amount: int = 10):
         if self._tree.is_empty:
             return
 
         self._tree.resize(self.focused_pane, Axis.x, amount)
         self._request_relayout()
 
-    def cmd_resize_y(self, amount: int = 5):
+    def cmd_resize_up(self, amount: int = 10):
+        if self._tree.is_empty:
+            return
+
+        self._tree.resize(self.focused_pane, Axis.y, -amount)
+        self._request_relayout()
+
+    def cmd_resize_down(self, amount: int = 10):
         if self._tree.is_empty:
             return
 
