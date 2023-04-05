@@ -240,6 +240,10 @@ class Bonsai(Layout):
 
         self._hide_all_internal_windows()
 
+    def finalize(self):
+        for node in self._tree.iter_walk():
+            node.finalize()
+
     def cmd_next(self):
         next_window = self.focus_next(self.focused_window)
         if next_window is not None:
