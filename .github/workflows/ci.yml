@@ -28,7 +28,7 @@ jobs:
     - name: Install dependencies
       run: |
         sudo apt update
-        sudo apt install -y libpangocairo-1.0-0 libxkbcommon-dev xvfb libwayland-dev wayland-protocols xwayland qt6-base-dev
+        sudo apt install -y libpangocairo-1.0-0 libxkbcommon-dev libxcb-cursor0 xvfb libwayland-dev wayland-protocols xwayland qt6-base-dev
         pip install hatch
         hatch env create ci
     - name: Check formatting
