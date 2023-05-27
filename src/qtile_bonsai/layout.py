@@ -273,8 +273,25 @@ class Bonsai(Layout):
     def cmd_spawn_tab(
         self, program: str, *, new_level: bool = False, level: int | None = None
     ):
+        # We use this closed-over flag to ensure that after the explicit user-invoked
+        # spawning of a tab based on the provided variables, any subsequent 'implicit'
+        # tabs that are spawned are done so in a sensible manner. eg. if user invokes a
+        # new subtab, any subsequent implicitly created tabs should not create further
+        # subtabs since they were not explicitly asked for.
+        fall_back_to_default_tab_spawning = False
+
         def _handle_next_window():
-            return self._tree.tab(self.focused_pane, new_level=new_level, level=level)
+            nonlocal fall_back_to_default_tab_spawning
+
+            if not fall_back_to_default_tab_spawning:
+                fall_back_to_default_tab_spawning = True
+                return self._tree.tab(
+                    self.focused_pane, new_level=new_level, level=level
+                )
+
+            # Subsequent implicitly created tabs are spawned at whatever level
+            # `self.focused_pane` is in.
+            return self._tree.tab(self.focused_pane)
 
         self._on_next_window = _handle_next_window
 
