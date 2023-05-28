@@ -10,6 +10,10 @@ def modify_terminal_cmd_with_cwd(cmd: str, parent_pid: int) -> str:
     provided `parent_pid`.
 
     This isn't a perfect solution, but works well enough in practice.
+    Looking for the deepest shell process to determine cwd seems to work alright for
+    now. Just looking for any deepest process fails when something like nvim spawns node
+    for LSP and that has the home directory as cwd.
+    We'll refine this over time.
     """
     # TODO: Add more terminal emulators. Are there nuances for some terminals that don't
     # have a simple switch?
@@ -27,25 +31,41 @@ def modify_terminal_cmd_with_cwd(cmd: str, parent_pid: int) -> str:
         switch = terminal_dir_switches[program]
         if switch not in cmd_frags:
             parent_proc = Process(parent_pid)
-            deepest_proc = find_deepest_process(parent_proc)
+            deepest_proc = find_deepest_shell_process(parent_proc)
             return f"{cmd} {switch} {deepest_proc.cwd()}"
 
     return cmd
 
 
-def find_deepest_process(process: Process) -> Process:
-    """Returns the first process of the deepest tree level from the provided `process`
-    tree.
+def find_deepest_shell_process(process: Process) -> Process:
+    """Returns the first shell process found at the deepest tree levels from the
+    provided `process` tree. If no such process is found, the provided process is
+    returned back.
     """
+    shells = {
+        "zsh",
+        "bash",
+        "fish",
+        "ksh",
+        "sh",
+        "csh",
+        "tcsh",
+    }
 
-    def _find_deepest_procs(process: Process, level: int = 0) -> list[Process]:
+    def _find_deepest_shell_procs(process: Process, level: int = 0) -> list[Process]:
         shell_procs = []
 
-        shell_procs.append((process, level))
+        if process.name() in shells:
+            shell_procs.append((process, level))
         for child in process.children():
-            shell_procs.extend(_find_deepest_procs(child, level + 1))
+            shell_procs.extend(_find_deepest_shell_procs(child, level + 1))
 
         return shell_procs
 
-    shell_procs = sorted(_find_deepest_procs(process), key=lambda x: x[1], reverse=True)
+    shell_procs = sorted(
+        _find_deepest_shell_procs(process), key=lambda x: x[1], reverse=True
+    )
+    if not shell_procs:
+        return process
+
     return shell_procs[0][0]
