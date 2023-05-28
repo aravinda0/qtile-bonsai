@@ -21,6 +21,7 @@ from qtile_bonsai.core.tree import (
 )
 from qtile_bonsai.theme import Gruvbox
 from qtile_bonsai.tree import BonsaiNodeMixin, BonsaiPane, BonsaiTree
+from qtile_bonsai.utils.process import modify_terminal_cmd_with_cwd
 
 
 class Bonsai(Layout):
@@ -255,7 +256,13 @@ class Bonsai(Layout):
             self._request_focus(self._windows_to_panes[prev_window])
 
     def cmd_spawn_split(
-        self, program: str, axis: Axis, *, ratio: float = 0.5, normalize: bool = True
+        self,
+        program: str,
+        axis: Axis,
+        *,
+        ratio: float = 0.5,
+        normalize: bool = True,
+        auto_cwd_for_terminals: bool = True,
     ):
         if self._tree.is_empty:
             logger.warn("There are no windows yet to split")
@@ -268,10 +275,15 @@ class Bonsai(Layout):
 
         self._on_next_window = _handle_next_window
 
-        self.group.qtile.cmd_spawn(program)
+        self._spawn_program(program, auto_cwd_for_terminals)
 
     def cmd_spawn_tab(
-        self, program: str, *, new_level: bool = False, level: int | None = None
+        self,
+        program: str,
+        *,
+        new_level: bool = False,
+        level: int | None = None,
+        auto_cwd_for_terminals: bool = True,
     ):
         # We use this closed-over flag to ensure that after the explicit user-invoked
         # spawning of a tab based on the provided variables, any subsequent 'implicit'
@@ -295,7 +307,7 @@ class Bonsai(Layout):
 
         self._on_next_window = _handle_next_window
 
-        self.group.qtile.cmd_spawn(program)
+        self._spawn_program(program, auto_cwd_for_terminals)
 
     def cmd_left(self, *, wrap: bool = True):
         if self._tree.is_empty:
@@ -541,3 +553,11 @@ class Bonsai(Layout):
 
     def _request_relayout(self):
         self.group.layout_all()
+
+    def _spawn_program(self, program: str, auto_cwd_for_terminals: bool):
+        if auto_cwd_for_terminals:
+            program = modify_terminal_cmd_with_cwd(
+                program, self.focused_window.get_pid()
+            )
+
+        self.group.qtile.cmd_spawn(program)
