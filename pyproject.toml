@@ -25,6 +25,7 @@ classifiers = [
 dynamic = ["version"]
 dependencies = [
   "strenum == 0.4.9",
+  "psutil",
 ]
 
 [project.urls]
