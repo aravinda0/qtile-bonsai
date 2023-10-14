@@ -2,10 +2,10 @@
 # SPDX-License-Identifier: MIT
 
 
-from libqtile.backend.base import Drawer, Internal, Window
+from libqtile.backend.base.drawer import Drawer, TextLayout
+from libqtile.backend.base.window import Internal, Window
 from libqtile.config import ScreenRect
 from libqtile.core.manager import Qtile
-from libqtile.drawer import TextLayout
 
 from qtile_bonsai.core.geometry import Box, Rect
 from qtile_bonsai.core.tree import (

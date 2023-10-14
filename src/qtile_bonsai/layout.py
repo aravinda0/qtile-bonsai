@@ -185,6 +185,9 @@ class Bonsai(Layout):
 
         self._windows_to_panes[window] = pane
 
+    def add_client(self, window: Window):
+        return self.add(window)
+
     def remove(self, window: Window) -> Window | None:
         pane = self._windows_to_panes[window]
         normalize_on_remove = self._tree.get_config(
@@ -220,6 +223,9 @@ class Bonsai(Layout):
             return panes[i + 1].window
         return None
 
+    def next(self, window) -> Window | None:
+        return self.focus_next(window)
+
     def focus_previous(self, window) -> Window | None:
         current_pane = self._windows_to_panes[window]
         panes = list(self._tree.iter_panes())
@@ -227,6 +233,9 @@ class Bonsai(Layout):
         if i != 0:
             return panes[i - 1].window
         return None
+
+    def previous(self, window) -> Window | None:
+        return self.previous(window)
 
     def show(self, screen_rect: ScreenRect):
         width_changed = screen_rect.width != self._tree.width
