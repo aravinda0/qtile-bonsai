@@ -1,13 +1,13 @@
 [build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
+requires = ["pdm-backend"]
+build-backend = "pdm.backend"
 
 [project]
 name = "qtile-bonsai"
 description = "A flexible window layout for the qtile window manager that supports tabs and splits that can be arbitrarily nested"
 readme = "README.md"
-requires-python = ">=3.10"
-license = "MIT"
+requires-python = ">=3.10,<3.12"
+license = {text = "MIT"}
 keywords = ["qtile", "bonsai", "tiling", "window", "manager", "layout"]
 authors = [
   { name = "Aravinda Rao", email = "maniacalace@gmail.com" },
@@ -24,7 +24,7 @@ classifiers = [
 ]
 dynamic = ["version"]
 dependencies = [
-  "strenum == 0.4.9",
+  "strenum",
   "psutil",
 ]
 
@@ -33,47 +33,38 @@ Documentation = "https://github.com/aravinda0/qtile-bonsai#readme"
 Issues = "https://github.com/aravinda0/qtile-bonsai/issues"
 Source = "https://github.com/aravinda0/qtile-bonsai"
 
-[tool.hatch.version]
-path = "src/qtile_bonsai/__about__.py"
 
-[tool.hatch.envs.default]
-dependencies = [
-  "xcffib",
-  "cairocffi",
-  "qtile",
-  "pytest",
-  "pytest-cov",
-  "pytest-xdist",
-  "pyvirtualdisplay",
-  "pywlroots",
-  "pywayland",
-  "xkbcommon",
-  "pyside6",
-  "pyright",
-  "pre-commit",
-  "black",
-  "ruff",
-  "ptpython",
+[tool.pdm]
+version = { source = "file", path = "src/qtile_bonsai/__about__.py" }
+
+
+[tool.pdm.dev-dependencies]
+dev = [
+    "xcffib",
+    "cairocffi",
+    "qtile",
+    "pytest",
+    "pytest-cov",
+    "pytest-xdist",
+    "pyvirtualdisplay",
+    "pywlroots",
+    "pywayland",
+    "xkbcommon",
+    "pyside6>=6.5.3",
+    "pyright",
+    "pre-commit",
+    "black",
+    "ruff",
+    "ptpython",
 ]
-pre-install-commands = [
-  # `xcffib` must be installed before `cairocffi`. This has to be installed using a
-  # separate pip statement - specifying it in the `dependencies` list won't work.
-  "pip install xcffib",
-]
-[tool.hatch.envs.default.scripts]
+
+
+[tool.pdm.scripts]
 cov = "pytest --cov-report=term-missing --cov-report=xml --cov-config=pyproject.toml --cov=src/qtile_bonsai --cov=tests {args}"
 no-cov = "cov --no-cov {args}"
-format = ["black {args}"]
-format_check = ["black --check {args}"]
+format = "black {args}"
+format_check = "black --check {args}"
 
-[tool.hatch.envs.ci]
-template = "default"
-[[tool.hatch.envs.ci.matrix]]
-# TODO: Bring 311 back after figuring out issues around cairocffi 1.5.0 failing to
-# install with xcffib support only in virtualenvironment.
-# Seems to work in 3.10 env but not in 3.11.
-# python = ["310", "311"]
-python = ["310"]
 
 [tool.coverage.run]
 branch = true

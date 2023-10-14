@@ -10,35 +10,37 @@ jobs:
   build:
     runs-on: ubuntu-latest
     strategy:
+      matrix:
+        python-version: ["3.10", "3.11"]
       fail-fast: false
     steps:
-    - uses: actions/checkout@v3
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v4
-      with:
-        python-version: |
-          3.10
-    - name: Set up pip cache
-      if: runner.os == 'Linux'
-      uses: actions/cache@v3
-      with:
-        path: ~/.cache/pip
-        key: ${{ runner.os }}-pip-${{ hashFiles('pyproject.toml') }}
-        restore-keys: ${{ runner.os }}-pip-
-    - name: Install dependencies
-      run: |
-        sudo apt update
-        sudo apt install -y libpangocairo-1.0-0 libxkbcommon-dev libxcb-cursor0 xvfb libwayland-dev wayland-protocols xwayland qt6-base-dev
-        pip install hatch
-        hatch env create ci
-    - name: Check formatting
-      run: |
-        hatch run ci:format_check .
-    - name: Run tests
-      run: |
-        hatch run ci:pytest
-    - name: Generate coverage report
-      run: |
-        hatch run ci:cov
-    - name: Upload coverage reports to codecov
-      uses: codecov/codecov-action@v3
+      - uses: actions/checkout@v3
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Set up pip cache
+        if: runner.os == 'Linux'
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('pyproject.toml') }}
+          restore-keys: ${{ runner.os }}-pip-
+      - name: Install dependencies
+        run: |
+          sudo apt update
+          sudo apt install -y libpangocairo-1.0-0 libxkbcommon-dev libxcb-cursor0 xvfb libwayland-dev wayland-protocols xwayland qt6-base-dev
+          pip install pdm
+          pdm venv create ${{ matrix.python-version }}
+          pdm sync
+      - name: Check formatting
+        run: |
+          pdm run format_check .
+      - name: Run tests
+        run: |
+          pdm run pytest
+      - name: Generate coverage report
+        run: |
+          pdm run cov
+      - name: Upload coverage reports to codecov
+        uses: codecov/codecov-action@v3

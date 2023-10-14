@@ -13,8 +13,8 @@ repos:
       - id: check-merge-conflict
   - repo: local
     hooks:
-    - id: format
-      name: format
-      entry: hatch run default:format .
-      types: [python]
-      language: system
+      - id: format
+        name: format
+        entry: pdm run format .
+        types: [python]
+        language: system
