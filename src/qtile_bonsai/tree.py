@@ -91,6 +91,14 @@ class BonsaiTabContainer(BonsaiNodeMixin, TabContainer):
 
         self.bar_drawer.width = bar_rect.w
         self.bar_drawer.height = bar_rect.h
+
+        # NOTE: This hack is a workaround after some changes in qtile 0.23. When the
+        # drawer surface width expands, the xcb surface is freed, but not re-created.
+        # Re-creation only happens later when `drawer._check_xcb()` is invoked in
+        # `drawer.draw()`. But that check doesn't happen in `drawer.clear()`, and
+        # that's when we face an exception.
+        self.bar_drawer._check_xcb()
+
         self.bar_drawer.clear(tab_bar_bg_color)
 
         offset = 0
