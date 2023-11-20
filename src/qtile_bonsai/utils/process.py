@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2023-present Aravinda Rao <maniacalace@gmail.com>
 # SPDX-License-Identifier: MIT
 
-from psutil import Process
+from psutil import AccessDenied, Process
 
 
 def modify_terminal_cmd_with_cwd(cmd: str, parent_pid: int) -> str:
@@ -31,7 +31,11 @@ def modify_terminal_cmd_with_cwd(cmd: str, parent_pid: int) -> str:
         if switch not in cmd_frags:
             parent_proc = Process(parent_pid)
             cwd_ref_proc = find_deepest_shell_process(parent_proc) or parent_proc
-            return f"{cmd} {switch} {cwd_ref_proc.cwd()}"
+            try:
+                cwd = cwd_ref_proc.cwd()
+            except AccessDenied:
+                return cmd
+            return f"{cmd} {switch} {cwd}"
 
     return cmd
 
