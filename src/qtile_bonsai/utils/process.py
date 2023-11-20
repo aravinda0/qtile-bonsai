@@ -10,10 +10,9 @@ def modify_terminal_cmd_with_cwd(cmd: str, parent_pid: int) -> str:
     provided `parent_pid`.
 
     This isn't a perfect solution, but works well enough in practice.
-    Looking for the deepest shell process to determine cwd seems to work alright for
+    Looking for the deepest **shell** process to determine cwd seems to work alright for
     now. Just looking for any deepest process fails when something like nvim spawns node
     for LSP and that has the home directory as cwd.
-    We'll refine this over time.
     """
     # TODO: Add more terminal emulators. Are there nuances for some terminals that don't
     # have a simple switch?
@@ -26,21 +25,20 @@ def modify_terminal_cmd_with_cwd(cmd: str, parent_pid: int) -> str:
     # cmd.
 
     cmd_frags = cmd.split(" ")
-    program = cmd_frags[0]
-    if program in terminal_dir_switches:
-        switch = terminal_dir_switches[program]
+    terminal_program = cmd_frags[0]
+    if terminal_program in terminal_dir_switches:
+        switch = terminal_dir_switches[terminal_program]
         if switch not in cmd_frags:
             parent_proc = Process(parent_pid)
-            deepest_proc = find_deepest_shell_process(parent_proc)
-            return f"{cmd} {switch} {deepest_proc.cwd()}"
+            cwd_ref_proc = find_deepest_shell_process(parent_proc) or parent_proc
+            return f"{cmd} {switch} {cwd_ref_proc.cwd()}"
 
     return cmd
 
 
-def find_deepest_shell_process(process: Process) -> Process:
+def find_deepest_shell_process(process: Process) -> Process | None:
     """Returns the first shell process found at the deepest tree levels from the
-    provided `process` tree. If no such process is found, the provided process is
-    returned back.
+    provided `process` tree or None, if no such process exists.
     """
     shells = {
         "zsh",
@@ -66,6 +64,6 @@ def find_deepest_shell_process(process: Process) -> Process:
         _find_deepest_shell_procs(process), key=lambda x: x[1], reverse=True
     )
     if not shell_procs:
-        return process
+        return None
 
     return shell_procs[0][0]
