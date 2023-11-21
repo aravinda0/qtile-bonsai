@@ -4,9 +4,9 @@
 
 import itertools
 import re
-from typing import Callable
+from typing import Callable, ClassVar
 
-from libqtile.backend.base import Window
+from libqtile.backend.base.window import Window
 from libqtile.config import ScreenRect
 from libqtile.layout.base import Layout
 from libqtile.log_utils import logger
@@ -26,7 +26,7 @@ from qtile_bonsai.utils.process import modify_terminal_cmd_with_cwd
 
 class Bonsai(Layout):
     level_specific_config_format = re.compile(r"^L(\d+)\.(.+)")
-    defaults = [
+    defaults: ClassVar = [
         (
             "window.margin",
             0,
