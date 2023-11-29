@@ -47,7 +47,7 @@ class Tree:
 
     # Tab levels of trees begin from 1 for the topmost level. Use 'level 0' to store
     # defaults.
-    _default_config_key = 0
+    _default_config_level_key = 0
 
     def __init__(self, width: int, height: int):
         self._width: int = width
@@ -77,7 +77,7 @@ class Tree:
 
     def make_default_config(self) -> collections.defaultdict[int, dict[str, Any]]:
         config = collections.defaultdict(dict)
-        config[self._default_config_key] = {
+        config[self._default_config_level_key] = {
             "window.margin": 0,
             "window.border_size": 1,
             "window.padding": 0,
@@ -90,8 +90,8 @@ class Tree:
         return config
 
     def set_config(self, key: str, value: Any, *, level: int | None = None):
-        level = level if level is not None else self._default_config_key
-        if level < self._default_config_key:
+        level = level if level is not None else self._default_config_level_key
+        if level < self._default_config_level_key:
             raise ValueError("`level` must be a positive number")
 
         self._config[level][key] = value
@@ -103,14 +103,14 @@ class Tree:
         level: int | None = None,
         fall_back_to_default: bool = True,
     ) -> Any:
-        level = level if level is not None else self._default_config_key
-        if level < self._default_config_key:
+        level = level if level is not None else self._default_config_level_key
+        if level < self._default_config_level_key:
             raise ValueError("`level` must be a positive number")
 
         if fall_back_to_default and (
             level not in self._config or key not in self._config[level]
         ):
-            level = self._default_config_key
+            level = self._default_config_level_key
 
         return self._config[level][key]
 
