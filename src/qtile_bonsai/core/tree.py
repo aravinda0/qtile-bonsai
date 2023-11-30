@@ -549,12 +549,12 @@ class Tree:
         cls._recency_seq += 1
         return cls._recency_seq
 
-    def __repr__(self) -> str:
+    def __str__(self) -> str:
         if self.is_empty:
             return "<empty>"
 
         def walk(node, prefix=""):
-            frags = [f"{prefix}- {repr(node)}"]
+            frags = [f"{prefix}- {node}"]
             for n in node.children:
                 frags.extend(walk(n, prefix + 4 * " "))
             return frags
@@ -1040,13 +1040,16 @@ class Tree:
             callback(nodes)
 
 
-def tree_matches_repr(tree: Tree, test_repr: str) -> bool:
-    tree_repr = textwrap.dedent(repr(tree)).strip()
-    test_repr = textwrap.dedent(test_repr).strip()
-    return tree_repr == test_repr
+def tree_matches_str(tree: Tree, test_str: str) -> bool:
+    """Tests if the provided `Tree` instance has a str representation that matches the
+    provided tree str representation in `test_str`.
+    """
+    tree_str = textwrap.dedent(str(tree)).strip()
+    test_str = textwrap.dedent(test_str).strip()
+    return tree_str == test_str
 
 
-def repr_matches_repr(repr1: str, repr2: str) -> bool:
-    repr1 = textwrap.dedent(repr1).strip()
-    repr2 = textwrap.dedent(repr2).strip()
-    return repr1 == repr2
+def tree_str_matches_tree_str(str1: str, str2: str) -> bool:
+    str1 = textwrap.dedent(str1).strip()
+    str2 = textwrap.dedent(str2).strip()
+    return str1 == str2

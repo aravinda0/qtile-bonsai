@@ -501,7 +501,7 @@ class Bonsai(Layout):
     def cmd_info(self):
         return {
             "name": "bonsai",
-            "tree": repr(self._tree),
+            "tree": str(self._tree),
         }
 
     def _handle_default_next_window(self) -> BonsaiPane:

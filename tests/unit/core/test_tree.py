@@ -12,7 +12,7 @@ from qtile_bonsai.core.tree import (
     TabContainer,
     Tree,
     TreeEvent,
-    tree_matches_repr,
+    tree_matches_str,
 )
 
 
@@ -59,7 +59,7 @@ class TestSplit:
 
         tree.split(p1, "x")
 
-        assert tree_matches_repr(
+        assert tree_matches_str(
             tree,
             """
             - tc:1
@@ -75,7 +75,7 @@ class TestSplit:
 
         tree.split(p1, "y")
 
-        assert tree_matches_repr(
+        assert tree_matches_str(
             tree,
             """
             - tc:1
@@ -94,7 +94,7 @@ class TestSplit:
 
         tree.split(p2, "x")
 
-        assert tree_matches_repr(
+        assert tree_matches_str(
             tree,
             """
             - tc:1
@@ -114,7 +114,7 @@ class TestSplit:
 
         tree.split(p1, "x")
 
-        assert tree_matches_repr(
+        assert tree_matches_str(
             tree,
             """
             - tc:1
@@ -131,7 +131,7 @@ class TestSplit:
 
         tree.split(p1, "x", ratio=0.8)
 
-        assert tree_matches_repr(
+        assert tree_matches_str(
             tree,
             """
             - tc:1
@@ -160,7 +160,7 @@ class TestSplit:
 
         tree.split(p3, "x", normalize=True)
 
-        assert tree_matches_repr(
+        assert tree_matches_str(
             tree,
             """
             - tc:1
@@ -214,7 +214,7 @@ class TestNestedSplits:
 
         tree.split(p2, "y")
 
-        assert tree_matches_repr(
+        assert tree_matches_str(
             tree,
             """
             - tc:1
@@ -235,7 +235,7 @@ class TestNestedSplits:
 
         tree.split(p2, "x")
 
-        assert tree_matches_repr(
+        assert tree_matches_str(
             tree,
             """
             - tc:1
@@ -255,7 +255,7 @@ class TestNestedSplits:
 
         tree.split(p3, "x")
 
-        assert tree_matches_repr(
+        assert tree_matches_str(
             tree,
             """
             - tc:1
@@ -277,7 +277,7 @@ class TestNestedSplits:
 
         tree.split(p3, "y")
 
-        assert tree_matches_repr(
+        assert tree_matches_str(
             tree,
             """
             - tc:1
@@ -302,7 +302,7 @@ class TestNestedSplits:
 
         tree.split(p4, "y", normalize=True)
 
-        assert tree_matches_repr(
+        assert tree_matches_str(
             tree,
             """
             - tc:1
@@ -392,7 +392,7 @@ class TestAddTab:
     def test_add_tab_to_empty_tree(self, tree: Tree):
         tree.tab()
 
-        assert tree_matches_repr(
+        assert tree_matches_str(
             tree,
             """
             - tc:1
@@ -407,7 +407,7 @@ class TestAddTab:
 
         tree.tab()
 
-        assert tree_matches_repr(
+        assert tree_matches_str(
             tree,
             """
             - tc:1
@@ -433,7 +433,7 @@ class TestAddTab:
         # Current behvavior adds tab at end of provided pane's level of tabs.
         tree.tab(p2)
 
-        assert tree_matches_repr(
+        assert tree_matches_str(
             tree,
             """
             - tc:1
@@ -460,7 +460,7 @@ class TestAddTab:
 
         tree.tab()
 
-        assert tree_matches_repr(
+        assert tree_matches_str(
             tree,
             """
             - tc:1
@@ -487,7 +487,7 @@ class TestAddTab:
 
         tree.tab(p1)
 
-        assert tree_matches_repr(
+        assert tree_matches_str(
             tree,
             """
             - tc:1
@@ -511,7 +511,7 @@ class TestAddTab:
 
         tree.tab(p1, new_level=True)
 
-        assert tree_matches_repr(
+        assert tree_matches_str(
             tree,
             """
             - tc:1
@@ -540,7 +540,7 @@ class TestAddTab:
         p3 = tree.tab(p2, new_level=True)
         tree.tab(p3, new_level=True)
 
-        assert tree_matches_repr(
+        assert tree_matches_str(
             tree,
             """
             - tc:1
@@ -574,7 +574,7 @@ class TestAddTab:
 
         tree.tab(p2, new_level=True)
 
-        assert tree_matches_repr(
+        assert tree_matches_str(
             tree,
             """
             - tc:1
@@ -599,7 +599,7 @@ class TestAddTab:
         tree.tab(p2, new_level=True)
         tree.tab(p1, new_level=True)
 
-        assert tree_matches_repr(
+        assert tree_matches_str(
             tree,
             """
             - tc:1
@@ -632,7 +632,7 @@ class TestAddTab:
 
         tree.tab(p4, new_level=True)
 
-        assert tree_matches_repr(
+        assert tree_matches_str(
             tree,
             """
             - tc:1
@@ -665,7 +665,7 @@ class TestAddTab:
         # p2, we can add at either level 1, level 2 or level 3. We pick level 2.
         tree.tab(p2, level=2)
 
-        assert tree_matches_repr(
+        assert tree_matches_str(
             tree,
             """
             - tc:1
@@ -709,7 +709,7 @@ class TestAddTab:
         tree.tab(p4, level=2)
 
         # Nodes 36, 37, 38 get added.
-        assert tree_matches_repr(
+        assert tree_matches_str(
             tree,
             """
             - tc:1
@@ -783,7 +783,7 @@ class TestSplitsUnderTabs:
         tree.split(p1, "x")
         tree.split(p3, "x")
 
-        assert tree_matches_repr(
+        assert tree_matches_str(
             tree,
             """
             - tc:1
@@ -811,7 +811,7 @@ class TestSplitsUnderTabs:
         tree.split(p1, "y")
         tree.split(p3, "y")
 
-        assert tree_matches_repr(
+        assert tree_matches_str(
             tree,
             """
             - tc:1
@@ -836,7 +836,7 @@ class TestSplitsUnderTabs:
 
         tree.split(p2, "x")
 
-        assert tree_matches_repr(
+        assert tree_matches_str(
             tree,
             """
             - tc:1
@@ -859,7 +859,7 @@ class TestSplitsUnderTabs:
 
         tree.split(p2, "y")
 
-        assert tree_matches_repr(
+        assert tree_matches_str(
             tree,
             """
             - tc:1
@@ -890,7 +890,7 @@ class TestSplitsUnderTabs:
         tree.split(p6, "x")
         tree.split(p6, "y")
 
-        assert tree_matches_repr(
+        assert tree_matches_str(
             tree,
             """
             - tc:1
@@ -931,7 +931,7 @@ class TestResize:
 
         tree.resize(p1, "x", 50)
 
-        assert tree_matches_repr(
+        assert tree_matches_str(
             tree,
             """
             - tc:1
@@ -948,7 +948,7 @@ class TestResize:
 
         tree.resize(p1, "x", -50)
 
-        assert tree_matches_repr(
+        assert tree_matches_str(
             tree,
             """
             - tc:1
@@ -965,7 +965,7 @@ class TestResize:
 
         tree.resize(p1, "y", 50)
 
-        assert tree_matches_repr(
+        assert tree_matches_str(
             tree,
             """
             - tc:1
@@ -982,7 +982,7 @@ class TestResize:
 
         tree.resize(p1, "y", -50)
 
-        assert tree_matches_repr(
+        assert tree_matches_str(
             tree,
             """
             - tc:1
@@ -1002,7 +1002,7 @@ class TestResize:
 
         tree.resize(p2, "x", 50)
 
-        assert tree_matches_repr(
+        assert tree_matches_str(
             tree,
             """
             - tc:1
@@ -1023,7 +1023,7 @@ class TestResize:
 
         tree.resize(p3, "x", 50)
 
-        assert tree_matches_repr(
+        assert tree_matches_str(
             tree,
             """
             - tc:1
@@ -1044,7 +1044,7 @@ class TestResize:
 
         tree.resize(p2, "y", 50)
 
-        assert tree_matches_repr(
+        assert tree_matches_str(
             tree,
             """
             - tc:1
@@ -1065,7 +1065,7 @@ class TestResize:
 
         tree.resize(p3, "y", 50)
 
-        assert tree_matches_repr(
+        assert tree_matches_str(
             tree,
             """
             - tc:1
@@ -1090,7 +1090,7 @@ class TestResize:
         tree.resize(p2, axis, amount)
         tree.resize(p3, axis, amount)
 
-        assert tree_matches_repr(
+        assert tree_matches_str(
             tree,
             """
             - tc:1
@@ -1116,7 +1116,7 @@ class TestResize:
         tree.resize(p1, "y", amount)
         tree.resize(p2, "y", amount)
 
-        assert tree_matches_repr(
+        assert tree_matches_str(
             tree,
             """
             - tc:1
@@ -1140,7 +1140,7 @@ class TestResize:
             # Resizing `p:9` along container axis should only affect `p:9` and `p:10`
             tree.resize(p4, "x", 20)
 
-            assert tree_matches_repr(
+            assert tree_matches_str(
                 tree,
                 """
                 - tc:1
@@ -1169,7 +1169,7 @@ class TestResize:
             # container - `p:4`, `p:9`, `p:10`; and the sibling of the container - `p:7`
             tree.resize(p4, "y", 20)
 
-            assert tree_matches_repr(
+            assert tree_matches_str(
                 tree,
                 """
                 - tc:1
@@ -1205,7 +1205,7 @@ class TestResize:
                 # Will revisit this if it accumulates to significance.
                 tree.resize(p1, "x", -25)
 
-                assert tree_matches_repr(
+                assert tree_matches_str(
                     tree,
                     """
                     - tc:1
@@ -1237,7 +1237,7 @@ class TestResize:
                 # that amount.
                 tree.resize(p1, "x", -20)
 
-                assert tree_matches_repr(
+                assert tree_matches_str(
                     tree,
                     """
                     - tc:1
@@ -1276,7 +1276,7 @@ class TestResize:
                 # `p:9` shrinks by: (100 - 10)/170 * 20 ~= 11
                 tree.resize(p1, "x", 20)
 
-                assert tree_matches_repr(
+                assert tree_matches_str(
                     tree,
                     """
                     - tc:1
@@ -1303,7 +1303,7 @@ class TestResize:
                 # amount
                 tree.resize(p1, "x", 20)
 
-                assert tree_matches_repr(
+                assert tree_matches_str(
                     tree,
                     """
                     - tc:1
@@ -1331,7 +1331,7 @@ class TestResize:
                 # `sc.y:6` operational sibling branch, resulting in a no-op.
                 tree.resize(p1, "x", 20)
 
-                assert tree_matches_repr(
+                assert tree_matches_str(
                     tree,
                     """
                     - tc:1
@@ -1360,7 +1360,7 @@ class TestResize:
                 # consume 30 * 2 = 60 of the requested 100 to shrink and reach min size.
                 tree.resize(p1, "x", 100)
 
-                assert tree_matches_repr(
+                assert tree_matches_str(
                     tree,
                     """
                     - tc:1
@@ -1389,7 +1389,7 @@ class TestResize:
             tree.resize(p1, "x", 20)
             tree.resize(p2, "y", 20)
 
-            assert tree_matches_repr(
+            assert tree_matches_str(
                 tree,
                 """
                 - tc:1
@@ -1419,7 +1419,7 @@ class TestResize:
 
             tree.resize(p5, "x", 20)
 
-            assert tree_matches_repr(
+            assert tree_matches_str(
                 tree,
                 """
                 - tc:1
@@ -1454,7 +1454,7 @@ class TestResize:
 
             tree.resize(p1, "x", 20)
 
-            assert tree_matches_repr(
+            assert tree_matches_str(
                 tree,
                 """
                 - tc:1
@@ -1488,7 +1488,7 @@ class TestResize:
 
             # Resizing `p:11` should have affected panes in the first sub tab as well as
             # the entire TabContainer gets resized.
-            assert tree_matches_repr(
+            assert tree_matches_str(
                 tree,
                 """
                 - tc:1
@@ -1518,7 +1518,7 @@ class TestResize:
 
             tree.resize(p4, "y", -20)
 
-            assert tree_matches_repr(
+            assert tree_matches_str(
                 tree,
                 """
                 - tc:1
@@ -1548,7 +1548,7 @@ class TestResize:
             tree.resize(p4, "x", 20)
 
             # Resizing p4 should only affect itself and p3.
-            assert tree_matches_repr(
+            assert tree_matches_str(
                 tree,
                 """
                 - tc:1
@@ -1579,7 +1579,7 @@ class TestResize:
             # p4 is in the y-direction. Resizing it along the x-direction will affect
             # everything in the containing SplitContainer as well as the containing
             # TabContainer.
-            assert tree_matches_repr(
+            assert tree_matches_str(
                 tree,
                 """
                 - tc:1
@@ -1607,7 +1607,7 @@ class TestResize:
 
             tree.resize(p2, "y", -20)
 
-            assert tree_matches_repr(
+            assert tree_matches_str(
                 tree,
                 """
                 - tc:1
@@ -1639,7 +1639,7 @@ class TestNormalize:
 
         tree.normalize(p1.parent, recurse=False)
 
-        assert tree_matches_repr(
+        assert tree_matches_str(
             tree,
             """
             - tc:1
@@ -1663,7 +1663,7 @@ class TestNormalize:
 
         tree.normalize(p1.parent, recurse=True)
 
-        assert tree_matches_repr(
+        assert tree_matches_str(
             tree,
             """
             - tc:1
@@ -1689,7 +1689,7 @@ class TestNormalize:
 
         tree.normalize(p1.parent)
 
-        assert tree_matches_repr(
+        assert tree_matches_str(
             tree,
             """
             - tc:1
@@ -1717,7 +1717,7 @@ class TestNormalize:
 
         tree.normalize(p3.parent)
 
-        assert tree_matches_repr(
+        assert tree_matches_str(
             tree,
             """
             - tc:1
@@ -1800,7 +1800,7 @@ class TestRemove:
 
         tree.remove(p2)
 
-        assert tree_matches_repr(
+        assert tree_matches_str(
             tree,
             """
             - tc:1
@@ -1820,7 +1820,7 @@ class TestRemove:
 
         tree.remove(p3)
 
-        assert tree_matches_repr(
+        assert tree_matches_str(
             tree,
             """
             - tc:1
@@ -1843,7 +1843,7 @@ class TestRemove:
 
         tree.remove(p2)
 
-        assert tree_matches_repr(
+        assert tree_matches_str(
             tree,
             """
                 - tc:1
@@ -1869,7 +1869,7 @@ class TestRemove:
 
         tree.remove(p3, normalize=True)
 
-        assert tree_matches_repr(
+        assert tree_matches_str(
             tree,
             """
             - tc:1
@@ -1891,7 +1891,7 @@ class TestRemove:
 
         tree.remove(p3, normalize=True)
 
-        assert tree_matches_repr(
+        assert tree_matches_str(
             tree,
             """
             - tc:1
@@ -1912,7 +1912,7 @@ class TestRemove:
 
         tree.remove(p3)
 
-        assert tree_matches_repr(
+        assert tree_matches_str(
             tree,
             """
             - tc:1
@@ -1938,7 +1938,7 @@ class TestRemove:
 
         tree.remove(p1)
 
-        assert tree_matches_repr(
+        assert tree_matches_str(
             tree,
             """
             - tc:1
@@ -1967,7 +1967,7 @@ class TestRemove:
         tree.remove(p2)
         tree.remove(p3)
 
-        assert tree_matches_repr(
+        assert tree_matches_str(
             tree,
             """
             - tc:1
@@ -1989,7 +1989,7 @@ class TestRemove:
 
         tree.remove(p2)
 
-        assert tree_matches_repr(
+        assert tree_matches_str(
             tree,
             """
             - tc:1
@@ -2013,7 +2013,7 @@ class TestRemove:
 
         tree.remove(p2)
 
-        assert tree_matches_repr(
+        assert tree_matches_str(
             tree,
             """
             - tc:1
@@ -2059,7 +2059,7 @@ class TestRemove:
 
                 tree.remove(p3)
 
-                assert tree_matches_repr(
+                assert tree_matches_str(
                     tree,
                     """
                     - tc:1
@@ -2085,7 +2085,7 @@ class TestRemove:
 
                 tree.remove(p1)
 
-                assert tree_matches_repr(
+                assert tree_matches_str(
                     tree,
                     """
                     - tc:1
@@ -2112,7 +2112,7 @@ class TestRemove:
 
                 tree.remove(p2)
 
-                assert tree_matches_repr(
+                assert tree_matches_str(
                     tree,
                     """
                     - tc:1
@@ -2139,7 +2139,7 @@ class TestRemove:
 
                 tree.remove(p2)
 
-                assert tree_matches_repr(
+                assert tree_matches_str(
                     tree,
                     """
                     - tc:1
@@ -2177,7 +2177,7 @@ class TestRemove:
 
                     tree.remove(p3)
 
-                    assert tree_matches_repr(
+                    assert tree_matches_str(
                         tree,
                         """
                         - tc:1
@@ -2209,7 +2209,7 @@ class TestRemove:
 
                     tree.remove(p3)
 
-                    assert tree_matches_repr(
+                    assert tree_matches_str(
                         tree,
                         """
                         - tc:1
@@ -2239,7 +2239,7 @@ class TestRemove:
 
                 tree.remove(p2)
 
-                assert tree_matches_repr(
+                assert tree_matches_str(
                     tree,
                     """
                     - tc:1
@@ -2263,7 +2263,7 @@ class TestRemove:
 
                 tree.remove(p2)
 
-                assert tree_matches_repr(
+                assert tree_matches_str(
                     tree,
                     """
                     - tc:1
@@ -2288,7 +2288,7 @@ class TestRemove:
 
                 tree.remove(p3)
 
-                assert tree_matches_repr(
+                assert tree_matches_str(
                     tree,
                     """
                     - tc:1
@@ -2316,7 +2316,7 @@ class TestRemove:
 
                 tree.remove(p2)
 
-                assert tree_matches_repr(
+                assert tree_matches_str(
                     tree,
                     """
                     - tc:1
@@ -2340,7 +2340,7 @@ class TestRemove:
 
                 tree.remove(p1)
 
-                assert tree_matches_repr(
+                assert tree_matches_str(
                     tree,
                     """
                     - tc:1
@@ -2374,7 +2374,7 @@ class TestRemove:
 
                 tree.remove(p3)
 
-                assert tree_matches_repr(
+                assert tree_matches_str(
                     tree,
                     """
                     - tc:1
@@ -3212,7 +3212,7 @@ class TestSwap:
 
         tree.swap(p1, p3)
 
-        assert tree_matches_repr(
+        assert tree_matches_str(
             tree,
             """
             - tc:1
@@ -3241,7 +3241,7 @@ class TestSwapTabs:
         t3 = p3.get_first_ancestor(Tab)
         tree.swap_tabs(t2, t3)
 
-        assert tree_matches_repr(
+        assert tree_matches_str(
             tree,
             """
             - tc:1
@@ -3272,7 +3272,7 @@ class TestSwapTabs:
         t5 = p5.get_first_ancestor(Tab)
         tree.swap_tabs(t4, t5)
 
-        assert tree_matches_repr(
+        assert tree_matches_str(
             tree,
             """
             - tc:1
@@ -3445,6 +3445,6 @@ class TestSubscribe:
         assert isinstance(subscription_id, str)
 
 
-class TestRepr:
+class TestStr:
     def test_empty_tree(self, tree: Tree):
-        assert repr(tree) == "<empty>"
+        assert str(tree) == "<empty>"

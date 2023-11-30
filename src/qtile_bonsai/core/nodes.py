@@ -156,6 +156,10 @@ class Node(metaclass=abc.ABCMeta):
             node = node.parent
         raise ValueError(f"No node of type {of_type} in ancestor chain")
 
+    @abc.abstractmethod
+    def __str__(self) -> str:
+        raise NotImplementedError
+
     @classmethod
     def next_id(cls):
         cls._id_seq += 1
@@ -234,7 +238,7 @@ class Pane(Node):
         setattr(rect, axis, start)
         setattr(rect, axis.dim, size)
 
-    def __repr__(self) -> str:
+    def __str__(self) -> str:
         r = self.principal_rect
         return f"{self.abbrv}:{self.id} | {{x: {r.x}, y: {r.y}, w: {r.w}, h: {r.h}}}"
 
@@ -302,7 +306,7 @@ class SplitContainer(Node):
             for child in self.children:
                 child.transform(axis, start, size)
 
-    def __repr__(self) -> str:
+    def __str__(self) -> str:
         return f"{self.abbrv}.{self.axis}:{self.id}"
 
 
@@ -332,7 +336,7 @@ class Tab(Node):
     def transform(self, axis: AxisParam, start: int, size: int):
         self.children[0].transform(axis, start, size)
 
-    def __repr__(self) -> str:
+    def __str__(self) -> str:
         return f"{self.abbrv}:{self.id}"
 
 
@@ -381,7 +385,7 @@ class TabContainer(Node):
         for child in self.children:
             child.transform(axis, start, size)
 
-    def __repr__(self) -> str:
+    def __str__(self) -> str:
         return f"{self.abbrv}:{self.id}"
 
 
