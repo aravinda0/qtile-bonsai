@@ -24,6 +24,11 @@ class Node(metaclass=abc.ABCMeta):
 
     @property
     @abc.abstractmethod
+    def abbrv(self) -> str:
+        raise NotImplementedError
+
+    @property
+    @abc.abstractmethod
     def principal_rect(self) -> Rect:
         raise NotImplementedError
 
@@ -192,6 +197,10 @@ class Pane(Node):
         self.recency: int = 0
 
     @property
+    def abbrv(self) -> str:
+        return "p"
+
+    @property
     def is_nearest_under_tab_container(self):
         return isinstance(self.parent.parent.parent, TabContainer)
 
@@ -227,7 +236,7 @@ class Pane(Node):
 
     def __repr__(self) -> str:
         r = self.principal_rect
-        return f"p:{self.id} | {{x: {r.x}, y: {r.y}, w: {r.w}, h: {r.h}}}"
+        return f"{self.abbrv}:{self.id} | {{x: {r.x}, y: {r.y}, w: {r.w}, h: {r.h}}}"
 
 
 class SplitContainer(Node):
@@ -237,6 +246,10 @@ class SplitContainer(Node):
         self.parent: Tab | SplitContainer
         self.children: list[SplitContainer | Pane | TabContainer]
         self.axis: Axis = Axis.x
+
+    @property
+    def abbrv(self) -> str:
+        return "sc"
 
     @property
     def is_nearest_under_tab_container(self):
@@ -290,7 +303,7 @@ class SplitContainer(Node):
                 child.transform(axis, start, size)
 
     def __repr__(self) -> str:
-        return f"sc.{self.axis}:{self.id}"
+        return f"{self.abbrv}.{self.axis}:{self.id}"
 
 
 class Tab(Node):
@@ -306,6 +319,10 @@ class Tab(Node):
         self.title: str = title
 
     @property
+    def abbrv(self) -> str:
+        return "t"
+
+    @property
     def principal_rect(self) -> Rect:
         return self.children[0].principal_rect
 
@@ -316,7 +333,7 @@ class Tab(Node):
         self.children[0].transform(axis, start, size)
 
     def __repr__(self) -> str:
-        return f"t:{self.id}"
+        return f"{self.abbrv}:{self.id}"
 
 
 class TabContainer(Node):
@@ -327,6 +344,10 @@ class TabContainer(Node):
         self.children: list[Tab]
         self.active_child: Tab | None = None
         self.tab_bar = TabBar(principal_rect=Rect(0, 0, 0, 0))
+
+    @property
+    def abbrv(self) -> str:
+        return "tc"
 
     @property
     def principal_rect(self) -> Rect:
@@ -361,7 +382,7 @@ class TabContainer(Node):
             child.transform(axis, start, size)
 
     def __repr__(self) -> str:
-        return f"tc:{self.id}"
+        return f"{self.abbrv}:{self.id}"
 
 
 class TabBar:
