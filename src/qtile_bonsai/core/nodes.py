@@ -24,11 +24,6 @@ class Node(metaclass=abc.ABCMeta):
 
     @property
     @abc.abstractmethod
-    def abbrv(self) -> str:
-        raise NotImplementedError
-
-    @property
-    @abc.abstractmethod
     def principal_rect(self) -> Rect:
         raise NotImplementedError
 
@@ -46,10 +41,19 @@ class Node(metaclass=abc.ABCMeta):
         serialization.
         """
         return {
-            "type": self.abbrv,
+            "type": self.abbrv(),
             "id": self.id,
             "children": [child.as_dict() for child in self.children],
         }
+
+    @abc.abstractmethod
+    def __str__(self) -> str:
+        raise NotImplementedError
+
+    @classmethod
+    @abc.abstractmethod
+    def abbrv(cls) -> str:
+        raise NotImplementedError
 
     @property
     def has_single_child(self) -> bool:
@@ -159,10 +163,6 @@ class Node(metaclass=abc.ABCMeta):
             node = node.parent
         raise ValueError(f"No node of type {of_type} in ancestor chain")
 
-    @abc.abstractmethod
-    def __str__(self) -> str:
-        raise NotImplementedError
-
     @classmethod
     def next_id(cls):
         cls._id_seq += 1
@@ -204,10 +204,6 @@ class Pane(Node):
         self.recency: int = 0
 
     @property
-    def abbrv(self) -> str:
-        return "p"
-
-    @property
     def is_nearest_under_tab_container(self):
         return isinstance(self.parent.parent.parent, TabContainer)
 
@@ -240,7 +236,11 @@ class Pane(Node):
 
     def __str__(self) -> str:
         r = self.principal_rect
-        return f"{self.abbrv}:{self.id} | {{x: {r.x}, y: {r.y}, w: {r.w}, h: {r.h}}}"
+        return f"{self.abbrv()}:{self.id} | {{x: {r.x}, y: {r.y}, w: {r.w}, h: {r.h}}}"
+
+    @classmethod
+    def abbrv(cls) -> str:
+        return "p"
 
 
 class SplitContainer(Node):
@@ -250,10 +250,6 @@ class SplitContainer(Node):
         self.parent: Tab | SplitContainer
         self.children: list[SplitContainer | Pane | TabContainer]
         self.axis: Axis = Axis.x
-
-    @property
-    def abbrv(self) -> str:
-        return "sc"
 
     @property
     def is_nearest_under_tab_container(self):
@@ -313,7 +309,11 @@ class SplitContainer(Node):
         }
 
     def __str__(self) -> str:
-        return f"{self.abbrv}.{self.axis}:{self.id}"
+        return f"{self.abbrv()}.{self.axis}:{self.id}"
+
+    @classmethod
+    def abbrv(cls) -> str:
+        return "sc"
 
 
 class Tab(Node):
@@ -327,10 +327,6 @@ class Tab(Node):
         self.parent: TabContainer
         self.children: list[SplitContainer]
         self.title: str = title
-
-    @property
-    def abbrv(self) -> str:
-        return "t"
 
     @property
     def principal_rect(self) -> Rect:
@@ -349,7 +345,11 @@ class Tab(Node):
         }
 
     def __str__(self) -> str:
-        return f"{self.abbrv}:{self.id}"
+        return f"{self.abbrv()}:{self.id}"
+
+    @classmethod
+    def abbrv(cls) -> str:
+        return "t"
 
 
 class TabContainer(Node):
@@ -360,10 +360,6 @@ class TabContainer(Node):
         self.children: list[Tab]
         self.active_child: Tab | None = None
         self.tab_bar = TabBar(principal_rect=Rect(0, 0, 0, 0))
-
-    @property
-    def abbrv(self) -> str:
-        return "tc"
 
     @property
     def principal_rect(self) -> Rect:
@@ -401,7 +397,11 @@ class TabContainer(Node):
         return {**super().as_dict(), "tab_bar": self.tab_bar.as_dict()}
 
     def __str__(self) -> str:
-        return f"{self.abbrv}:{self.id}"
+        return f"{self.abbrv()}:{self.id}"
+
+    @classmethod
+    def abbrv(cls) -> str:
+        return "tc"
 
 
 class TabBar:
