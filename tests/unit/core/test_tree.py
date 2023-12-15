@@ -31,6 +31,181 @@ def make_tree_with_subscriber(tree):
     return _make_tree_with_subscriber
 
 
+@pytest.fixture()
+def complex_tree_as_dict():
+    return {
+        "width": 400,
+        "height": 300,
+        "root": {
+            "type": "tc",
+            "id": 1,
+            "tab_bar": {
+                "box": {
+                    "principal_rect": {
+                        "x": 0,
+                        "y": 0,
+                        "w": 400,
+                        "h": 20,
+                    },
+                    "margin": 0,
+                    "padding": 0,
+                    "border": 0,
+                }
+            },
+            "children": [
+                {
+                    "type": "t",
+                    "id": 2,
+                    "title": "",
+                    "children": [
+                        {
+                            "type": "sc",
+                            "id": 3,
+                            "axis": "x",
+                            "children": [
+                                {
+                                    "type": "p",
+                                    "id": 4,
+                                    "box": {
+                                        "principal_rect": {
+                                            "x": 0,
+                                            "y": 20,
+                                            "w": 200,
+                                            "h": 280,
+                                        },
+                                        "margin": 5,
+                                        "border": 2,
+                                        "padding": 3,
+                                    },
+                                    "children": [],
+                                },
+                                {
+                                    "type": "sc",
+                                    "id": 6,
+                                    "axis": "y",
+                                    "children": [
+                                        {
+                                            "type": "p",
+                                            "id": 5,
+                                            "box": {
+                                                "principal_rect": {
+                                                    "x": 200,
+                                                    "y": 20,
+                                                    "w": 200,
+                                                    "h": 140,
+                                                },
+                                                "margin": 5,
+                                                "border": 2,
+                                                "padding": 3,
+                                            },
+                                            "children": [],
+                                        },
+                                        {
+                                            "type": "tc",
+                                            "id": 8,
+                                            "tab_bar": {
+                                                "box": {
+                                                    "principal_rect": {
+                                                        "x": 200,
+                                                        "y": 160,
+                                                        "w": 200,
+                                                        "h": 20,
+                                                    },
+                                                    "margin": 0,
+                                                    "padding": 0,
+                                                    "border": 0,
+                                                }
+                                            },
+                                            "children": [
+                                                {
+                                                    "type": "t",
+                                                    "id": 9,
+                                                    "title": "",
+                                                    "children": [
+                                                        {
+                                                            "type": "sc",
+                                                            "id": 10,
+                                                            "axis": "x",
+                                                            "children": [
+                                                                {
+                                                                    "type": "p",
+                                                                    "id": 7,
+                                                                    "box": {
+                                                                        "principal_rect": {
+                                                                            "x": 200,
+                                                                            "y": 180,
+                                                                            "w": 200,
+                                                                            "h": 120,
+                                                                        },
+                                                                        "margin": 5,
+                                                                        "border": 2,
+                                                                        "padding": 3,
+                                                                    },
+                                                                    "children": [],
+                                                                },
+                                                            ],
+                                                        }
+                                                    ],
+                                                },
+                                                {
+                                                    "type": "t",
+                                                    "id": 11,
+                                                    "title": "",
+                                                    "children": [
+                                                        {
+                                                            "type": "sc",
+                                                            "id": 12,
+                                                            "axis": "y",
+                                                            "children": [
+                                                                {
+                                                                    "type": "p",
+                                                                    "id": 13,
+                                                                    "box": {
+                                                                        "principal_rect": {
+                                                                            "x": 200,
+                                                                            "y": 180,
+                                                                            "w": 200,
+                                                                            "h": 60,
+                                                                        },
+                                                                        "margin": 5,
+                                                                        "border": 2,
+                                                                        "padding": 3,
+                                                                    },
+                                                                    "children": [],
+                                                                },
+                                                                {
+                                                                    "type": "p",
+                                                                    "id": 14,
+                                                                    "box": {
+                                                                        "principal_rect": {
+                                                                            "x": 200,
+                                                                            "y": 240,
+                                                                            "w": 200,
+                                                                            "h": 60,
+                                                                        },
+                                                                        "margin": 5,
+                                                                        "border": 2,
+                                                                        "padding": 3,
+                                                                    },
+                                                                    "children": [],
+                                                                },
+                                                            ],
+                                                        }
+                                                    ],
+                                                },
+                                            ],
+                                        },
+                                    ],
+                                },
+                            ],
+                        }
+                    ],
+                }
+            ],
+        },
+    }
+
+
 class TestIsEmpty:
     def test_new_tree_instance_is_empty(self, tree: Tree):
         assert tree.is_empty
@@ -3443,6 +3618,23 @@ class TestSubscribe:
         subscription_id = tree.subscribe(TreeEvent.node_added, callback)
 
         assert isinstance(subscription_id, str)
+
+
+class TestAsDict:
+    def test_tree_state_is_captured_as_dict(self, tree, complex_tree_as_dict):
+        tree.set_config("window.margin", 5)
+        tree.set_config("window.border_size", 2)
+        tree.set_config("window.padding", 3)
+
+        p1 = tree.tab()
+        p2 = tree.split(p1, "x")
+        p3 = tree.split(p2, "y")
+        p4 = tree.tab(p3, new_level=True)
+        tree.split(p4, "y")
+
+        state = tree.as_dict()
+
+        assert state == complex_tree_as_dict
 
 
 class TestStr:

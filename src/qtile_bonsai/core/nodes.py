@@ -40,6 +40,17 @@ class Node(metaclass=abc.ABCMeta):
     def transform(self, axis: AxisParam, start: int, size: int):
         raise NotImplementedError
 
+    @abc.abstractmethod
+    def as_dict(self) -> dict:
+        """Provide a plain dict prepresentation of this node. Handy for things like
+        serialization.
+        """
+        return {
+            "type": self.abbrv,
+            "id": self.id,
+            "children": [child.as_dict() for child in self.children],
+        }
+
     @property
     def has_single_child(self) -> bool:
         return len(self.children) == 1
@@ -221,6 +232,12 @@ class Pane(Node):
         setattr(rect, axis, start)
         setattr(rect, axis.dim, size)
 
+    def as_dict(self) -> dict:
+        return {
+            **super().as_dict(),
+            "box": self.box.as_dict(),
+        }
+
     def __str__(self) -> str:
         r = self.principal_rect
         return f"{self.abbrv}:{self.id} | {{x: {r.x}, y: {r.y}, w: {r.w}, h: {r.h}}}"
@@ -289,6 +306,12 @@ class SplitContainer(Node):
             for child in self.children:
                 child.transform(axis, start, size)
 
+    def as_dict(self) -> dict:
+        return {
+            **super().as_dict(),
+            "axis": Axis(self.axis).value,
+        }
+
     def __str__(self) -> str:
         return f"{self.abbrv}.{self.axis}:{self.id}"
 
@@ -318,6 +341,12 @@ class Tab(Node):
 
     def transform(self, axis: AxisParam, start: int, size: int):
         self.children[0].transform(axis, start, size)
+
+    def as_dict(self) -> dict:
+        return {
+            **super().as_dict(),
+            "title": self.title,
+        }
 
     def __str__(self) -> str:
         return f"{self.abbrv}:{self.id}"
@@ -368,6 +397,9 @@ class TabContainer(Node):
         for child in self.children:
             child.transform(axis, start, size)
 
+    def as_dict(self) -> dict:
+        return {**super().as_dict(), "tab_bar": self.tab_bar.as_dict()}
+
     def __str__(self) -> str:
         return f"{self.abbrv}:{self.id}"
 
@@ -402,3 +434,6 @@ class TabBar:
     @property
     def is_hidden(self):
         return self.box.principal_rect.h == 0
+
+    def as_dict(self) -> dict:
+        return {"box": self.box.as_dict()}

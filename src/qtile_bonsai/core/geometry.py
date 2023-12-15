@@ -158,12 +158,15 @@ class Rect:
 
         return (r1, r2)
 
+    def as_dict(self) -> dict:
+        return {"x": self.x, "y": self.y, "w": self.w, "h": self.h}
+
     @classmethod
     def from_rect(cls, rect: Rect) -> Rect:
         return cls(rect.x, rect.y, rect.w, rect.h)
 
-    def __repr__(self) -> str:
-        return f"{{x: {self.x}, y: {self.y}, w: {self.w}, h: {self.h}}}"
+    def __str__(self) -> str:
+        return repr(self.as_dict())
 
     def __eq__(self, other):
         if other is self:
@@ -267,6 +270,14 @@ class Box:
     def content_rect(self, value: Rect):
         excess_per_side = self.margin + self.border + self.padding
         self._set_principal_rect(value, excess_per_side)
+
+    def as_dict(self) -> dict:
+        return {
+            "principal_rect": self.principal_rect.as_dict(),
+            "margin": self.margin,
+            "border": self.border,
+            "padding": self.padding,
+        }
 
     def __repr__(self):
         r = self.principal_rect

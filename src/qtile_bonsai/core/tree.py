@@ -544,6 +544,13 @@ class Tree:
                 del subscribers[subscription_id]
                 return
 
+    def as_dict(self) -> dict:
+        return {
+            "width": self.width,
+            "height": self.height,
+            "root": None if self.is_empty else self.root.as_dict(),
+        }
+
     @classmethod
     def next_recency_value(cls):
         cls._recency_seq += 1
