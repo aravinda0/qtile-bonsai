@@ -765,7 +765,7 @@ class Tree:
 
             # We need to adjust the contents of the first tab after the bar takes up its
             # space.
-            first_tab = tab_container._children[0]
+            first_tab = tab_container.children[0]
             first_tab.transform(
                 Axis.y, bar_rect.y2, first_tab.principal_rect.h - bar_height
             )

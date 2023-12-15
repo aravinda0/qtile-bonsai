@@ -17,10 +17,10 @@ class Node(metaclass=abc.ABCMeta):
     def __init__(self):
         # We specify `Node` explicitly to ensure continued sequence across instantiation
         # of any subclass instances.
-        self._id = Node.next_id()
+        self.id: int = Node.next_id()
 
         self.parent: Node | None = None
-        self._children: list[Node] = []
+        self.children: list[Node] = []
 
     @property
     @abc.abstractmethod
@@ -39,14 +39,6 @@ class Node(metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def transform(self, axis: AxisParam, start: int, size: int):
         raise NotImplementedError
-
-    @property
-    def id(self) -> int:
-        return self._id
-
-    @property
-    def children(self) -> list[Node]:
-        return self._children
 
     @property
     def has_single_child(self) -> bool:
@@ -207,15 +199,6 @@ class Pane(Node):
     @property
     def is_nearest_under_tab_container(self):
         return isinstance(self.parent.parent.parent, TabContainer)
-
-    @property
-    def children(self):
-        """A Pane cannot have children but will return an empty immutable tuple and
-        raise an exception on trying to set it.
-        This deviation of behaviour is to maintain the otherwise convenient interface on
-        Node classes.
-        """
-        return ()
 
     @property
     def principal_rect(self) -> Rect:
