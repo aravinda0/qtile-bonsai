@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: MIT
 
 
+import collections
 import itertools
 import re
 from typing import Callable, ClassVar
@@ -510,8 +511,7 @@ class Bonsai(Layout):
     def _reset(self):
         # We initialize the tree with arbitrary dimensions. These get reset soon as this
         # layout's group is assigned to a screen.
-        self._tree = BonsaiTree(100, 100)
-        self._parse_config()
+        self._tree = BonsaiTree(100, 100, config=self.get_multi_level_config())
 
         self._tree.subscribe(
             TreeEvent.node_added, lambda nodes: self._handle_added_tree_nodes(nodes)
@@ -527,18 +527,22 @@ class Bonsai(Layout):
 
         self._on_next_window = _handle_next_window
 
-    def _parse_config(self):
-        config = itertools.chain(
+    def get_multi_level_config(self) -> BonsaiTree.MultiLevelConfig:
+        merged_user_config = itertools.chain(
             ((c[0], c[1]) for c in self.defaults),
             ((k, v) for k, v in self._user_config.items()),
         )
-        for [key, value] in config:
+
+        multi_level_config: BonsaiTree.MultiLevelConfig = collections.defaultdict(dict)
+        for key, value in merged_user_config:
             level_specific_key = self.level_specific_config_format.match(key)
-            level = None
+            level = 0
             if level_specific_key is not None:
                 level = int(level_specific_key.group(1))
                 key = level_specific_key.group(2)
-            self._tree.set_config(key, value, level=level)
+            multi_level_config[level][key] = value
+
+        return multi_level_config
 
     def _handle_added_tree_nodes(self, nodes: list[BonsaiNodeMixin]):
         for node in nodes:

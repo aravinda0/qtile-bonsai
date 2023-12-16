@@ -3698,6 +3698,22 @@ class TestSwapTabs:
 
 
 class TestConfig:
+    def test_when_config_is_passed_on_init_then_it_overrides_default_config(self):
+        # Default window.margin is 0
+        config = {
+            0: {
+                "window.margin": 12,
+            }
+        }
+
+        tree = Tree(400, 300, config)
+
+        p1 = tree.tab()
+        p2 = tree.split(p1, "x")
+
+        assert p1.box.margin == 12
+        assert p2.box.margin == 12
+
     def test_fall_back_to_default(self, tree: Tree):
         tree.set_config("window.margin", 10)
 

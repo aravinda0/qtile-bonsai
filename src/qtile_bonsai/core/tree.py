@@ -42,6 +42,7 @@ class InvalidTreeStructureError(Exception):
 
 class Tree:
     TreeEventCallback = Callable[[list[Node]], None]
+    MultiLevelConfig = collections.defaultdict[int, dict[str, Any]]
 
     _recency_seq = 0
 
@@ -49,11 +50,22 @@ class Tree:
     # defaults.
     _default_config_level_key = 0
 
-    def __init__(self, width: int, height: int):
+    def __init__(
+        self,
+        width: int,
+        height: int,
+        config: MultiLevelConfig | None = None,
+    ):
         self._width: int = width
         self._height: int = height
-        self._config: collections.defaultdict[int, dict] = self.make_default_config()
         self._root: TabContainer | None = None
+
+        self._config: Tree.MultiLevelConfig = self.make_default_config()
+        if config is not None:
+            for level, lconfig in config.items():
+                for k, v in lconfig.items():
+                    self._config[level][k] = v
+
         self._event_subscribers: collections.defaultdict[
             TreeEvent, dict[str, Tree.TreeEventCallback]
         ] = collections.defaultdict(dict)
