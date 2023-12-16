@@ -279,7 +279,7 @@ class Box:
             "padding": self.padding,
         }
 
-    def __repr__(self):
+    def __str__(self):
         r = self.principal_rect
         m, b, p = self.margin, self.border, self.padding
         return f"{{x: {r.x}, y: {r.y}, w: {r.w}, h: {r.h}, m: {m}, b: {b}, p: {p}}}"
