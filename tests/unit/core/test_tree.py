@@ -2569,6 +2569,215 @@ class TestRemove:
                 ]
 
 
+class TestReset:
+    def test_reset_clears_tree(self, tree: Tree):
+        p1 = tree.tab()
+        p2 = tree.split(p1, "y")
+        p3 = tree.split(p2, "x")
+        tree.tab(p3, new_level=True)
+
+        tree.reset()
+
+        assert tree.is_empty
+
+    def test_subscribers_are_notified_of_removed_nodes(self, tree: Tree):
+        callback = mock.Mock()
+        tree.subscribe(TreeEvent.node_removed, callback)
+
+        p1 = tree.tab()
+        p2 = tree.split(p1, "x")
+        p3 = tree.split(p2, "y")
+        p4 = tree.split(p3, "x")
+        p5 = tree.split(p4, "y")
+        tree.split(p5, "y")
+
+        nodes = list(tree.iter_walk())
+
+        tree.reset()
+
+        assert callback.mock_calls == [
+            mock.call(nodes),
+        ]
+
+    def test_when_a_state_dict_is_provided_then_reset_will_restore_to_match_that_state(
+        self, tree: Tree, complex_tree_as_dict: dict
+    ):
+        old_p1 = tree.tab()
+        old_p2 = tree.split(old_p1, "x")
+        tree.split(old_p2, "y")
+
+        tree.reset(from_state=complex_tree_as_dict)
+
+        assert tree_matches_str(
+            tree,
+            """
+            - tc:1
+                - t:2
+                    - sc.x:3
+                        - p:4 | {x: 0, y: 20, w: 200, h: 280}
+                        - sc.y:6
+                            - p:5 | {x: 200, y: 20, w: 200, h: 140}
+                            - tc:8
+                                - t:9
+                                    - sc.x:10
+                                        - p:7 | {x: 200, y: 180, w: 200, h: 120}
+                                - t:11
+                                    - sc.y:12
+                                        - p:13 | {x: 200, y: 180, w: 200, h: 60}
+                                        - p:14 | {x: 200, y: 240, w: 200, h: 60}
+            """,
+        )
+
+    def test_subscribers_are_notified_if_tree_restored_from_provided_state(
+        self, tree: Tree, complex_tree_as_dict
+    ):
+        old_p1 = tree.tab()
+        old_p2 = tree.split(old_p1, "x")
+        tree.split(old_p2, "y")
+
+        callback = mock.Mock()
+        tree.subscribe(TreeEvent.node_added, callback)
+
+        tree.reset(from_state=complex_tree_as_dict)
+        nodes = list(tree.iter_walk())
+
+        assert callback.mock_calls == [mock.call(nodes)]
+
+    def test_when_provided_state_is_in_invalid_format_then_error_is_raised(
+        self, tree: Tree
+    ):
+        p1 = tree.tab()
+        tree.split(p1, "x")
+
+        invalid_state = {
+            "x": [],
+            "y": "hax0r",
+            "z": "hi i'm definitely a tree",
+        }
+
+        err_msg = "The provided tree state is not in an expected format"
+        with pytest.raises(ValueError, match=err_msg):
+            tree.reset(from_state=invalid_state)
+
+    def test_when_provided_state_has_nodes_with_same_id_then_error_is_raised(
+        self, tree: Tree
+    ):
+        p1 = tree.tab()
+        tree.split(p1, "x")
+
+        invalid_state = {
+            "width": 400,
+            "height": 300,
+            "root": {
+                "type": "tc",
+                "id": 1,
+                "tab_bar": {
+                    "box": {
+                        "principal_rect": {
+                            "x": 0,
+                            "y": 0,
+                            "w": 400,
+                            "h": 20,
+                        },
+                        "margin": 0,
+                        "padding": 0,
+                        "border": 0,
+                    }
+                },
+                "children": [
+                    {
+                        "type": "t",
+                        "id": 1,
+                        "title": "",
+                        "children": [
+                            {
+                                "type": "sc",
+                                "id": 2,
+                                "axis": "x",
+                                "children": [
+                                    {
+                                        "type": "p",
+                                        "id": 2,
+                                        "children": [],
+                                        "box": {
+                                            "principal_rect": {
+                                                "x": 0,
+                                                "y": 0,
+                                                "w": 400,
+                                                "h": 280,
+                                            },
+                                            "margin": 0,
+                                            "padding": 0,
+                                            "border": 0,
+                                        },
+                                    }
+                                ],
+                            }
+                        ],
+                    }
+                ],
+            },
+        }
+
+        err_msg = "The provided tree state has nodes with duplicate IDs"
+        with pytest.raises(ValueError, match=err_msg):
+            tree.reset(from_state=invalid_state)
+
+    def test_when_provided_state_has_unknown_node_types_then_error_is_raised(
+        self, tree: Tree
+    ):
+        p1 = tree.tab()
+        tree.split(p1, "x")
+
+        # The would-be `Pane` node has a `type` of 'x', which is invalid
+        invalid_state = {
+            "width": 400,
+            "height": 300,
+            "root": {
+                "type": "tc",
+                "id": 1,
+                "tab_bar": {
+                    "box": {
+                        "principal_rect": {
+                            "x": 0,
+                            "y": 0,
+                            "w": 400,
+                            "h": 20,
+                        },
+                        "margin": 0,
+                        "padding": 0,
+                        "border": 0,
+                    }
+                },
+                "children": [
+                    {
+                        "type": "t",
+                        "id": 2,
+                        "title": "",
+                        "children": [
+                            {
+                                "type": "sc",
+                                "id": 3,
+                                "axis": "x",
+                                "children": [
+                                    {
+                                        "type": "x",
+                                        "id": 4,
+                                        "children": [],
+                                    }
+                                ],
+                            }
+                        ],
+                    }
+                ],
+            },
+        }
+
+        err_msg = "The provided tree state has nodes of unknown type"
+        with pytest.raises(ValueError, match=err_msg):
+            tree.reset(from_state=invalid_state)
+
+
 class TestFocus:
     def test_activates_tab_chain_of_focused_pane(self, tree: Tree):
         p1 = tree.tab()

@@ -363,6 +363,21 @@ class Tree:
 
         return self._pick_mru_pane(self.iter_panes(start=br_sibling))
 
+    def reset(self, from_state: dict | None = None):
+        """Clear the current tree. If `from_state` is provided, restore state from
+        there.
+
+        Subscribers will be notified of nodes that are removed/added in the process.
+        """
+        removed_nodes = list(self.iter_walk())
+        self._root = None
+        self._notify_subscribers(TreeEvent.node_removed, removed_nodes)
+
+        if from_state is not None:
+            self._root = self._parse_state(from_state)
+            added_nodes = list(self.iter_walk())
+            self._notify_subscribers(TreeEvent.node_added, added_nodes)
+
     def focus(self, pane: Pane):
         """Ensures the provided `pane` is visible by activating all ancestor tabs.
 
@@ -963,6 +978,61 @@ class Tree:
             bar_rect.h = 0
             n3.transform(Axis.y, bar_rect.y, n3.principal_rect.h + bar_height)
         return []
+
+    def _parse_state(self, state: dict) -> TabContainer:
+        # Just basic validation in a few places. We could go all out with a schema
+        # validator, but this is ok for now.
+
+        if set(state.keys()) != {"width", "height", "root"}:
+            raise ValueError("The provided tree state is not in an expected format")
+
+        seen_ids = set()
+
+        def walk_and_create(n, parent) -> Node:
+            node_type = n["type"]
+
+            node_id = n["id"]
+            if node_id in seen_ids:
+                raise ValueError("The provided tree state has nodes with duplicate IDs")
+            seen_ids.add(node_id)
+
+            if node_type == TabContainer.abbrv():
+                tc = self.create_tab_container()
+                tc.id = node_id
+                bar_rect_state = n["tab_bar"]["box"]["principal_rect"]
+                tc.tab_bar.box.principal_rect = Rect(
+                    bar_rect_state["x"],
+                    bar_rect_state["y"],
+                    bar_rect_state["w"],
+                    bar_rect_state["h"],
+                )
+                tc.parent = parent
+                tc.children = [walk_and_create(c, tc) for c in n["children"]]
+                return tc
+            elif node_type == Tab.abbrv():
+                t = self.create_tab()
+                t.id = node_id
+                t.title = n["title"]
+                t.parent = parent
+                t.children = [walk_and_create(c, t) for c in n["children"]]
+                return t
+            elif node_type == SplitContainer.abbrv():
+                sc = self.create_split_container()
+                sc.id = node_id
+                sc.axis = Axis(n["axis"])
+                sc.parent = parent
+                sc.children = [walk_and_create(c, sc) for c in n["children"]]
+                return sc
+            elif node_type == Pane.abbrv():
+                principal_rect = Rect(**n["box"]["principal_rect"])
+                p = self.create_pane(principal_rect=principal_rect)
+                p.id = node_id
+                p.parent = parent
+                return p
+
+            raise ValueError("The provided tree state has nodes of unknown type")
+
+        return walk_and_create(state["root"], None)
 
     def _find_super_node_to_resize(self, pane: Pane, axis: Axis) -> Node | None:
         """Finds the first node in the ancestor chain that is under a SC of the
