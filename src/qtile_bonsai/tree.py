@@ -171,9 +171,12 @@ class BonsaiPane(BonsaiNodeMixin, Pane):
             padding=0,
         )
 
-        self.window: Window
+        self.window: Window | None = None
 
     def render(self, screen_rect: ScreenRect, tree: "BonsaiTree"):
+        if self.window is None:
+            return
+
         if self.window.has_focus:
             window_border_color = tree.get_config(
                 "window.active.border_color", level=self.tab_level
@@ -187,7 +190,15 @@ class BonsaiPane(BonsaiNodeMixin, Pane):
         self.window.unhide()
 
     def hide(self):
+        if self.window is None:
+            return
+
         self.window.hide()
+
+    def as_dict(self) -> dict:
+        state = super().as_dict()
+        state["wid"] = self.window.wid
+        return state
 
 
 class BonsaiTree(Tree):
@@ -220,6 +231,10 @@ class BonsaiTree(Tree):
 
     def create_tab_container(self) -> BonsaiTabContainer:
         return BonsaiTabContainer()
+
+    def finalize(self):
+        for node in self.iter_walk():
+            node.finalize()
 
 
 def place_window_using_box(

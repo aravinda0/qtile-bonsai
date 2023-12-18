@@ -2,9 +2,15 @@
 # SPDX-License-Identifier: MIT
 
 
+import ast
 import collections
+import enum
 import itertools
+import os
+import pathlib
 import re
+import tempfile
+from datetime import datetime
 from typing import Callable, ClassVar
 
 from libqtile.backend.base.window import Window
@@ -26,6 +32,11 @@ from qtile_bonsai.utils.process import modify_terminal_cmd_with_cwd
 
 
 class Bonsai(Layout):
+    class AddClientMode(enum.Enum):
+        initial_restoration_check = 1
+        restoration_in_progress = 2
+        normal = 3
+
     level_specific_config_format = re.compile(r"^L(\d+)\.(.+)")
     defaults: ClassVar = [
         (
@@ -122,6 +133,16 @@ class Bonsai(Layout):
             Gruvbox.fg1,
             "Foreground text color of the active tab",
         ),
+        (
+            "restore.threshold_seconds",
+            4,
+            """
+            You likely don't need to tweak this. Controls the time within which a
+            persisted state file is considered to be from a recent qtile
+            config-reload/restart event. If the persisted file is this many seconds old,
+            we restore our window tree from it.
+            """,
+        ),
     ]
 
     def __init__(self, **config) -> None:
@@ -132,6 +153,11 @@ class Bonsai(Layout):
         self._focused_window: Window
         self._windows_to_panes: dict[Window, BonsaiPane]
         self._on_next_window: Callable[[], BonsaiPane]
+
+        self._add_client_mode: Bonsai.AddClientMode = (
+            self.AddClientMode.initial_restoration_check
+        )
+        self._restoration_window_id_to_pane_id: dict[int, int] = {}
 
         self._reset()
 
@@ -177,17 +203,16 @@ class Bonsai(Layout):
         """
         raise NotImplementedError
 
-    def add(self, window: Window):
-        if self._tree.is_empty:
-            self._on_next_window = self._handle_default_next_window
-
-        pane = self._on_next_window()
-        pane.window = window
-
-        self._windows_to_panes[window] = pane
-
     def add_client(self, window: Window):
-        return self.add(window)
+        if self._add_client_mode == Bonsai.AddClientMode.initial_restoration_check:
+            pane = self._handle_add_client__initial_restoration_check(window)
+        elif self._add_client_mode == Bonsai.AddClientMode.restoration_in_progress:
+            pane = self._handle_add_client__restoration_in_progress(window)
+        else:
+            pane = self._handle_add_client__normal(window)
+
+        pane.window = window
+        self._windows_to_panes[window] = pane
 
     def remove(self, window: Window) -> Window | None:
         pane = self._windows_to_panes[window]
@@ -252,8 +277,8 @@ class Bonsai(Layout):
         self._hide_all_internal_windows()
 
     def finalize(self):
-        for node in self._tree.iter_walk():
-            node.finalize()
+        self._persist_tree_state()
+        self._tree.finalize()
 
     def cmd_next(self):
         next_window = self.focus_next(self.focused_window)
@@ -574,3 +599,110 @@ class Bonsai(Layout):
             )
 
         self.group.qtile.cmd_spawn(program)
+
+    def _persist_tree_state(self):
+        if self._tree.is_empty:
+            return
+
+        state = {
+            "timestamp": datetime.now().isoformat(),
+            "focus_wid": self.focused_window.wid,
+            "tree": self._tree.as_dict(),
+        }
+
+        state_file_path = self._get_state_file_path(self.group)
+        state_file_path.parent.mkdir(exist_ok=True, parents=True)
+        state_file_path.write_text(repr(state))
+
+    def _handle_add_client__initial_restoration_check(self, window) -> BonsaiPane:
+        persisted_state = self._check_for_persisted_state()
+        if persisted_state is not None:
+            logger.info("Found persisted state. Attempting restoration...")
+
+            persisted_tree = persisted_state["tree"]
+            self._tree.reset(from_state=persisted_tree)
+            self._windows_to_panes.clear()
+            self._restoration_window_id_to_pane_id = (
+                self._get_windows_to_panes_mapping_from_state(persisted_tree)
+            )
+
+            self._add_client_mode = Bonsai.AddClientMode.restoration_in_progress
+
+            # Invoke the in-progress handler once to handle the current window.
+            return self._handle_add_client__restoration_in_progress(window)
+
+        self._add_client_mode = Bonsai.AddClientMode.normal
+        return self._handle_add_client__normal(window)
+
+    def _handle_add_client__restoration_in_progress(self, window: Window) -> BonsaiPane:
+        pane_id = self._restoration_window_id_to_pane_id.get(window.wid)
+        if pane_id is not None:
+            pane = next((p for p in self._tree.iter_panes() if p.id == pane_id), None)
+            del self._restoration_window_id_to_pane_id[window.wid]
+
+            if not self._restoration_window_id_to_pane_id:
+                # We've restored all windows. Change to normal mode.
+                self._add_client_mode = Bonsai.AddClientMode.normal
+
+                logger.info("Restoration from persisted state complete.")
+        else:
+            logger.warning(
+                f"While trying to restore from state, received a window with "
+                f"wid={window.wid} that wasn't part of the persisted state."
+            )
+
+            # We shouldn't ever end up here, but in case we do, pass the window on to
+            # the normal handler so it's still handled.
+            pane = self._handle_add_client__normal(window)
+
+        return pane
+
+    def _handle_add_client__normal(self, window: Window) -> BonsaiPane:
+        if self._tree.is_empty:
+            self._on_next_window = self._handle_default_next_window
+
+        return self._on_next_window()
+
+    def _get_windows_to_panes_mapping_from_state(self, state: dict) -> dict:
+        windows_to_panes = {}
+
+        def walk(n):
+            if n["type"] == BonsaiPane.abbrv():
+                windows_to_panes[n["wid"]] = n["id"]
+            else:
+                for c in n["children"]:
+                    walk(c)
+
+        walk(state["root"])
+
+        return windows_to_panes
+
+    def _check_for_persisted_state(self) -> dict | None:
+        state_file = self._get_state_file_path(self.group)
+        if state_file.is_file():
+            try:
+                state = ast.literal_eval(state_file.read_text())
+                persist_timestamp = datetime.fromisoformat(state["timestamp"])
+                seconds_since_persist = (datetime.now() - persist_timestamp).seconds
+                restore_threshold_seconds = self._tree.get_config(
+                    "restore.threshold_seconds"
+                )
+                if seconds_since_persist <= restore_threshold_seconds:
+                    return state
+
+                logger.info(
+                    "Found a state file, but not performing restore since it's stale."
+                )
+            except Exception:
+                logger.error(
+                    "Could not read state file. Proceeding without state restoration.",
+                )
+                return None
+
+            logger.info("Deleting state file.")
+            state_file.unlink()
+        return None
+
+    def _get_state_file_path(self, group) -> pathlib.Path:
+        tmp_dir = tempfile.gettempdir()
+        return pathlib.Path(f"{tmp_dir}/qtile_bonsai/state_{os.getpid()}_{group.name}")
