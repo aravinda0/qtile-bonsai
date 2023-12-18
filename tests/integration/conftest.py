@@ -3,8 +3,6 @@
 
 import multiprocessing
 import os
-import signal
-import subprocess
 import tempfile
 import time
 
@@ -18,6 +16,7 @@ from libqtile.core.manager import Qtile
 from libqtile.resources import default_config
 from PySide6.QtWidgets import QApplication, QWidget
 from pyvirtualdisplay.display import Display
+
 from qtile_bonsai.layout import Bonsai
 
 

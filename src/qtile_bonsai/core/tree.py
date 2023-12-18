@@ -11,13 +11,7 @@ from typing import Any, Callable, Iterable, Iterator
 
 from strenum import StrEnum
 
-from qtile_bonsai.core.geometry import (
-    Axis,
-    AxisParam,
-    Direction,
-    DirectionParam,
-    Rect,
-)
+from qtile_bonsai.core.geometry import Axis, AxisParam, Direction, DirectionParam, Rect
 from qtile_bonsai.core.nodes import (
     Node,
     Pane,
@@ -27,6 +21,7 @@ from qtile_bonsai.core.nodes import (
     TabContainer,
 )
 from qtile_bonsai.core.utils import validate_unit_range
+
 
 _PruningCase = collections.namedtuple("_PruningCase", ("chain", "prune"))
 
