@@ -53,7 +53,6 @@ dev = [
     "pyside6>=6.5.3",
     "pyright",
     "pre-commit",
-    "black",
     "ruff",
     "ptpython",
 ]
@@ -62,8 +61,8 @@ dev = [
 [tool.pdm.scripts]
 cov = "pytest --cov-report=term-missing --cov-report=xml --cov-config=pyproject.toml --cov=src/qtile_bonsai --cov=tests {args}"
 no-cov = "cov --no-cov {args}"
-format = "black {args}"
-format_check = "black --check {args}"
+format = "ruff format {args}"
+format_check = "ruff format --check {args}"
 
 
 [tool.coverage.run]
@@ -80,18 +79,51 @@ exclude_lines = [
   "if TYPE_CHECKING:",
 ]
 
-[tool.black]
-line-length = 88
-
 [tool.ruff]
+line-length = 88
+indent-width = 4
+fix = true
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+skip-magic-trailing-comma = false
+
+[tool.ruff.lint]
 select = [
-  "E", "F", "I", "N", "S", "FBT", "B", "C4", "T20", "PT", "RET", "SIM", "RUF",
+  "E", "F", "N", "S", "FBT", "B", "C4", "T20", "PT", "RET", "SIM", "RUF", "I",
 ]
 ignore = [
-  "E501",  # line-too-long; handled more effectively by black
   "S101",  # assert-used; temporary until some type annotations sorted out
+
+  # When the above rule categories are enabled, we must ignore the following rules to
+  # prevent conflicts with ruff's formatter. 
+  # See: https://docs.astral.sh/ruff/formatter/#conflicting-lint-rules
+  "W191",
+  "E111",
+  "E114",
+  "E117",
+  "D206",
+  "D300",
+  "Q000",
+  "Q001",
+  "Q002",
+  "Q003",
+  "COM812",
+  "COM819",
+  "ISC001",
+  "ISC002",
 ]
 unfixable = [
   "T20",  # don't auto-remove print-statements
   "F841", # don't auto-remove (seemingly) unused variables
+  "F401", # don't auto-remove (seemingly) unused imports
 ]
+
+[tool.ruff.lint.isort]
+known-first-party = ["qtile_bonsai"]
+lines-after-imports = 2
+
+# Disabling the following due to conflict with ruff formatter
+# See: https://docs.astral.sh/ruff/formatter/#conflicting-lint-rules
+split-on-trailing-comma = false
