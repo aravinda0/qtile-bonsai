@@ -32,6 +32,13 @@ def test_when_bonsai_layout_is_inactive_and_windows_are_added_in_another_active_
     )
 
 
+@pytest.mark.skip(
+    reason="""
+    Need to fix bug in qtile first where config reload leads to a 'dictionary changed
+    size during iteration' error since it doesn't anticipate internal windows being
+    created within layouts.
+    """
+)
 class TestStateRestoration:
     def test_when_qtile_config_is_reloaded_then_state_is_restored(
         self, manager, spawn_test_window_cmd
