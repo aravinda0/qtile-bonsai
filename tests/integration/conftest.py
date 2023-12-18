@@ -3,6 +3,8 @@
 
 import multiprocessing
 import os
+import signal
+import subprocess
 import tempfile
 import time
 
@@ -147,3 +149,8 @@ def make_window():
 
     # Give some time for windows to terminate
     time.sleep(0.5)
+
+
+@pytest.fixture()
+def spawn_test_window_cmd():
+    return "python scripts/spawn_test_window.py"

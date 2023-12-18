@@ -1,6 +1,9 @@
 # SPDX-FileCopyrightText: 2023-present Aravinda Rao <maniacalace@gmail.com>
 # SPDX-License-Identifier: MIT
 
+import time
+
+import pytest
 from qtile_bonsai.core.tree import tree_str_matches_tree_str
 
 
@@ -27,3 +30,79 @@ def test_when_bonsai_layout_is_inactive_and_windows_are_added_in_another_active_
                     - p:7 | {x: 0, y: 20, w: 800, h: 580}
         """,
     )
+
+
+class TestStateRestoration:
+    def test_when_qtile_config_is_reloaded_then_state_is_restored(
+        self, manager, spawn_test_window_cmd
+    ):
+        bonsai_layout = manager.layout
+
+        bonsai_layout.spawn_tab(spawn_test_window_cmd)
+        time.sleep(0.5)
+
+        bonsai_layout.spawn_split(spawn_test_window_cmd, "x")
+        time.sleep(0.5)
+
+        bonsai_layout.spawn_split(spawn_test_window_cmd, "y")
+        time.sleep(0.5)
+
+        bonsai_layout.spawn_tab(spawn_test_window_cmd, new_level=True)
+        time.sleep(0.5)
+
+        manager.reload_config()
+
+        assert tree_str_matches_tree_str(
+            manager.layout.info()["tree"],
+            """
+            - tc:1
+                - t:2
+                    - sc.x:3
+                        - p:4 | {x: 0, y: 0, w: 400, h: 600}
+                        - sc.y:6
+                            - p:5 | {x: 400, y: 0, w: 400, h: 300}
+                            - tc:8
+                                - t:9
+                                    - sc.x:10
+                                        - p:7 | {x: 400, y: 320, w: 400, h: 280}
+                                - t:11
+                                    - sc.x:12
+                                        - p:13 | {x: 400, y: 320, w: 400, h: 280}
+            """,
+        )
+
+    @pytest.mark.skip(
+        reason="""
+        Need to figure out some nuances around restarting qtile within a test.
+        X11 backend complains about not being able to open socket.
+        Wayland backend yells out 'backend does not support restarting.'" 
+        """
+    )
+    def test_when_qtile_is_restarted_then_state_is_restored(
+        self, manager, spawn_test_window_cmd
+    ):
+        bonsai_layout = manager.layout
+
+        bonsai_layout.spawn_tab(spawn_test_window_cmd)
+        time.sleep(0.5)
+
+        bonsai_layout.spawn_split(spawn_test_window_cmd, "x")
+        time.sleep(0.5)
+
+        bonsai_layout.spawn_split(spawn_test_window_cmd, "y")
+        time.sleep(0.5)
+
+        manager.reload_config()
+
+        assert tree_str_matches_tree_str(
+            manager.layout.info()["tree"],
+            """
+            - tc:1
+                - t:2
+                    - sc.x:3
+                        - p:4 | {x: 0, y: 0, w: 400, h: 600}
+                        - sc.y:6
+                            - p:5 | {x: 400, y: 0, w: 400, h: 300}
+                            - p:7 | {x: 400, y: 300, w: 400, h: 300}
+            """,
+        )
