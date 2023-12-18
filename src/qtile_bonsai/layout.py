@@ -150,7 +150,7 @@ class Bonsai(Layout):
         self.add_defaults(self.defaults)
 
         self._tree: Tree
-        self._focused_window: Window
+        self._focused_window: Window | None
         self._windows_to_panes: dict[Window, BonsaiPane]
         self._on_next_window: Callable[[], BonsaiPane]
 
@@ -162,12 +162,14 @@ class Bonsai(Layout):
         self._reset()
 
     @property
-    def focused_window(self) -> Window:
+    def focused_window(self) -> Window | None:
         return self._focused_window
 
     @property
-    def focused_pane(self) -> Pane:
-        return self._windows_to_panes[self.focused_window]
+    def focused_pane(self) -> Pane | None:
+        if self.focused_window is not None:
+            return self._windows_to_panes[self.focused_window]
+        return None
 
     def clone(self, group):
         """In the manner qtile expects, creates a fresh, blank-slate instance of this
@@ -545,6 +547,7 @@ class Bonsai(Layout):
             TreeEvent.node_removed, lambda nodes: self._handle_removed_tree_nodes(nodes)
         )
 
+        self._focused_window = None
         self._windows_to_panes = {}
 
         def _handle_next_window():
@@ -593,7 +596,7 @@ class Bonsai(Layout):
         self.group.layout_all()
 
     def _spawn_program(self, program: str, auto_cwd_for_terminals: bool):
-        if auto_cwd_for_terminals:
+        if auto_cwd_for_terminals and self.focused_window is not None:
             program = modify_terminal_cmd_with_cwd(
                 program, self.focused_window.get_pid()
             )
