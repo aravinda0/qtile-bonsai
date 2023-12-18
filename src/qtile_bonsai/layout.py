@@ -14,6 +14,7 @@ from datetime import datetime
 from typing import Callable, ClassVar
 
 from libqtile.backend.base.window import Window
+from libqtile.command.base import expose_command
 from libqtile.config import ScreenRect
 from libqtile.layout.base import Layout
 from libqtile.log_utils import logger
@@ -282,17 +283,8 @@ class Bonsai(Layout):
         self._persist_tree_state()
         self._tree.finalize()
 
-    def cmd_next(self):
-        next_window = self.focus_next(self.focused_window)
-        if next_window is not None:
-            self._request_focus(self._windows_to_panes[next_window])
-
-    def cmd_previous(self):
-        prev_window = self.focus_previous(self.focused_window)
-        if prev_window is not None:
-            self._request_focus(self._windows_to_panes[prev_window])
-
-    def cmd_spawn_split(
+    @expose_command
+    def spawn_split(
         self,
         program: str,
         axis: Axis,
@@ -314,7 +306,8 @@ class Bonsai(Layout):
 
         self._spawn_program(program, auto_cwd_for_terminals)
 
-    def cmd_spawn_tab(
+    @expose_command
+    def spawn_tab(
         self,
         program: str,
         *,
@@ -346,35 +339,40 @@ class Bonsai(Layout):
 
         self._spawn_program(program, auto_cwd_for_terminals)
 
-    def cmd_left(self, *, wrap: bool = True):
+    @expose_command
+    def left(self, *, wrap: bool = True):
         if self._tree.is_empty:
             return
 
         next_pane = self._tree.left(self.focused_pane, wrap=wrap)
         self._request_focus(next_pane)
 
-    def cmd_right(self, *, wrap: bool = True):
+    @expose_command
+    def right(self, *, wrap: bool = True):
         if self._tree.is_empty:
             return
 
         next_pane = self._tree.right(self.focused_pane, wrap=wrap)
         self._request_focus(next_pane)
 
-    def cmd_up(self, *, wrap: bool = True):
+    @expose_command
+    def up(self, *, wrap: bool = True):
         if self._tree.is_empty:
             return
 
         next_pane = self._tree.up(self.focused_pane, wrap=wrap)
         self._request_focus(next_pane)
 
-    def cmd_down(self, *, wrap: bool = True):
+    @expose_command
+    def down(self, *, wrap: bool = True):
         if self._tree.is_empty:
             return
 
         next_pane = self._tree.down(self.focused_pane, wrap=wrap)
         self._request_focus(next_pane)
 
-    def cmd_next_tab(self, *, wrap: bool = True):
+    @expose_command
+    def next_tab(self, *, wrap: bool = True):
         if self._tree.is_empty:
             return
 
@@ -382,7 +380,8 @@ class Bonsai(Layout):
         if next_pane is not None:
             self._request_focus(next_pane)
 
-    def cmd_prev_tab(self, *, wrap: bool = True):
+    @expose_command
+    def prev_tab(self, *, wrap: bool = True):
         if self._tree.is_empty:
             return
 
@@ -390,35 +389,40 @@ class Bonsai(Layout):
         if next_pane is not None:
             self._request_focus(next_pane)
 
-    def cmd_resize_left(self, amount: int = 10):
+    @expose_command
+    def resize_left(self, amount: int = 10):
         if self._tree.is_empty:
             return
 
         self._tree.resize(self.focused_pane, Axis.x, -amount)
         self._request_relayout()
 
-    def cmd_resize_right(self, amount: int = 10):
+    @expose_command
+    def resize_right(self, amount: int = 10):
         if self._tree.is_empty:
             return
 
         self._tree.resize(self.focused_pane, Axis.x, amount)
         self._request_relayout()
 
-    def cmd_resize_up(self, amount: int = 10):
+    @expose_command
+    def resize_up(self, amount: int = 10):
         if self._tree.is_empty:
             return
 
         self._tree.resize(self.focused_pane, Axis.y, -amount)
         self._request_relayout()
 
-    def cmd_resize_down(self, amount: int = 10):
+    @expose_command
+    def resize_down(self, amount: int = 10):
         if self._tree.is_empty:
             return
 
         self._tree.resize(self.focused_pane, Axis.y, amount)
         self._request_relayout()
 
-    def cmd_swap_up(self, *, wrap: bool = False):
+    @expose_command
+    def swap_up(self, *, wrap: bool = False):
         if self._tree.is_empty:
             return
 
@@ -429,7 +433,8 @@ class Bonsai(Layout):
         self._tree.swap(self.focused_pane, other_pane)
         self._request_relayout()
 
-    def cmd_swap_down(self, *, wrap: bool = False):
+    @expose_command
+    def swap_down(self, *, wrap: bool = False):
         if self._tree.is_empty:
             return
 
@@ -440,7 +445,8 @@ class Bonsai(Layout):
         self._tree.swap(self.focused_pane, other_pane)
         self._request_relayout()
 
-    def cmd_swap_left(self, *, wrap: bool = False):
+    @expose_command
+    def swap_left(self, *, wrap: bool = False):
         if self._tree.is_empty:
             return
 
@@ -451,7 +457,8 @@ class Bonsai(Layout):
         self._tree.swap(self.focused_pane, other_pane)
         self._request_relayout()
 
-    def cmd_swap_right(self, *, wrap: bool = False):
+    @expose_command
+    def swap_right(self, *, wrap: bool = False):
         if self._tree.is_empty:
             return
 
@@ -462,7 +469,8 @@ class Bonsai(Layout):
         self._tree.swap(self.focused_pane, other_pane)
         self._request_relayout()
 
-    def cmd_swap_prev_tab(self, *, wrap: bool = True):
+    @expose_command
+    def swap_prev_tab(self, *, wrap: bool = True):
         if self._tree.is_empty:
             return
 
@@ -473,7 +481,8 @@ class Bonsai(Layout):
             self._tree.swap_tabs(current_tab, other_tab)
             self._request_relayout()
 
-    def cmd_swap_next_tab(self, *, wrap: bool = True):
+    @expose_command
+    def swap_next_tab(self, *, wrap: bool = True):
         if self._tree.is_empty:
             return
 
@@ -484,7 +493,8 @@ class Bonsai(Layout):
             self._tree.swap_tabs(current_tab, other_tab)
             self._request_relayout()
 
-    def cmd_rename_tab(self, widget: str = "prompt"):
+    @expose_command
+    def rename_tab(self, widget: str = "prompt"):
         prompt_widget = self.group.qtile.widgets_map.get(widget)
         if prompt_widget is None:
             logger.error(f"The '{widget}' widget was not found")
@@ -492,7 +502,8 @@ class Bonsai(Layout):
 
         prompt_widget.start_input("Rename tab: ", self._handle_rename_tab)
 
-    def cmd_normalize(self, *, recurse: bool = True):
+    @expose_command
+    def normalize(self, *, recurse: bool = True):
         """Starting from the focused pane's container, will make all panes in the
         container of equal size.
 
@@ -505,7 +516,8 @@ class Bonsai(Layout):
         self._tree.normalize(sc, recurse=recurse)
         self._request_relayout()
 
-    def cmd_normalize_tab(self, *, recurse: bool = True):
+    @expose_command
+    def normalize_tab(self, *, recurse: bool = True):
         """Starting from the focused pane's tab, will make all panes in the
         tab of equal size.
 
@@ -518,7 +530,8 @@ class Bonsai(Layout):
         self._tree.normalize(tab, recurse=recurse)
         self._request_relayout()
 
-    def cmd_normalize_all(self):
+    @expose_command
+    def normalize_all(self):
         """Makes all windows under all tabs be of equal size."""
         if self._tree.is_empty:
             return
@@ -526,7 +539,8 @@ class Bonsai(Layout):
         self._tree.normalize(self._tree.root, recurse=True)
         self._request_relayout()
 
-    def cmd_info(self):
+    @expose_command
+    def info(self):
         return {
             "name": "bonsai",
             "tree": str(self._tree),
@@ -601,7 +615,7 @@ class Bonsai(Layout):
                 program, self.focused_window.get_pid()
             )
 
-        self.group.qtile.cmd_spawn(program)
+        self.group.qtile.spawn(program)
 
     def _persist_tree_state(self):
         if self._tree.is_empty:
