@@ -19,14 +19,7 @@ from libqtile.config import ScreenRect
 from libqtile.layout.base import Layout
 from libqtile.log_utils import logger
 
-from qtile_bonsai.core.tree import (
-    Axis,
-    Pane,
-    SplitContainer,
-    Tab,
-    Tree,
-    TreeEvent,
-)
+from qtile_bonsai.core.tree import Axis, Pane, SplitContainer, Tab, Tree, TreeEvent
 from qtile_bonsai.theme import Gruvbox
 from qtile_bonsai.tree import BonsaiNodeMixin, BonsaiPane, BonsaiTree
 from qtile_bonsai.utils.process import modify_terminal_cmd_with_cwd
@@ -207,6 +200,36 @@ class Bonsai(Layout):
         raise NotImplementedError
 
     def add_client(self, window: Window):
+        """Register a newly added window in the context of this layout.
+
+        This is usually straightforward, but we do some funky things here to support
+        restoration of state after a qtile 'reload config' event or a 'restart' event.
+
+        qtile-bonsai is a stateless layout - the end user controls the positioning of
+        windows. So when qtile is reloaded after config changes, or restarted entirely,
+        we would normally lose all the positioning information, since qtile will destroy
+        the layout instance and create it anew post-reload/restart.
+
+        We work around this by saving the layout state to a file just before reload
+        happens. Then, post-reload, we read back the file to try and restore the layout
+        state.
+
+        Now, post-reload, qtile creates the layout instance again. Then it uses its
+        usual window-creation flow and passes each existing window to the layout
+        one-by-one as if new windows were being created in rapid succession. So our
+        restoration has to work over multiple steps, each time qtile calls
+        `Layout.add_client()`.
+
+        As an aside, since there is no 'reload' or 'restart' hook in qtile, and since we
+        have no other non-layout place to put our code, we also have to do the initial
+        'restoration check' here in this method. To see if a reload/restart event
+        happened recently by looking at the timestamp saved in our state file.
+        If the state file exists at all and the timestamp is within a few seconds, it's
+        safe enough in practice to assume that a reload/restart happened just recently.
+
+        In summary, `add_client()` goes through a bit of state machine magic. The states
+        are specified in `Bonsai.AddClientMode`.
+        """
         if self._add_client_mode == Bonsai.AddClientMode.initial_restoration_check:
             pane = self._handle_add_client__initial_restoration_check(window)
         elif self._add_client_mode == Bonsai.AddClientMode.restoration_in_progress:
