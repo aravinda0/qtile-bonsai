@@ -32,7 +32,7 @@ def modify_terminal_cmd_with_cwd(cmd: str, parent_pid: int) -> str:
             parent_proc = Process(parent_pid)
             cwd_ref_proc = find_deepest_shell_process(parent_proc) or parent_proc
             try:
-                cwd = cwd_ref_proc.cwd()
+                cwd = f"'{cwd_ref_proc.cwd()}'"
             except AccessDenied:
                 return cmd
             return f"{cmd} {switch} {cwd}"
