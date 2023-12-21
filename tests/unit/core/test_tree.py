@@ -5,6 +5,7 @@
 from unittest import mock
 
 import pytest
+
 from qtile_bonsai.core.geometry import Rect
 from qtile_bonsai.core.tree import (
     Pane,
@@ -2369,6 +2370,40 @@ class TestRemove:
                     ]
 
                 @pytest.mark.parametrize("tab_bar_hide_when", ["always", "single_tab"])
+                def test_when_tab_bar_is_hidden_and_t_child_has_its_own_sole_child_then_subtab_level_is_eliminated_with_t_child_descendents_absorbed_into_n1(
+                    self, make_tree_with_subscriber, tab_bar_hide_when
+                ):
+                    tree, callback = make_tree_with_subscriber(TreeEvent.node_removed)
+                    tree.set_config("tab_bar.hide_when", tab_bar_hide_when)
+
+                    p1 = tree.tab()
+                    p2 = tree.split(p1, "x")
+                    p3 = tree.split(p2, "y")
+                    p4 = tree.tab(p3, new_level=True)
+
+                    sc, t, tc, _, _, _, _ = p4.get_ancestors()
+                    sc2, t2, _, _, _, _, _ = p3.get_ancestors()
+
+                    tree.remove(p4)
+
+                    assert tree_matches_str(
+                        tree,
+                        """
+                        - tc:1
+                            - t:2
+                                - sc.x:3
+                                    - p:4 | {x: 0, y: 0, w: 200, h: 300}
+                                    - sc.y:6
+                                        - p:5 | {x: 200, y: 0, w: 200, h: 150}
+                                        - p:7 | {x: 200, y: 150, w: 200, h: 150}
+                        """,
+                    )
+
+                    assert callback.mock_calls == [
+                        mock.call([p4, sc, t, sc2, t2, tc]),
+                    ]
+
+                @pytest.mark.parametrize("tab_bar_hide_when", ["always", "single_tab"])
                 def test_when_tab_bar_is_hidden_and_t_child_and_n1_have_different_orientation_then_subtab_level_is_eliminated_with_t_child_absorbed_into_t1(
                     self, make_tree_with_subscriber, tab_bar_hide_when
                 ):
@@ -2452,10 +2487,12 @@ class TestRemove:
                     mock.call([p2]),
                 ]
 
-            def test_when_n1_n2_n3_chain_is_sc_tc_t_then_no_pruning_happens(
+            def test_when_n1_n2_n3_chain_is_sc_tc_t_and_tab_bar_is_visible_then_no_pruning_happens(
                 self, make_tree_with_subscriber
             ):
                 tree, callback = make_tree_with_subscriber(TreeEvent.node_removed)
+                tree.set_config("tab_bar.hide_when", "never")
+
                 p1 = tree.tab()
                 p2 = tree.split(p1, "x")
                 p3 = tree.tab(p2, new_level=True)

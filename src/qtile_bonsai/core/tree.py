@@ -948,8 +948,10 @@ class Tree:
             sc = n3.children[0]
 
             # n3's T can only have a single SC child. The sc can now either match the n1
-            # SC orientation or be different.
-            if sc.axis == n1.axis:
+            # SC orientation or be different. Alternatively, the sc could also have been
+            # holding a sole pane under the final tab of a lower level TC. In all cases,
+            # we perform the appropriate merging.
+            if (sc.axis == n1.axis) or sc.has_single_child:
                 for child in sc.children:
                     child.parent = n1
                     n1.children.insert(n2_position, child)
