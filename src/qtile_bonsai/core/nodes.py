@@ -163,6 +163,9 @@ class Node(metaclass=abc.ABCMeta):
             node = node.parent
         raise ValueError(f"No node of type {of_type} in ancestor chain")
 
+    def __repr__(self):
+        return f"{self.abbrv()}:{self.id}"
+
     @classmethod
     def next_id(cls):
         cls._id_seq += 1
