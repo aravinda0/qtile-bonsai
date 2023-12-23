@@ -2,7 +2,18 @@
 # SPDX-License-Identifier: MIT
 
 import pytest
-from qtile_bonsai.core.geometry import Rect
+
+from qtile_bonsai.core.geometry import Box, Rect
+
+
+@pytest.fixture
+def layered_box():
+    return Box(
+        principal_rect=Rect(100, 100, 400, 300),
+        margin=[10, 20, 30, 40],
+        border=[1, 2, 3, 4],
+        padding=[15, 25, 35, 45],
+    )
 
 
 class TestRect:
@@ -48,3 +59,17 @@ class TestRect:
 
             assert r1 == expected1
             assert r2 == expected2
+
+
+class TestBox:
+    def test_margin_rect_is_equal_to_principal_rect(self, layered_box: Box):
+        assert layered_box.margin_rect == layered_box.principal_rect
+
+    def test_border_rect_includes_content_padding_border(self, layered_box: Box):
+        assert layered_box.border_rect == Rect(140, 110, 340, 260)
+
+    def test_padding_rect_includes_content_padding(self, layered_box: Box):
+        assert layered_box.padding_rect == Rect(144, 111, 334, 256)
+
+    def test_content_rect_includes_content_only(self, layered_box: Box):
+        assert layered_box.content_rect == Rect(189, 126, 264, 206)

@@ -36,7 +36,10 @@ class Bonsai(Layout):
         (
             "window.margin",
             0,
-            "Size of the margin space around windows",
+            """
+            Size of the margin space around windows.
+            Can be an int or a list of ints in [top, right, bottom, left] ordering.
+            """,
         ),
         (
             "window.border_size",
@@ -85,7 +88,10 @@ class Bonsai(Layout):
         (
             "tab_bar.margin",
             0,
-            "Size of the margin space around tab bars",
+            """
+            Size of the margin space around tab bars.
+            Can be an int or a list of ints in [top, right, bottom, left] ordering.
+            """,
         ),
         (
             "tab_bar.border_size",

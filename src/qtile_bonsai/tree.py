@@ -8,13 +8,7 @@ from libqtile.config import ScreenRect
 from libqtile.core.manager import Qtile
 
 from qtile_bonsai.core.geometry import Box, Rect
-from qtile_bonsai.core.tree import (
-    Pane,
-    SplitContainer,
-    Tab,
-    TabContainer,
-    Tree,
-)
+from qtile_bonsai.core.tree import Pane, SplitContainer, Tab, TabContainer, Tree
 
 
 class BonsaiNodeMixin:
@@ -157,14 +151,12 @@ class BonsaiSplitContainer(BonsaiNodeMixin, SplitContainer):
 class BonsaiPane(BonsaiNodeMixin, Pane):
     def __init__(
         self,
-        *,
-        content_rect: Rect | None = None,
         principal_rect: Rect | None = None,
+        *,
         margin: int = 0,
         border: int = 1,
     ):
         super().__init__(
-            content_rect=content_rect,
             principal_rect=principal_rect,
             margin=margin,
             border=border,
@@ -204,9 +196,8 @@ class BonsaiPane(BonsaiNodeMixin, Pane):
 class BonsaiTree(Tree):
     def create_pane(
         self,
-        *,
         principal_rect: Rect | None = None,
-        content_rect: Rect | None = None,
+        *,
         margin: int | None = None,
         border: int | None = None,
         tab_level: int | None = None,
@@ -218,7 +209,6 @@ class BonsaiTree(Tree):
 
         return BonsaiPane(
             principal_rect=principal_rect,
-            content_rect=content_rect,
             margin=margin,
             border=border,
         )
@@ -249,12 +239,16 @@ def place_window_using_box(
     """
     border_rect = box.border_rect
     content_rect = box.content_rect
+
+    # qtile windows only support single valued border that is applied on all sides
+    border = box.border.top
+
     window.place(
         border_rect.x + screen_rect.x,
         border_rect.y + screen_rect.y,
         content_rect.w,
         content_rect.h,
-        borderwidth=box.border,
+        borderwidth=border,
         bordercolor=border_color,
-        margin=box.margin,
+        margin=box.margin.as_list(),
     )

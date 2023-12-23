@@ -11,7 +11,14 @@ from typing import Any, Callable, Iterable, Iterator
 
 from strenum import StrEnum
 
-from qtile_bonsai.core.geometry import Axis, AxisParam, Direction, DirectionParam, Rect
+from qtile_bonsai.core.geometry import (
+    Axis,
+    AxisParam,
+    Direction,
+    DirectionParam,
+    PerimieterParams,
+    Rect,
+)
 from qtile_bonsai.core.nodes import (
     Node,
     Pane,
@@ -123,15 +130,11 @@ class Tree:
 
     def create_pane(
         self,
+        principal_rect: Rect,
         *,
-        content_rect: Rect | None = None,
-        padding_rect: Rect | None = None,
-        border_rect: Rect | None = None,
-        margin_rect: Rect | None = None,
-        principal_rect: Rect | None = None,
-        margin: int | None = None,
-        border: int | None = None,
-        padding: int | None = None,
+        margin: PerimieterParams | None = None,
+        border: PerimieterParams | None = None,
+        padding: PerimieterParams | None = None,
         tab_level: int | None = None,
     ) -> Pane:
         """Factory method for creating a new Pane instance.
@@ -148,10 +151,6 @@ class Tree:
             padding = self.get_config("window.padding", level=tab_level)
 
         return Pane(
-            content_rect=content_rect,
-            padding_rect=padding_rect,
-            border_rect=border_rect,
-            margin_rect=margin_rect,
             principal_rect=principal_rect,
             margin=margin,
             border=border,
@@ -749,7 +748,8 @@ class Tree:
         # The new tab's pane will have the same dimensions as `at_pane` after it was
         # adjusted above.
         new_pane = self.create_pane(
-            principal_rect=at_pane.principal_rect, tab_level=new_tab_level
+            principal_rect=Rect.from_rect(at_pane.principal_rect),
+            tab_level=new_tab_level,
         )
         new_pane.parent = split_container2
         split_container2.children.append(new_pane)

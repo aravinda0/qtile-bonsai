@@ -7,7 +7,7 @@ from __future__ import annotations
 import abc
 from typing import TypeVar
 
-from qtile_bonsai.core.geometry import Axis, AxisParam, Box, Rect
+from qtile_bonsai.core.geometry import Axis, AxisParam, Box, PerimieterParams, Rect
 
 
 class Node(metaclass=abc.ABCMeta):
@@ -181,24 +181,16 @@ class Pane(Node):
 
     def __init__(
         self,
+        principal_rect: Rect,
         *,
-        content_rect: Rect | None = None,
-        padding_rect: Rect | None = None,
-        border_rect: Rect | None = None,
-        margin_rect: Rect | None = None,
-        principal_rect: Rect | None = None,
-        margin: int = 0,
-        border: int = 1,
-        padding: int = 0,
+        margin: PerimieterParams = 0,
+        border: PerimieterParams = 1,
+        padding: PerimieterParams = 0,
     ):
         super().__init__()
 
         self.parent: SplitContainer
         self.box = Box(
-            content_rect=content_rect,
-            padding_rect=padding_rect,
-            border_rect=border_rect,
-            margin_rect=margin_rect,
             principal_rect=principal_rect,
             margin=margin,
             border=border,
@@ -410,21 +402,13 @@ class TabContainer(Node):
 class TabBar:
     def __init__(
         self,
+        principal_rect: Rect,
         *,
-        content_rect: Rect | None = None,
-        padding_rect: Rect | None = None,
-        border_rect: Rect | None = None,
-        margin_rect: Rect | None = None,
-        principal_rect: Rect | None = None,
-        margin: int = 0,
-        border: int = 1,
-        padding: int = 0,
+        margin: PerimieterParams = 0,
+        border: PerimieterParams = 1,
+        padding: PerimieterParams = 0,
     ):
         self.box = Box(
-            content_rect=content_rect,
-            padding_rect=padding_rect,
-            border_rect=border_rect,
-            margin_rect=margin_rect,
             principal_rect=principal_rect,
             margin=margin,
             border=border,

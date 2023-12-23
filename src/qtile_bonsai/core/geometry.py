@@ -9,6 +9,9 @@ from typing import Literal
 
 from strenum import StrEnum
 
+from qtile_bonsai.core.utils import all_or_none
+
+
 AxisLiteral = Literal["x", "y"]
 DirectionLiteral = Literal["up", "down", "left", "right"]
 
@@ -168,12 +171,61 @@ class Rect:
     def __str__(self) -> str:
         return repr(self.as_dict())
 
+    def __repr__(self) -> str:
+        return repr(self.as_dict())
+
     def __eq__(self, other):
         if other is self:
             return True
         if isinstance(other, self.__class__):
             return self.__dict__ == other.__dict__
         raise NotImplementedError
+
+
+class Perimeter:
+    """Represents a perimeter around a rect - eg. margin, border, padding.
+
+    Supports the 'thickness' or 'size' on each side of the rect - top, right, bottom,
+    left.
+    """
+
+    def __init__(
+        self,
+        top_or_all: int,
+        right: int | None = None,
+        bottom: int | None = None,
+        left: int | None = None,
+    ):
+        right, bottom, left = all_or_none(right, bottom, left)
+        if [right, bottom, left] == [None] * 3:
+            right, bottom, left = [top_or_all] * 3
+
+        # Damn you, pyright
+        assert right is not None
+        assert bottom is not None
+        assert left is not None
+
+        self.top: int = top_or_all
+        self.right: int = right
+        self.bottom: int = bottom
+        self.left: int = left
+
+    def as_list(self):
+        """Return perimeter values as a 4-item list in CSS-esque ordering:
+        [top, right, bottom, left].
+        """
+        return [self.top, self.right, self.bottom, self.left]
+
+    def as_dict(self):
+        return {
+            "top": self.top,
+            "right": self.right,
+            "bottom": self.bottom,
+            "left": self.left,
+        }
+
+
+PerimieterParams = int | list[int] | Perimeter
 
 
 class Box:
@@ -205,129 +257,121 @@ class Box:
     `box.content_rect.x = 100` - which cant't trigger the sync logic.
     """
 
+    _principal_rect: Rect
+    _margin: Perimeter
+    _border: Perimeter
+    _padding: Perimeter
+
     def __init__(
         self,
+        principal_rect: Rect,
         *,
-        principal_rect: Rect | None = None,
-        margin_rect: Rect | None = None,
-        border_rect: Rect | None = None,
-        padding_rect: Rect | None = None,
-        content_rect: Rect | None = None,
-        margin: int = 0,
-        border: int = 1,
-        padding: int = 0,
+        margin: PerimieterParams = 0,
+        border: PerimieterParams = 1,
+        padding: PerimieterParams = 0,
     ):
-        self.margin: int = margin
-        self.border: int = border
-        self.padding: int = padding
-        self._init_rect(
-            principal_rect,
-            margin_rect,
-            border_rect,
-            padding_rect,
-            content_rect,
-        )
+        self.principal_rect = principal_rect
+        self.margin = margin
+        self.border = border
+        self.padding = padding
 
     @property
     def principal_rect(self) -> Rect:
-        return self.margin_rect
+        return self._principal_rect
 
     @principal_rect.setter
     def principal_rect(self, value: Rect):
-        self.margin_rect = value
+        self._principal_rect = value
+
+    @property
+    def margin(self) -> Perimeter:
+        return self._margin
+
+    @margin.setter
+    def margin(self, value: PerimieterParams):
+        if isinstance(value, int):
+            self._margin = Perimeter(value)
+        elif isinstance(value, list):
+            self._margin = Perimeter(*value)
+        elif isinstance(value, Perimeter):
+            self._margin = value
+        else:
+            raise ValueError("Value must be one of `PerimieterParams` types")
+
+    @property
+    def border(self):
+        return self._border
+
+    @border.setter
+    def border(self, value: PerimieterParams):
+        if isinstance(value, int):
+            self._border = Perimeter(value)
+        elif isinstance(value, list):
+            self._border = Perimeter(*value)
+        elif isinstance(value, Perimeter):
+            self._border = value
+        else:
+            raise ValueError("Value must be one of `PerimieterParams` types")
+
+    @property
+    def padding(self):
+        return self._padding
+
+    @padding.setter
+    def padding(self, value: PerimieterParams):
+        if isinstance(value, int):
+            self._padding = Perimeter(value)
+        elif isinstance(value, list):
+            self._padding = Perimeter(*value)
+        elif isinstance(value, Perimeter):
+            self._padding = value
+        else:
+            raise ValueError("Value must be one of `PerimieterParams` types")
 
     @property
     def margin_rect(self) -> Rect:
-        return self._margin_rect
-
-    @margin_rect.setter
-    def margin_rect(self, value: Rect):
-        self._margin_rect = Rect.from_rect(value)
+        return self.principal_rect
 
     @property
     def border_rect(self) -> Rect:
-        return self._get_inner_rect(self.margin)
-
-    @border_rect.setter
-    def border_rect(self, value: Rect):
-        excess_per_side = self.margin
-        self._set_principal_rect(value, excess_per_side)
+        margin_rect = self.margin_rect
+        margin = self.margin
+        return Rect(
+            x=margin_rect.x + margin.left,
+            y=margin_rect.y + margin.top,
+            w=margin_rect.w - (margin.left + margin.right),
+            h=margin_rect.h - (margin.top + margin.bottom),
+        )
 
     @property
     def padding_rect(self) -> Rect:
-        return self._get_inner_rect(self.margin + self.border)
-
-    @padding_rect.setter
-    def padding_rect(self, value: Rect):
-        excess_per_side = self.margin + self.padding
-        self._set_principal_rect(value, excess_per_side)
+        border_rect = self.border_rect
+        border = self.border
+        return Rect(
+            x=border_rect.x + border.left,
+            y=border_rect.y + border.top,
+            w=border_rect.w - (border.left + border.right),
+            h=border_rect.h - (border.top + border.bottom),
+        )
 
     @property
     def content_rect(self) -> Rect:
-        return self._get_inner_rect(self.margin + self.border + self.padding)
-
-    @content_rect.setter
-    def content_rect(self, value: Rect):
-        excess_per_side = self.margin + self.border + self.padding
-        self._set_principal_rect(value, excess_per_side)
+        padding_rect = self.padding_rect
+        padding = self.padding
+        return Rect(
+            x=padding_rect.x + padding.left,
+            y=padding_rect.y + padding.top,
+            w=padding_rect.w - (padding.left + padding.right),
+            h=padding_rect.h - (padding.top + padding.bottom),
+        )
 
     def as_dict(self) -> dict:
         return {
             "principal_rect": self.principal_rect.as_dict(),
-            "margin": self.margin,
-            "border": self.border,
-            "padding": self.padding,
+            "margin": self.margin.as_dict(),
+            "border": self.border.as_dict(),
+            "padding": self.padding.as_dict(),
         }
 
     def __str__(self):
-        r = self.principal_rect
-        m, b, p = self.margin, self.border, self.padding
-        return f"{{x: {r.x}, y: {r.y}, w: {r.w}, h: {r.h}, m: {m}, b: {b}, p: {p}}}"
-
-    def _init_rect(
-        self,
-        principal_rect: Rect | None = None,
-        margin_rect: Rect | None = None,
-        border_rect: Rect | None = None,
-        padding_rect: Rect | None = None,
-        content_rect: Rect | None = None,
-    ):
-        rect_args = [
-            principal_rect,
-            margin_rect,
-            border_rect,
-            padding_rect,
-            content_rect,
-        ]
-        non_null_rect_args = len([rect for rect in rect_args if rect is not None])
-        if non_null_rect_args != 1:
-            raise ValueError(
-                "A single rect out of [content_rect, padding_rect, border_rect, "
-                f"margin_rect, principal_rect] must be provided. {non_null_rect_args} "
-                "have been provided."
-            )
-
-        if principal_rect is not None:
-            self.principal_rect = principal_rect
-        elif margin_rect is not None:
-            self.margin_rect = margin_rect
-        elif border_rect is not None:
-            self.border_rect = border_rect
-        elif padding_rect is not None:
-            self.padding_rect = padding_rect
-        elif content_rect is not None:
-            self.content_rect = content_rect
-
-    def _get_inner_rect(self, excess_per_side: int) -> Rect:
-        x = self.principal_rect.x + excess_per_side
-        y = self.principal_rect.y + excess_per_side
-        w = self.principal_rect.w - (2 * excess_per_side)
-        h = self.principal_rect.h - (2 * excess_per_side)
-        return Rect(x, y, w, h)
-
-    def _set_principal_rect(self, inner_rect: Rect, excess_per_side: int):
-        x = inner_rect.x - excess_per_side
-        y = inner_rect.y - excess_per_side
-        w = inner_rect.w + (2 * excess_per_side)
-        h = inner_rect.h + (2 * excess_per_side)
-        self.margin_rect = Rect(x, y, w, h)
+        return str(self.principal_rect)

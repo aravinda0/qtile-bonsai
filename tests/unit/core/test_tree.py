@@ -48,9 +48,9 @@ def complex_tree_as_dict():
                         "w": 400,
                         "h": 20,
                     },
-                    "margin": 0,
-                    "padding": 0,
-                    "border": 0,
+                    "margin": {"top": 0, "right": 0, "bottom": 0, "left": 0},
+                    "padding": {"top": 0, "right": 0, "bottom": 0, "left": 0},
+                    "border": {"top": 0, "right": 0, "bottom": 0, "left": 0},
                 }
             },
             "children": [
@@ -74,9 +74,24 @@ def complex_tree_as_dict():
                                             "w": 200,
                                             "h": 280,
                                         },
-                                        "margin": 5,
-                                        "border": 2,
-                                        "padding": 3,
+                                        "margin": {
+                                            "top": 5,
+                                            "right": 10,
+                                            "bottom": 5,
+                                            "left": 20,
+                                        },
+                                        "border": {
+                                            "top": 2,
+                                            "right": 2,
+                                            "bottom": 2,
+                                            "left": 2,
+                                        },
+                                        "padding": {
+                                            "top": 3,
+                                            "right": 3,
+                                            "bottom": 3,
+                                            "left": 3,
+                                        },
                                     },
                                     "children": [],
                                 },
@@ -95,9 +110,24 @@ def complex_tree_as_dict():
                                                     "w": 200,
                                                     "h": 140,
                                                 },
-                                                "margin": 5,
-                                                "border": 2,
-                                                "padding": 3,
+                                                "margin": {
+                                                    "top": 5,
+                                                    "right": 10,
+                                                    "bottom": 5,
+                                                    "left": 20,
+                                                },
+                                                "border": {
+                                                    "top": 2,
+                                                    "right": 2,
+                                                    "bottom": 2,
+                                                    "left": 2,
+                                                },
+                                                "padding": {
+                                                    "top": 3,
+                                                    "right": 3,
+                                                    "bottom": 3,
+                                                    "left": 3,
+                                                },
                                             },
                                             "children": [],
                                         },
@@ -112,9 +142,24 @@ def complex_tree_as_dict():
                                                         "w": 200,
                                                         "h": 20,
                                                     },
-                                                    "margin": 0,
-                                                    "padding": 0,
-                                                    "border": 0,
+                                                    "margin": {
+                                                        "top": 0,
+                                                        "right": 0,
+                                                        "bottom": 0,
+                                                        "left": 0,
+                                                    },
+                                                    "padding": {
+                                                        "top": 0,
+                                                        "right": 0,
+                                                        "bottom": 0,
+                                                        "left": 0,
+                                                    },
+                                                    "border": {
+                                                        "top": 0,
+                                                        "right": 0,
+                                                        "bottom": 0,
+                                                        "left": 0,
+                                                    },
                                                 }
                                             },
                                             "children": [
@@ -138,9 +183,24 @@ def complex_tree_as_dict():
                                                                             "w": 200,
                                                                             "h": 120,
                                                                         },
-                                                                        "margin": 5,
-                                                                        "border": 2,
-                                                                        "padding": 3,
+                                                                        "margin": {
+                                                                            "top": 5,
+                                                                            "right": 10,
+                                                                            "bottom": 5,
+                                                                            "left": 20,
+                                                                        },
+                                                                        "border": {
+                                                                            "top": 2,
+                                                                            "right": 2,
+                                                                            "bottom": 2,
+                                                                            "left": 2,
+                                                                        },
+                                                                        "padding": {
+                                                                            "top": 3,
+                                                                            "right": 3,
+                                                                            "bottom": 3,
+                                                                            "left": 3,
+                                                                        },
                                                                     },
                                                                     "children": [],
                                                                 },
@@ -168,9 +228,24 @@ def complex_tree_as_dict():
                                                                             "w": 200,
                                                                             "h": 60,
                                                                         },
-                                                                        "margin": 5,
-                                                                        "border": 2,
-                                                                        "padding": 3,
+                                                                        "margin": {
+                                                                            "top": 5,
+                                                                            "right": 10,
+                                                                            "bottom": 5,
+                                                                            "left": 20,
+                                                                        },
+                                                                        "border": {
+                                                                            "top": 2,
+                                                                            "right": 2,
+                                                                            "bottom": 2,
+                                                                            "left": 2,
+                                                                        },
+                                                                        "padding": {
+                                                                            "top": 3,
+                                                                            "right": 3,
+                                                                            "bottom": 3,
+                                                                            "left": 3,
+                                                                        },
                                                                     },
                                                                     "children": [],
                                                                 },
@@ -184,9 +259,24 @@ def complex_tree_as_dict():
                                                                             "w": 200,
                                                                             "h": 60,
                                                                         },
-                                                                        "margin": 5,
-                                                                        "border": 2,
-                                                                        "padding": 3,
+                                                                        "margin": {
+                                                                            "top": 5,
+                                                                            "right": 10,
+                                                                            "bottom": 5,
+                                                                            "left": 20,
+                                                                        },
+                                                                        "border": {
+                                                                            "top": 2,
+                                                                            "right": 2,
+                                                                            "bottom": 2,
+                                                                            "left": 2,
+                                                                        },
+                                                                        "padding": {
+                                                                            "top": 3,
+                                                                            "right": 3,
+                                                                            "bottom": 3,
+                                                                            "left": 3,
+                                                                        },
                                                                     },
                                                                     "children": [],
                                                                 },
@@ -3748,8 +3838,8 @@ class TestConfig:
         p1 = tree.tab()
         p2 = tree.split(p1, "x")
 
-        assert p1.box.margin == 12
-        assert p2.box.margin == 12
+        assert p1.box.margin.as_list() == [12, 12, 12, 12]
+        assert p2.box.margin.as_list() == [12, 12, 12, 12]
 
     def test_fall_back_to_default(self, tree: Tree):
         tree.set_config("window.margin", 10)
@@ -3767,7 +3857,7 @@ class TestConfig:
             tree.get_config("window.margin", level=1, fall_back_to_default=False)
 
     class TestWindowConfig:
-        def test_margin(self, tree: Tree):
+        def test_margin_with_int(self, tree: Tree):
             tree.set_config("window.margin", 10, level=1)
             tree.set_config("window.margin", 11, level=2)
             tree.set_config("window.margin", 12, level=3)
@@ -3776,11 +3866,24 @@ class TestConfig:
             p2 = tree.split(p1, "x")
             p3 = tree.tab(p2, new_level=True)
 
-            assert p1.box.margin == 10
-            assert p2.box.margin == 11
-            assert p3.box.margin == 11
+            assert p1.box.margin.as_list() == [10, 10, 10, 10]
+            assert p2.box.margin.as_list() == [11, 11, 11, 11]
+            assert p3.box.margin.as_list() == [11, 11, 11, 11]
 
-        def test_border_size(self, tree: Tree):
+        def test_margin_with_list(self, tree: Tree):
+            tree.set_config("window.margin", [1, 2, 3, 4], level=1)
+            tree.set_config("window.margin", [5, 6, 7, 8], level=2)
+            tree.set_config("window.margin", [9, 10, 11, 12], level=3)
+
+            p1 = tree.tab()
+            p2 = tree.split(p1, "x")
+            p3 = tree.tab(p2, new_level=True)
+
+            assert p1.box.margin.as_list() == [1, 2, 3, 4]
+            assert p2.box.margin.as_list() == [5, 6, 7, 8]
+            assert p3.box.margin.as_list() == [5, 6, 7, 8]
+
+        def test_border_size_with_int(self, tree: Tree):
             tree.set_config("window.border_size", 10, level=1)
             tree.set_config("window.border_size", 11, level=2)
             tree.set_config("window.border_size", 12, level=3)
@@ -3789,11 +3892,24 @@ class TestConfig:
             p2 = tree.split(p1, "x")
             p3 = tree.tab(p2, new_level=True)
 
-            assert p1.box.border == 10
-            assert p2.box.border == 11
-            assert p3.box.border == 11
+            assert p1.box.border.as_list() == [10, 10, 10, 10]
+            assert p2.box.border.as_list() == [11, 11, 11, 11]
+            assert p3.box.border.as_list() == [11, 11, 11, 11]
 
-        def test_padding(self, tree: Tree):
+        def test_border_size_with_list(self, tree: Tree):
+            tree.set_config("window.border_size", [1, 2, 3, 4], level=1)
+            tree.set_config("window.border_size", [5, 6, 7, 8], level=2)
+            tree.set_config("window.border_size", [9, 10, 11, 12], level=3)
+
+            p1 = tree.tab()
+            p2 = tree.split(p1, "x")
+            p3 = tree.tab(p2, new_level=True)
+
+            assert p1.box.border.as_list() == [1, 2, 3, 4]
+            assert p2.box.border.as_list() == [5, 6, 7, 8]
+            assert p3.box.border.as_list() == [5, 6, 7, 8]
+
+        def test_padding_with_int(self, tree: Tree):
             tree.set_config("window.padding", 10, level=1)
             tree.set_config("window.padding", 11, level=2)
             tree.set_config("window.padding", 12, level=3)
@@ -3802,9 +3918,22 @@ class TestConfig:
             p2 = tree.split(p1, "x")
             p3 = tree.tab(p2, new_level=True)
 
-            assert p1.box.padding == 10
-            assert p2.box.padding == 11
-            assert p3.box.padding == 11
+            assert p1.box.padding.as_list() == [10, 10, 10, 10]
+            assert p2.box.padding.as_list() == [11, 11, 11, 11]
+            assert p3.box.padding.as_list() == [11, 11, 11, 11]
+
+        def test_padding_with_list(self, tree: Tree):
+            tree.set_config("window.padding", [1, 2, 3, 4], level=1)
+            tree.set_config("window.padding", [5, 6, 7, 8], level=2)
+            tree.set_config("window.padding", [9, 10, 11, 12], level=3)
+
+            p1 = tree.tab()
+            p2 = tree.split(p1, "x")
+            p3 = tree.tab(p2, new_level=True)
+
+            assert p1.box.padding.as_list() == [1, 2, 3, 4]
+            assert p2.box.padding.as_list() == [5, 6, 7, 8]
+            assert p3.box.padding.as_list() == [5, 6, 7, 8]
 
     class TestTabBarConfig:
         def test_height(self, tree: Tree):
@@ -3822,7 +3951,7 @@ class TestConfig:
             assert tc1.tab_bar.box.principal_rect.h == 20
             assert tc2.tab_bar.box.principal_rect.h == 10
 
-        def test_margin(self, tree: Tree):
+        def test_margin_with_int(self, tree: Tree):
             tree.set_config("tab_bar.margin", 10, level=1)
             tree.set_config("tab_bar.margin", 11, level=2)
             tree.set_config("tab_bar.margin", 12, level=3)
@@ -3834,10 +3963,25 @@ class TestConfig:
             tc1, *_ = p1.get_ancestors(of_type=TabContainer)
             tc2, *_ = p3.get_ancestors(of_type=TabContainer)
 
-            assert tc1.tab_bar.box.margin == 10
-            assert tc2.tab_bar.box.margin == 11
+            assert tc1.tab_bar.box.margin.as_list() == [10, 10, 10, 10]
+            assert tc2.tab_bar.box.margin.as_list() == [11, 11, 11, 11]
 
-        def test_border_size(self, tree: Tree):
+        def test_margin_with_list(self, tree: Tree):
+            tree.set_config("tab_bar.margin", [1, 2, 3, 4], level=1)
+            tree.set_config("tab_bar.margin", [5, 6, 7, 8], level=2)
+            tree.set_config("tab_bar.margin", [9, 10, 11, 12], level=3)
+
+            p1 = tree.tab()
+            p2 = tree.split(p1, "x")
+            p3 = tree.tab(p2, new_level=True)
+
+            tc1, *_ = p1.get_ancestors(of_type=TabContainer)
+            tc2, *_ = p3.get_ancestors(of_type=TabContainer)
+
+            assert tc1.tab_bar.box.margin.as_list() == [1, 2, 3, 4]
+            assert tc2.tab_bar.box.margin.as_list() == [5, 6, 7, 8]
+
+        def test_border_size_with_int(self, tree: Tree):
             tree.set_config("tab_bar.border_size", 10, level=1)
             tree.set_config("tab_bar.border_size", 11, level=2)
             tree.set_config("tab_bar.border_size", 12, level=3)
@@ -3849,10 +3993,25 @@ class TestConfig:
             tc1, *_ = p1.get_ancestors(of_type=TabContainer)
             tc2, *_ = p3.get_ancestors(of_type=TabContainer)
 
-            assert tc1.tab_bar.box.border == 10
-            assert tc2.tab_bar.box.border == 11
+            assert tc1.tab_bar.box.border.as_list() == [10, 10, 10, 10]
+            assert tc2.tab_bar.box.border.as_list() == [11, 11, 11, 11]
 
-        def test_padding(self, tree: Tree):
+        def test_border_size_with_list(self, tree: Tree):
+            tree.set_config("tab_bar.border_size", [1, 2, 3, 4], level=1)
+            tree.set_config("tab_bar.border_size", [5, 6, 7, 8], level=2)
+            tree.set_config("tab_bar.border_size", [9, 10, 11, 12], level=3)
+
+            p1 = tree.tab()
+            p2 = tree.split(p1, "x")
+            p3 = tree.tab(p2, new_level=True)
+
+            tc1, *_ = p1.get_ancestors(of_type=TabContainer)
+            tc2, *_ = p3.get_ancestors(of_type=TabContainer)
+
+            assert tc1.tab_bar.box.border.as_list() == [1, 2, 3, 4]
+            assert tc2.tab_bar.box.border.as_list() == [5, 6, 7, 8]
+
+        def test_padding_with_int(self, tree: Tree):
             tree.set_config("tab_bar.padding", 10, level=1)
             tree.set_config("tab_bar.padding", 11, level=2)
             tree.set_config("tab_bar.padding", 12, level=3)
@@ -3864,8 +4023,23 @@ class TestConfig:
             tc1, *_ = p1.get_ancestors(of_type=TabContainer)
             tc2, *_ = p3.get_ancestors(of_type=TabContainer)
 
-            assert tc1.tab_bar.box.padding == 10
-            assert tc2.tab_bar.box.padding == 11
+            assert tc1.tab_bar.box.padding.as_list() == [10, 10, 10, 10]
+            assert tc2.tab_bar.box.padding.as_list() == [11, 11, 11, 11]
+
+        def test_padding_with_list(self, tree: Tree):
+            tree.set_config("tab_bar.padding", [1, 2, 3, 4], level=1)
+            tree.set_config("tab_bar.padding", [5, 6, 7, 8], level=2)
+            tree.set_config("tab_bar.padding", [9, 10, 11, 12], level=3)
+
+            p1 = tree.tab()
+            p2 = tree.split(p1, "x")
+            p3 = tree.tab(p2, new_level=True)
+
+            tc1, *_ = p1.get_ancestors(of_type=TabContainer)
+            tc2, *_ = p3.get_ancestors(of_type=TabContainer)
+
+            assert tc1.tab_bar.box.padding.as_list() == [1, 2, 3, 4]
+            assert tc2.tab_bar.box.padding.as_list() == [5, 6, 7, 8]
 
 
 class TestIterWalk:
@@ -3884,7 +4058,7 @@ class TestSubscribe:
 
 class TestAsDict:
     def test_tree_state_is_captured_as_dict(self, tree, complex_tree_as_dict):
-        tree.set_config("window.margin", 5)
+        tree.set_config("window.margin", [5, 10, 5, 20])
         tree.set_config("window.border_size", 2)
         tree.set_config("window.padding", 3)
 
