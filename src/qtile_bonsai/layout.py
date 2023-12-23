@@ -167,14 +167,19 @@ class Bonsai(Layout):
 
     def clone(self, group):
         """In the manner qtile expects, creates a fresh, blank-slate instance of this
-        class. `Group` instances will invoke this to get fresh, unique instance of this
-        layout for themselves.
+        class.
 
         This is a bit different from traditional copying/cloning of any 'current' state
         of the layout instance. In qtile, the config file holds the 'first' instance of
         the layout, then each Group instance 'clones' of that original instance (which
         likely remains in its initial state) and uses the new instance for all future
         operations.
+
+        All the built-in layouts perform a state-resetting in their `clone()`
+        implementations.
+
+        So in practice, qtile treats the `Layout.clone()` method more like a factory
+        method, to create fresh instances.
         """
         pseudo_clone = super().clone(group)
         pseudo_clone._reset()
