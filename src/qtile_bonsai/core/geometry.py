@@ -267,7 +267,7 @@ class Box:
         principal_rect: Rect,
         *,
         margin: PerimieterParams = 0,
-        border: PerimieterParams = 1,
+        border: PerimieterParams = 0,
         padding: PerimieterParams = 0,
     ):
         self.principal_rect = principal_rect
