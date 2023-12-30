@@ -25,15 +25,15 @@ class Node(metaclass=abc.ABCMeta):
     @property
     @abc.abstractmethod
     def principal_rect(self) -> Rect:
-        raise NotImplementedError
+        pass
 
     @abc.abstractmethod
     def shrinkability(self, axis: AxisParam) -> int:
-        raise NotImplementedError
+        pass
 
     @abc.abstractmethod
     def transform(self, axis: AxisParam, start: int, size: int):
-        raise NotImplementedError
+        pass
 
     @abc.abstractmethod
     def as_dict(self) -> dict:
@@ -48,12 +48,12 @@ class Node(metaclass=abc.ABCMeta):
 
     @abc.abstractmethod
     def __str__(self) -> str:
-        raise NotImplementedError
+        pass
 
     @classmethod
     @abc.abstractmethod
     def abbrv(cls) -> str:
-        raise NotImplementedError
+        pass
 
     @property
     def has_single_child(self) -> bool:
