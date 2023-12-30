@@ -580,7 +580,7 @@ class Bonsai(Layout):
     def _reset(self):
         # We initialize the tree with arbitrary dimensions. These get reset soon as this
         # layout's group is assigned to a screen.
-        self._tree = BonsaiTree(100, 100, config=self.get_multi_level_config())
+        self._tree = BonsaiTree(100, 100, config=self.parse_multi_level_config())
 
         self._tree.subscribe(
             TreeEvent.node_added, lambda nodes: self._handle_added_tree_nodes(nodes)
@@ -597,7 +597,7 @@ class Bonsai(Layout):
 
         self._on_next_window = _handle_next_window
 
-    def get_multi_level_config(self) -> BonsaiTree.MultiLevelConfig:
+    def parse_multi_level_config(self) -> BonsaiTree.MultiLevelConfig:
         merged_user_config = itertools.chain(
             ((c[0], c[1]) for c in self.defaults),
             ((k, v) for k, v in self._user_config.items()),
