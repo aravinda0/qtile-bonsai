@@ -374,6 +374,16 @@ class Tree:
         there.
 
         Subscribers will be notified of nodes that are removed/added in the process.
+
+
+        NOTE:
+            For the moment, only the nodes and their `box.principal_rect` information is
+            read from `from_state`. Things like margins/border/padding, tab bar
+            settings, are read from the current config.
+            This aligns with how we want things when working under qtile, which is our
+            current scope.
+            Later™, We can figure out how to make this more general (like simply restore
+            as-is from provided state), while still working for qtile.
         """
         removed_nodes = list(self.iter_walk())
         self._root = None
@@ -1009,11 +1019,12 @@ class Tree:
                 tc = self.create_tab_container()
                 tc.id = node_id
                 bar_rect_state = n["tab_bar"]["box"]["principal_rect"]
-                tc.tab_bar.box.principal_rect = Rect(
+                tc.tab_bar = self._build_tab_bar(
                     bar_rect_state["x"],
                     bar_rect_state["y"],
                     bar_rect_state["w"],
-                    bar_rect_state["h"],
+                    parent.tab_level + 1 if parent is not None else 1,
+                    len(n["children"]),
                 )
                 tc.parent = parent
                 tc.children = [walk_and_create(c, tc) for c in n["children"]]

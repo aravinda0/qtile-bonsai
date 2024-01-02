@@ -4,6 +4,7 @@
 import time
 
 import pytest
+
 from qtile_bonsai.core.tree import tree_str_matches_tree_str
 
 

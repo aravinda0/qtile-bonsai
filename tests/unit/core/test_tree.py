@@ -6,6 +6,7 @@ from unittest import mock
 
 import pytest
 
+import tests.data.tree_state
 from qtile_bonsai.core.geometry import Rect
 from qtile_bonsai.core.tree import (
     Pane,
@@ -34,267 +35,7 @@ def make_tree_with_subscriber(tree):
 
 @pytest.fixture()
 def complex_tree_as_dict():
-    return {
-        "width": 400,
-        "height": 300,
-        "root": {
-            "type": "tc",
-            "id": 1,
-            "tab_bar": {
-                "box": {
-                    "principal_rect": {
-                        "x": 0,
-                        "y": 0,
-                        "w": 400,
-                        "h": 20,
-                    },
-                    "margin": {"top": 0, "right": 0, "bottom": 0, "left": 0},
-                    "padding": {"top": 0, "right": 0, "bottom": 0, "left": 0},
-                    "border": {"top": 0, "right": 0, "bottom": 0, "left": 0},
-                }
-            },
-            "children": [
-                {
-                    "type": "t",
-                    "id": 2,
-                    "title": "",
-                    "children": [
-                        {
-                            "type": "sc",
-                            "id": 3,
-                            "axis": "x",
-                            "children": [
-                                {
-                                    "type": "p",
-                                    "id": 4,
-                                    "box": {
-                                        "principal_rect": {
-                                            "x": 0,
-                                            "y": 20,
-                                            "w": 200,
-                                            "h": 280,
-                                        },
-                                        "margin": {
-                                            "top": 5,
-                                            "right": 10,
-                                            "bottom": 5,
-                                            "left": 20,
-                                        },
-                                        "border": {
-                                            "top": 2,
-                                            "right": 2,
-                                            "bottom": 2,
-                                            "left": 2,
-                                        },
-                                        "padding": {
-                                            "top": 3,
-                                            "right": 3,
-                                            "bottom": 3,
-                                            "left": 3,
-                                        },
-                                    },
-                                    "children": [],
-                                },
-                                {
-                                    "type": "sc",
-                                    "id": 6,
-                                    "axis": "y",
-                                    "children": [
-                                        {
-                                            "type": "p",
-                                            "id": 5,
-                                            "box": {
-                                                "principal_rect": {
-                                                    "x": 200,
-                                                    "y": 20,
-                                                    "w": 200,
-                                                    "h": 140,
-                                                },
-                                                "margin": {
-                                                    "top": 5,
-                                                    "right": 10,
-                                                    "bottom": 5,
-                                                    "left": 20,
-                                                },
-                                                "border": {
-                                                    "top": 2,
-                                                    "right": 2,
-                                                    "bottom": 2,
-                                                    "left": 2,
-                                                },
-                                                "padding": {
-                                                    "top": 3,
-                                                    "right": 3,
-                                                    "bottom": 3,
-                                                    "left": 3,
-                                                },
-                                            },
-                                            "children": [],
-                                        },
-                                        {
-                                            "type": "tc",
-                                            "id": 8,
-                                            "tab_bar": {
-                                                "box": {
-                                                    "principal_rect": {
-                                                        "x": 200,
-                                                        "y": 160,
-                                                        "w": 200,
-                                                        "h": 20,
-                                                    },
-                                                    "margin": {
-                                                        "top": 0,
-                                                        "right": 0,
-                                                        "bottom": 0,
-                                                        "left": 0,
-                                                    },
-                                                    "padding": {
-                                                        "top": 0,
-                                                        "right": 0,
-                                                        "bottom": 0,
-                                                        "left": 0,
-                                                    },
-                                                    "border": {
-                                                        "top": 0,
-                                                        "right": 0,
-                                                        "bottom": 0,
-                                                        "left": 0,
-                                                    },
-                                                }
-                                            },
-                                            "children": [
-                                                {
-                                                    "type": "t",
-                                                    "id": 9,
-                                                    "title": "",
-                                                    "children": [
-                                                        {
-                                                            "type": "sc",
-                                                            "id": 10,
-                                                            "axis": "x",
-                                                            "children": [
-                                                                {
-                                                                    "type": "p",
-                                                                    "id": 7,
-                                                                    "box": {
-                                                                        "principal_rect": {
-                                                                            "x": 200,
-                                                                            "y": 180,
-                                                                            "w": 200,
-                                                                            "h": 120,
-                                                                        },
-                                                                        "margin": {
-                                                                            "top": 5,
-                                                                            "right": 10,
-                                                                            "bottom": 5,
-                                                                            "left": 20,
-                                                                        },
-                                                                        "border": {
-                                                                            "top": 2,
-                                                                            "right": 2,
-                                                                            "bottom": 2,
-                                                                            "left": 2,
-                                                                        },
-                                                                        "padding": {
-                                                                            "top": 3,
-                                                                            "right": 3,
-                                                                            "bottom": 3,
-                                                                            "left": 3,
-                                                                        },
-                                                                    },
-                                                                    "children": [],
-                                                                },
-                                                            ],
-                                                        }
-                                                    ],
-                                                },
-                                                {
-                                                    "type": "t",
-                                                    "id": 11,
-                                                    "title": "",
-                                                    "children": [
-                                                        {
-                                                            "type": "sc",
-                                                            "id": 12,
-                                                            "axis": "y",
-                                                            "children": [
-                                                                {
-                                                                    "type": "p",
-                                                                    "id": 13,
-                                                                    "box": {
-                                                                        "principal_rect": {
-                                                                            "x": 200,
-                                                                            "y": 180,
-                                                                            "w": 200,
-                                                                            "h": 60,
-                                                                        },
-                                                                        "margin": {
-                                                                            "top": 5,
-                                                                            "right": 10,
-                                                                            "bottom": 5,
-                                                                            "left": 20,
-                                                                        },
-                                                                        "border": {
-                                                                            "top": 2,
-                                                                            "right": 2,
-                                                                            "bottom": 2,
-                                                                            "left": 2,
-                                                                        },
-                                                                        "padding": {
-                                                                            "top": 3,
-                                                                            "right": 3,
-                                                                            "bottom": 3,
-                                                                            "left": 3,
-                                                                        },
-                                                                    },
-                                                                    "children": [],
-                                                                },
-                                                                {
-                                                                    "type": "p",
-                                                                    "id": 14,
-                                                                    "box": {
-                                                                        "principal_rect": {
-                                                                            "x": 200,
-                                                                            "y": 240,
-                                                                            "w": 200,
-                                                                            "h": 60,
-                                                                        },
-                                                                        "margin": {
-                                                                            "top": 5,
-                                                                            "right": 10,
-                                                                            "bottom": 5,
-                                                                            "left": 20,
-                                                                        },
-                                                                        "border": {
-                                                                            "top": 2,
-                                                                            "right": 2,
-                                                                            "bottom": 2,
-                                                                            "left": 2,
-                                                                        },
-                                                                        "padding": {
-                                                                            "top": 3,
-                                                                            "right": 3,
-                                                                            "bottom": 3,
-                                                                            "left": 3,
-                                                                        },
-                                                                    },
-                                                                    "children": [],
-                                                                },
-                                                            ],
-                                                        }
-                                                    ],
-                                                },
-                                            ],
-                                        },
-                                    ],
-                                },
-                            ],
-                        }
-                    ],
-                }
-            ],
-        },
-    }
+    return tests.data.tree_state.make_complex_tree_state()
 
 
 class TestIsEmpty:
@@ -2754,6 +2495,54 @@ class TestReset:
                                         - p:14 | {x: 200, y: 240, w: 200, h: 60}
             """,
         )
+
+    def test_when_a_state_dict_is_provided_then_panes_are_restored_but_use_tree_config(
+        self, tree: Tree
+    ):
+        # state with default tab bar config
+        state = tests.data.tree_state.make_tree_state_with_subtab()
+
+        tree.set_config("window.margin", [1, 2, 3, 4])
+        tree.set_config("window.border_size", [5, 6, 7, 8])
+        tree.set_config("window.padding", [9, 10, 11, 12])
+
+        tree.reset(from_state=state)
+
+        for p in tree.iter_panes():
+            assert p.box.margin.as_list() == [1, 2, 3, 4]
+            assert p.box.border.as_list() == [5, 6, 7, 8]
+            assert p.box.padding.as_list() == [9, 10, 11, 12]
+
+    def test_when_a_state_dict_is_provided_then_tab_bars_are_restored_but_use_tree_config(
+        self, tree: Tree
+    ):
+        # state with default tab bar config
+        state = tests.data.tree_state.make_tree_state_with_subtab()
+
+        tree.set_config("tab_bar.height", 50)
+        tree.set_config("tab_bar.margin", [1, 2, 3, 4])
+        tree.set_config("tab_bar.border_size", [4, 3, 2, 1])
+        tree.set_config("tab_bar.padding", [2, 3, 4, 5])
+
+        tree.set_config("tab_bar.height", 100, level=2)
+        tree.set_config("tab_bar.margin", [1, 2, 3, 4], level=2)
+        tree.set_config("tab_bar.border_size", [5, 6, 7, 8], level=2)
+        tree.set_config("tab_bar.padding", [9, 10, 11, 12], level=2)
+
+        tree.reset(from_state=state)
+
+        l1_bar = next(n for n in tree.iter_walk() if n.id == 1).tab_bar
+        l2_bar = next(n for n in tree.iter_walk() if n.id == 6).tab_bar
+
+        assert l1_bar.box.principal_rect.h == 50
+        assert l1_bar.box.margin.as_list() == [1, 2, 3, 4]
+        assert l1_bar.box.border.as_list() == [4, 3, 2, 1]
+        assert l1_bar.box.padding.as_list() == [2, 3, 4, 5]
+
+        assert l2_bar.box.principal_rect.h == 100
+        assert l2_bar.box.margin.as_list() == [1, 2, 3, 4]
+        assert l2_bar.box.border.as_list() == [5, 6, 7, 8]
+        assert l2_bar.box.padding.as_list() == [9, 10, 11, 12]
 
     def test_subscribers_are_notified_if_tree_restored_from_provided_state(
         self, tree: Tree, complex_tree_as_dict
