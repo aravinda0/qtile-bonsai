@@ -19,6 +19,9 @@ def modify_terminal_cmd_with_cwd(cmd: str, parent_pid: int) -> str:
     terminal_dir_switches = {
         "alacritty": "--working-directory",
         "kitty": "--directory",
+        "gnome-terminal": "--working-directory",
+        "urxvt": "-cd",
+        "rxvt": "-cd",
     }
 
     # TODO: Maybe handle things like preceding env var assignments, full program path as
