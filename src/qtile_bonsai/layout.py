@@ -327,6 +327,29 @@ class Bonsai(Layout):
         normalize: bool = True,
         auto_cwd_for_terminals: bool = True,
     ):
+        """Launch the provided `program` into a new window that splits the currently
+        focused window along the specified `axis`.
+
+        Args:
+            `program`:
+                The program to launch.
+            `axis`:
+                The axis along which to split the currently focused window.
+                An `x` split will end up with two top/bottom windows.
+                A `y` split will end up with two left/right windows.
+            `ratio`:
+                The ratio of sizes by which to split the current window.
+                If a window has a width of 100, then splitting on the y-axis with a
+                ratio = 0.3 will result in a left window of width 30 and a right window
+                of width 70.
+            `normalize`:
+                If `True`, overrides `ratio` and leads to the new window and all sibling
+                windows becoming of equal size along the corresponding split axis.
+            `auto_cwd_for_terminals`:
+                If `True`, and the provided `program` is a well known terminal emulator,
+                will try to open the new terminal window in the current working
+                directory.
+        """
         if self._tree.is_empty:
             logger.warn("There are no windows yet to split")
             return
@@ -349,6 +372,22 @@ class Bonsai(Layout):
         level: int | None = None,
         auto_cwd_for_terminals: bool = True,
     ):
+        """Launch the provided `program` into a new window in a new tab.
+
+        Args:
+            `program`:
+                The program to launch.
+            `new_level`:
+                If `True`, create a new sub-tab level with 2 tabs. The first sub-tab
+                being the currently focused window, the second sub-tab being the newly
+                launched program.
+            `level`:
+                If provided, launch the new window as a tab at the provided `level` of
+                tabs in the currently focused window's tab hierarchy.
+                Level 1 is the topmost level.
+            `auto_cwd_for_terminals`:
+                See docs under `spawn_split()`
+        """
         # We use this closed-over flag to ensure that after the explicit user-invoked
         # spawning of a tab based on the provided variables, any subsequent 'implicit'
         # tabs that are spawned are done so in a sensible manner. eg. if user invokes a
