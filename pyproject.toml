@@ -55,6 +55,7 @@ dev = [
     "pre-commit",
     "ruff",
     "ptpython",
+    "jinja2>=3.1.3",
 ]
 
 
