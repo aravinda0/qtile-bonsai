@@ -327,7 +327,8 @@ class Bonsai(Layout):
         normalize: bool = True,
         auto_cwd_for_terminals: bool = True,
     ):
-        """Launch the provided `program` into a new window that splits the currently
+        """
+        Launch the provided `program` into a new window that splits the currently
         focused window along the specified `axis`.
 
         Args:
@@ -372,7 +373,8 @@ class Bonsai(Layout):
         level: int | None = None,
         auto_cwd_for_terminals: bool = True,
     ):
-        """Launch the provided `program` into a new window in a new tab.
+        """
+        Launch the provided `program` into a new window in a new tab.
 
         Args:
             `program`:
@@ -414,6 +416,15 @@ class Bonsai(Layout):
 
     @expose_command
     def left(self, *, wrap: bool = True):
+        """
+        Move focus to the window left of the currently focused window. If there are
+        multiple candidates, the most recently focused of them will be chosen.
+
+        Args:
+            `wrap`:
+                If `True`, will wrap around the edge and select windows from the right
+                end of the screen.
+        """
         if self._tree.is_empty:
             return
 
@@ -422,6 +433,9 @@ class Bonsai(Layout):
 
     @expose_command
     def right(self, *, wrap: bool = True):
+        """
+        Same as `left()`, but moves focus to the right side.
+        """
         if self._tree.is_empty:
             return
 
@@ -430,6 +444,9 @@ class Bonsai(Layout):
 
     @expose_command
     def up(self, *, wrap: bool = True):
+        """
+        Same as `left()`, but moves focus upwards.
+        """
         if self._tree.is_empty:
             return
 
@@ -438,6 +455,9 @@ class Bonsai(Layout):
 
     @expose_command
     def down(self, *, wrap: bool = True):
+        """
+        Same as `left()`, but moves focus downwards.
+        """
         if self._tree.is_empty:
             return
 
@@ -446,6 +466,14 @@ class Bonsai(Layout):
 
     @expose_command
     def next_tab(self, *, wrap: bool = True):
+        """
+        Switch focus to the next tab. The window that was previously active there will
+        be focused.
+
+        Args:
+            `wrap`:
+                If `True`, will cycle back to the fist tab if invoked on the last tab.
+        """
         if self._tree.is_empty:
             return
 
@@ -455,6 +483,9 @@ class Bonsai(Layout):
 
     @expose_command
     def prev_tab(self, *, wrap: bool = True):
+        """
+        Same as `next_tab()` but switches focus to the previous tab.
+        """
         if self._tree.is_empty:
             return
 
@@ -464,6 +495,20 @@ class Bonsai(Layout):
 
     @expose_command
     def resize_left(self, amount: int = 10):
+        """
+        Resizes by moving an appropriate vertical border leftwards. Usually this is the
+        right border, but for the 'last' window under a SplitContainer, it will be the
+        left border.
+
+        Basically the way tmux does resize.
+
+        If there are multiple nested windows under the area being resized, those windows
+        are resized proportionally.
+
+        Args:
+            `amount`:
+                The amount by which to resize.
+        """
         if self._tree.is_empty:
             return
 
@@ -472,6 +517,9 @@ class Bonsai(Layout):
 
     @expose_command
     def resize_right(self, amount: int = 10):
+        """
+        Same as `resize_right()` but moves a border rightwards.
+        """
         if self._tree.is_empty:
             return
 
@@ -480,6 +528,9 @@ class Bonsai(Layout):
 
     @expose_command
     def resize_up(self, amount: int = 10):
+        """
+        Same as `resize_right()` but moves a border upwards.
+        """
         if self._tree.is_empty:
             return
 
@@ -488,6 +539,9 @@ class Bonsai(Layout):
 
     @expose_command
     def resize_down(self, amount: int = 10):
+        """
+        Same as `resize_right()` but moves a border downwards.
+        """
         if self._tree.is_empty:
             return
 
@@ -591,7 +645,7 @@ class Bonsai(Layout):
 
     @expose_command
     def normalize_tab(self, *, recurse: bool = True):
-        """Starting from the focused pane's tab, will make all panes in the
+        """Starting from the focused window's tab, will make all windows in the
         tab of equal size.
 
         If `recurse` is `True`, then nested nodes are also normalized similarly.
