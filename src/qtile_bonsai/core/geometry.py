@@ -169,7 +169,7 @@ class Rect:
         return cls(rect.x, rect.y, rect.w, rect.h)
 
     def __str__(self) -> str:
-        return repr(self.as_dict())
+        return repr(self)
 
     def __repr__(self) -> str:
         return repr(self.as_dict())
@@ -373,5 +373,5 @@ class Box:
             "padding": self.padding.as_dict(),
         }
 
-    def __str__(self):
-        return str(self.principal_rect)
+    def __repr__(self):
+        return repr(self.principal_rect)

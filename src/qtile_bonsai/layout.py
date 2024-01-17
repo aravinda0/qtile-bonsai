@@ -670,7 +670,7 @@ class Bonsai(Layout):
     def info(self):
         return {
             "name": "bonsai",
-            "tree": str(self._tree),
+            "tree": repr(self._tree),
         }
 
     def _handle_default_next_window(self) -> BonsaiPane:

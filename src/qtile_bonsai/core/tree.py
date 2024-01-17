@@ -587,7 +587,7 @@ class Tree:
         cls._recency_seq += 1
         return cls._recency_seq
 
-    def __str__(self) -> str:
+    def __repr__(self) -> str:
         if self.is_empty:
             return "<empty>"
 
@@ -1137,7 +1137,7 @@ class Tree:
             callback(nodes)
 
 
-def tree_matches_str(tree: Tree, test_str: str) -> bool:
+def tree_matches_repr(tree: Tree, test_str: str) -> bool:
     """Tests if the provided `Tree` instance has a str representation that matches the
     provided tree str representation in `test_str`.
     """
@@ -1146,7 +1146,7 @@ def tree_matches_str(tree: Tree, test_str: str) -> bool:
     return tree_str == test_str
 
 
-def tree_str_matches_tree_str(str1: str, str2: str) -> bool:
+def tree_repr_matches_repr(str1: str, str2: str) -> bool:
     str1 = textwrap.dedent(str1).strip()
     str2 = textwrap.dedent(str2).strip()
     return str1 == str2

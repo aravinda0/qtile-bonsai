@@ -5,7 +5,7 @@ import time
 
 import pytest
 
-from qtile_bonsai.core.tree import tree_str_matches_tree_str
+from qtile_bonsai.core.tree import tree_repr_matches_repr
 
 
 def test_when_bonsai_layout_is_inactive_and_windows_are_added_in_another_active_layout_then_the_windows_are_captured_as_tabs(
@@ -19,7 +19,7 @@ def test_when_bonsai_layout_is_inactive_and_windows_are_added_in_another_active_
 
     manager.to_layout_index(0)
 
-    assert tree_str_matches_tree_str(
+    assert tree_repr_matches_repr(
         manager.layout.info()["tree"],
         """
         - tc:1
@@ -60,7 +60,7 @@ class TestStateRestoration:
 
         manager.reload_config()
 
-        assert tree_str_matches_tree_str(
+        assert tree_repr_matches_repr(
             manager.layout.info()["tree"],
             """
             - tc:1
@@ -102,7 +102,7 @@ class TestStateRestoration:
 
         manager.reload_config()
 
-        assert tree_str_matches_tree_str(
+        assert tree_repr_matches_repr(
             manager.layout.info()["tree"],
             """
             - tc:1
