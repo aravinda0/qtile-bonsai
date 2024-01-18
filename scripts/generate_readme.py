@@ -45,7 +45,9 @@ def get_config_options(layout_cls: type[Layout]) -> list:
             {
                 "name": option[0],
                 "default": option[1],
-                "description": rewrap(description, width=100, html_whitespace=True),
+                "description": rewrap(
+                    description, width=80, dedent=True, html_whitespace=True
+                ),
             }
         )
 
@@ -53,20 +55,25 @@ def get_config_options(layout_cls: type[Layout]) -> list:
 
 
 def get_exposed_comands(layout_cls: type[Layout]) -> list:
+    excluded_commands = {
+        "info",
+    }
     commands = []
 
     def is_exposed_command(node):
         expose_command_decorator = next(
             (d for d in node.decorator_list if d.id == "expose_command"), None
         )
-        if expose_command_decorator is not None:
+        if expose_command_decorator is not None and node.name not in excluded_commands:
             docstring = ast.get_docstring(node)
             if docstring is None:
                 raise ValueError(f"The `{node.name}` command is missing documentation")
             commands.append(
                 {
                     "name": node.name,
-                    "docstring": rewrap(docstring, width=100, html_whitespace=True),
+                    "docstring": rewrap(
+                        docstring, width=100, dedent=True, html_whitespace=True
+                    ),
                 }
             )
 
@@ -75,3 +82,7 @@ def get_exposed_comands(layout_cls: type[Layout]) -> list:
     v.visit(ast.parse(inspect.getsource(layout_cls)))
 
     return commands
+
+
+if __name__ == "__main__":
+    main()

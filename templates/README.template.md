@@ -40,5 +40,5 @@ open windows as tabs, splits and even tabs inside splits.
 
 | Command Name | Description |
 | ---          | ---         |
-{% for command in commands %}|`{{ command.name }}` | {{ command.docstring }} |
+{% for command in commands %}|`{{ command.name }}()` | {{ command.docstring }} |
 {% endfor %}
