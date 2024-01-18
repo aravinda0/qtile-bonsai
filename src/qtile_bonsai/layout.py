@@ -37,7 +37,7 @@ class Bonsai(Layout):
             "window.margin",
             0,
             """
-            Size of the margin space around windows.
+            Size of the margin space around windows. 
             Can be an int or a list of ints in [top, right, bottom, left] ordering.
             """,
         ),
@@ -90,6 +90,7 @@ class Bonsai(Layout):
             0,
             """
             Size of the margin space around tab bars.
+
             Can be an int or a list of ints in [top, right, bottom, left] ordering.
             """,
         ),
@@ -335,7 +336,8 @@ class Bonsai(Layout):
             `program`:
                 The program to launch.
             `axis`:
-                The axis along which to split the currently focused window.
+                The axis along which to split the currently focused window. Can be 'x'
+                or 'y'.
                 An `x` split will end up with two top/bottom windows.
                 A `y` split will end up with two left/right windows.
             `ratio`:
@@ -343,13 +345,20 @@ class Bonsai(Layout):
                 If a window has a width of 100, then splitting on the y-axis with a
                 ratio = 0.3 will result in a left window of width 30 and a right window
                 of width 70.
+                Defaults to 0.5.
             `normalize`:
                 If `True`, overrides `ratio` and leads to the new window and all sibling
                 windows becoming of equal size along the corresponding split axis.
+                Defaults to `True`.
             `auto_cwd_for_terminals`:
+                (Experimental).
                 If `True`, and the provided `program` is a well known terminal emulator,
                 will try to open the new terminal window in the current working
                 directory.
+
+        Examples:
+            - layout.spawn_split(my_terminal, "x")
+            - layout.spawn_split(my_terminal, "y", ratio=0.2, normalize=False)
         """
         if self._tree.is_empty:
             logger.warn("There are no windows yet to split")
@@ -374,7 +383,7 @@ class Bonsai(Layout):
         auto_cwd_for_terminals: bool = True,
     ):
         """
-        Launch the provided `program` into a new window in a new tab.
+        Launch the provided `program` into a new window as a new tab.
 
         Args:
             `program`:
@@ -389,6 +398,11 @@ class Bonsai(Layout):
                 Level 1 is the topmost level.
             `auto_cwd_for_terminals`:
                 See docs under `spawn_split()`
+
+        Examples:
+            - layout.spawn_tab(my_terminal)
+            - layout.spawn_tab(my_terminal, new_level=True)
+            - layout.spawn_tab("qutebrowser", level=1)
         """
         # We use this closed-over flag to ensure that after the explicit user-invoked
         # spawning of a tab based on the provided variables, any subsequent 'implicit'
@@ -424,6 +438,7 @@ class Bonsai(Layout):
             `wrap`:
                 If `True`, will wrap around the edge and select windows from the right
                 end of the screen.
+                Defaults to `True`.
         """
         if self._tree.is_empty:
             return
@@ -473,6 +488,7 @@ class Bonsai(Layout):
         Args:
             `wrap`:
                 If `True`, will cycle back to the fist tab if invoked on the last tab.
+                Defaults to `True`.
         """
         if self._tree.is_empty:
             return
@@ -508,6 +524,9 @@ class Bonsai(Layout):
         Args:
             `amount`:
                 The amount by which to resize.
+
+        Examples:
+            - layout.resize_left(30)
         """
         if self._tree.is_empty:
             return
@@ -549,31 +568,18 @@ class Bonsai(Layout):
         self._request_relayout()
 
     @expose_command
-    def swap_up(self, *, wrap: bool = False):
-        if self._tree.is_empty:
-            return
-
-        other_pane = self._tree.up(self.focused_pane, wrap=wrap)
-        if other_pane is self.focused_pane:
-            return
-
-        self._tree.swap(self.focused_pane, other_pane)
-        self._request_relayout()
-
-    @expose_command
-    def swap_down(self, *, wrap: bool = False):
-        if self._tree.is_empty:
-            return
-
-        other_pane = self._tree.down(self.focused_pane, wrap=wrap)
-        if other_pane is self.focused_pane:
-            return
-
-        self._tree.swap(self.focused_pane, other_pane)
-        self._request_relayout()
-
-    @expose_command
     def swap_left(self, *, wrap: bool = False):
+        """
+        Swaps the currently focused window with the window to the left. If there are
+        multiple candidates to pick from on the left, then the most recently focused one
+        is chosen.
+
+        Args:
+            `wrap`:
+                If `True`, will wrap around the edge and select windows from the right
+                end of the screen to swap.
+                Defaults to `False`.
+        """
         if self._tree.is_empty:
             return
 
@@ -586,6 +592,9 @@ class Bonsai(Layout):
 
     @expose_command
     def swap_right(self, *, wrap: bool = False):
+        """
+        Same as `swap_left()` but swaps with a right neighbor.
+        """
         if self._tree.is_empty:
             return
 
@@ -597,7 +606,46 @@ class Bonsai(Layout):
         self._request_relayout()
 
     @expose_command
+    def swap_up(self, *, wrap: bool = False):
+        """
+        Same as `swap_left()` but swaps with an upwards neighbor.
+        """
+        if self._tree.is_empty:
+            return
+
+        other_pane = self._tree.up(self.focused_pane, wrap=wrap)
+        if other_pane is self.focused_pane:
+            return
+
+        self._tree.swap(self.focused_pane, other_pane)
+        self._request_relayout()
+
+    @expose_command
+    def swap_down(self, *, wrap: bool = False):
+        """
+        Same as `swap_left()` but swaps with a downwards neighbor.
+        """
+        if self._tree.is_empty:
+            return
+
+        other_pane = self._tree.down(self.focused_pane, wrap=wrap)
+        if other_pane is self.focused_pane:
+            return
+
+        self._tree.swap(self.focused_pane, other_pane)
+        self._request_relayout()
+
+    @expose_command
     def swap_prev_tab(self, *, wrap: bool = True):
+        """
+        Swaps the currently active tab with the previous tab.
+
+        Args:
+            `wrap`:
+                If `True`, will wrap around the edge of the tab bar and swap with the
+                last tab.
+                Defaults to `True`.
+        """
         if self._tree.is_empty:
             return
 
@@ -610,6 +658,9 @@ class Bonsai(Layout):
 
     @expose_command
     def swap_next_tab(self, *, wrap: bool = True):
+        """
+        Same as `swap_prev_tab()` but swap with the next tab.
+        """
         if self._tree.is_empty:
             return
 
@@ -622,6 +673,14 @@ class Bonsai(Layout):
 
     @expose_command
     def rename_tab(self, widget: str = "prompt"):
+        """
+        Rename the currently active tab.
+
+        Args:
+            `widget`:
+                The qtile widget that should be used for obtaining user input for the
+                renaming. The 'prompt' widget is used by default.
+        """
         prompt_widget = self.group.qtile.widgets_map.get(widget)
         if prompt_widget is None:
             logger.error(f"The '{widget}' widget was not found")
@@ -631,10 +690,13 @@ class Bonsai(Layout):
 
     @expose_command
     def normalize(self, *, recurse: bool = True):
-        """Starting from the focused pane's container, will make all panes in the
+        """
+        Starting from the focused window's SplitContainer, make all windows in the
         container of equal size.
 
-        If `recurse` is `True`, then nested nodes are also normalized similarly.
+        Args:
+            `recurse`:
+                If `True`, then nested nodes are also normalized similarly.
         """
         if self._tree.is_empty:
             return
@@ -645,10 +707,14 @@ class Bonsai(Layout):
 
     @expose_command
     def normalize_tab(self, *, recurse: bool = True):
-        """Starting from the focused window's tab, will make all windows in the
-        tab of equal size.
+        """
+        Starting from the focused window's tab, make all windows in the tab of equal
+        size.
 
-        If `recurse` is `True`, then nested nodes are also normalized similarly.
+        Args:
+            `recurse`:
+                If `True`, then nested nodes are also normalized similarly.
+                Defaults to `True`.
         """
         if self._tree.is_empty:
             return
@@ -659,7 +725,9 @@ class Bonsai(Layout):
 
     @expose_command
     def normalize_all(self):
-        """Makes all windows under all tabs be of equal size."""
+        """
+        Make all windows under all tabs be of equal size.
+        """
         if self._tree.is_empty:
             return
 
