@@ -4,6 +4,7 @@
 
 import ast
 import collections
+import dataclasses
 import enum
 import itertools
 import os
@@ -11,7 +12,7 @@ import pathlib
 import re
 import tempfile
 from datetime import datetime
-from typing import Callable, ClassVar
+from typing import Any, Callable, ClassVar
 
 from libqtile.backend.base.window import Window
 from libqtile.command.base import expose_command
@@ -19,10 +20,23 @@ from libqtile.config import ScreenRect
 from libqtile.layout.base import Layout
 from libqtile.log_utils import logger
 
+import qtile_bonsai.validation as validation
 from qtile_bonsai.core.tree import Axis, Pane, SplitContainer, Tab, Tree, TreeEvent
 from qtile_bonsai.theme import Gruvbox
 from qtile_bonsai.tree import BonsaiNodeMixin, BonsaiPane, BonsaiTree
 from qtile_bonsai.utils.process import modify_terminal_cmd_with_cwd
+
+
+@dataclasses.dataclass
+class LayoutOption:
+    name: str
+    default_value: Any
+    description: str
+    validator: Callable[[str, Any], tuple[bool, str | None]] | None = None
+
+    # This is just a documentation helper. To allow us to present enum values such as
+    # `Gruvbox.bright_red` as the friendly enum string instead of a cryptic `#fb4934`.
+    default_value_label: str | None = None
 
 
 class Bonsai(Layout):
@@ -32,8 +46,11 @@ class Bonsai(Layout):
         normal = 3
 
     level_specific_config_format = re.compile(r"^L(\d+)\.(.+)")
-    defaults: ClassVar = [
-        (
+
+    # Analogous to qtile's `Layout.defaults`, but has some more handy metadata.
+    # `Layout.defaults` is set below, derived from this.
+    options: ClassVar[list[LayoutOption]] = [
+        LayoutOption(
             "window.margin",
             0,
             """
@@ -41,36 +58,42 @@ class Bonsai(Layout):
             Can be an int or a list of ints in [top, right, bottom, left] ordering.
             """,
         ),
-        (
+        LayoutOption(
             "window.border_size",
             1,
-            "Width of the border around windows",
+            """
+            Width of the border around windows. Must be a single integer value since
+            that's what qtile allows for window borders.
+            """,
+            validator=validation.validate_border_size,
         ),
-        (
+        LayoutOption(
             "window.border_color",
             Gruvbox.darker_yellow,
             "Color of the border around windows",
+            default_value_label="Gruvbox.darker_yellow",
         ),
-        (
+        LayoutOption(
             "window.active.border_color",
             Gruvbox.dark_yellow,
             "Color of the border around an active window",
+            default_value_label="Gruvbox.dark_yellow",
         ),
-        (
+        LayoutOption(
             "window.normalize_on_remove",
             True,
             """
             Whether or not to normalize the remaining windows after a window is removed.
-            If `True`, the remaining windows will all become of equal size.
+            If `True`, the remaining sibling windows will all become of equal size.
             If `False`, the next (right/down) window will take up the free space.
             """,
         ),
-        (
+        LayoutOption(
             "tab_bar.height",
             20,
             "Height of tab bars",
         ),
-        (
+        LayoutOption(
             "tab_bar.hide_when",
             "single_tab",
             """
@@ -85,7 +108,7 @@ class Bonsai(Layout):
             eliminating the sub-tab level.
             """,
         ),
-        (
+        LayoutOption(
             "tab_bar.margin",
             0,
             """
@@ -94,56 +117,76 @@ class Bonsai(Layout):
             Can be an int or a list of ints in [top, right, bottom, left] ordering.
             """,
         ),
-        (
+        LayoutOption(
             "tab_bar.border_size",
             0,
             "Size of the border around tab bars",
+            validator=validation.validate_border_size,
         ),
-        (
+        LayoutOption(
             "tab_bar.border_color",
             Gruvbox.dark_yellow,
             "Color of border around tab bars",
+            default_value_label="Gruvbox.dark_yellow",
         ),
-        (
+        LayoutOption(
             "tab_bar.bg_color",
             Gruvbox.bg0,
             "Background color of tab bars, beind their tabs",
+            default_value_label="Gruvbox.bg0",
         ),
-        ("tab_bar.tab.min_width", 50, "Minimum width of a tab on a tab bar"),
-        ("tab_bar.tab.margin", 0, "Size of the margin space around individual tabs"),
-        ("tab_bar.tab.padding", 20, "Size of the padding space inside individual tabs"),
-        (
+        LayoutOption(
+            "tab_bar.tab.min_width", 50, "Minimum width of a tab on a tab bar"
+        ),
+        LayoutOption(
+            "tab_bar.tab.margin", 0, "Size of the margin space around individual tabs"
+        ),
+        LayoutOption(
+            "tab_bar.tab.padding",
+            20,
+            "Size of the padding space inside individual tabs",
+        ),
+        LayoutOption(
             "tab_bar.tab.bg_color",
             Gruvbox.bg1,
             "Background color of individual tabs",
+            default_value_label="Gruvbox.bg1",
         ),
-        (
+        LayoutOption(
             "tab_bar.tab.fg_color",
             Gruvbox.fg1,
             "Foreground text color of individual tabs",
+            default_value_label="Gruvbox.fg1",
         ),
-        ("tab_bar.tab.font_family", "Mono", "Font family to use for tab titles"),
-        ("tab_bar.tab.font_size", 15, "Font size to use for tab titles"),
-        (
+        LayoutOption(
+            "tab_bar.tab.font_family", "Mono", "Font family to use for tab titles"
+        ),
+        LayoutOption("tab_bar.tab.font_size", 15, "Font size to use for tab titles"),
+        LayoutOption(
             "tab_bar.tab.active.bg_color",
             Gruvbox.bg4,
             "Background color of active tabs",
+            default_value_label="Gruvbox.bg4",
         ),
-        (
+        LayoutOption(
             "tab_bar.tab.active.fg_color",
             Gruvbox.fg1,
             "Foreground text color of the active tab",
+            default_value_label="Gruvbox.fg1",
         ),
-        (
+        LayoutOption(
             "restore.threshold_seconds",
             4,
             """
-            You likely don't need to tweak this. Controls the time within which a
-            persisted state file is considered to be from a recent qtile
-            config-reload/restart event. If the persisted file is this many seconds old,
-            we restore our window tree from it.
+            You likely don't need to tweak this. 
+            Controls the time within which a persisted state file is considered to be
+            from a recent qtile config-reload/restart event. If the persisted file is
+            this many seconds old, we restore our window tree from it.
             """,
         ),
+    ]
+    defaults: ClassVar[list[tuple[str, Any, str]]] = [
+        (option.name, option.default_value, option.description) for option in options
     ]
 
     def __init__(self, **config) -> None:
@@ -745,9 +788,11 @@ class Bonsai(Layout):
         return self._tree.tab()
 
     def _reset(self):
+        config = self.parse_multi_level_config()
+
         # We initialize the tree with arbitrary dimensions. These get reset soon as this
         # layout's group is assigned to a screen.
-        self._tree = BonsaiTree(100, 100, config=self.parse_multi_level_config())
+        self._tree = BonsaiTree(100, 100, config=config)
 
         self._tree.subscribe(
             TreeEvent.node_added, lambda nodes: self._handle_added_tree_nodes(nodes)
@@ -765,8 +810,9 @@ class Bonsai(Layout):
         self._on_next_window = _handle_next_window
 
     def parse_multi_level_config(self) -> BonsaiTree.MultiLevelConfig:
+        options_map = {option.name: option for option in self.options}
         merged_user_config = itertools.chain(
-            ((c[0], c[1]) for c in self.defaults),
+            ((option.name, option.default_value) for option in self.options),
             ((k, v) for k, v in self._user_config.items()),
         )
 
@@ -777,7 +823,20 @@ class Bonsai(Layout):
             if level_specific_key is not None:
                 level = int(level_specific_key.group(1))
                 key = level_specific_key.group(2)
+
+            option = options_map.get(key)
+            if option is not None and option.validator is not None:
+                is_valid, err_msg = option.validator(key, value)
+                if not is_valid:
+                    logger.error(
+                        f"{err_msg} "
+                        f"Falling back to default value of {option.default_value}"
+                    )
+                    value = option.default_value
+
             multi_level_config[level][key] = value
+
+        validation.validate_across_options(multi_level_config)
 
         return multi_level_config
 
