@@ -5,7 +5,7 @@
 groups = ["default", "dev"]
 strategy = ["cross_platform"]
 lock_version = "4.4.1"
-content_hash = "sha256:0204839be3b858ce21d178dfa897a27bddbef0bd1505467a546ab04bf8e4a670"
+content_hash = "sha256:f20cbde74d48c3c5c4d8c79fa06e1d31b70e90984adc2e8fd3a4a33fa75397a4"
 
 [[package]]
 name = "appdirs"
@@ -568,6 +568,7 @@ dependencies = [
 files = [
     {file = "pywayland-0.4.17-cp310-cp310-manylinux_2_28_x86_64.whl", hash = "sha256:2ac61b0f23aeaed47624aba5fd5de5da21e7cbbe0c9b464a649541f2695634e8"},
     {file = "pywayland-0.4.17-cp311-cp311-manylinux_2_28_x86_64.whl", hash = "sha256:9272d3a37d2da328d602e4a2125ce89864b59ec89c6423c660f7dd565ad126c1"},
+    {file = "pywayland-0.4.17-cp312-cp312-manylinux_2_28_x86_64.whl", hash = "sha256:2074f9ba0cbfd4c0796852d2c355c68e117d4149eba38cb66b3093b6c2840231"},
     {file = "pywayland-0.4.17-pp310-pypy310_pp73-manylinux_2_28_x86_64.whl", hash = "sha256:391a72afb60b886ceb9b4b690c0d215969c374133fc2594b2292e5fadf070f71"},
     {file = "pywayland-0.4.17-pp38-pypy38_pp73-manylinux_2_28_x86_64.whl", hash = "sha256:0d7e593c21679aa398ae870bf9fdc39fb266b57b6946193753e35329283283ce"},
     {file = "pywayland-0.4.17-pp39-pypy39_pp73-manylinux_2_28_x86_64.whl", hash = "sha256:7b23abe03f57a040c08307d2c5c338b3cd38e168d8087f2410bf3fa713cbaf22"},
@@ -587,6 +588,7 @@ dependencies = [
 files = [
     {file = "pywlroots-0.16.6-cp310-cp310-manylinux_2_28_x86_64.whl", hash = "sha256:eb9c95d31a998066e8003ab19c2db49d57fe78565b4b2c4cbbc5a4141f5dd706"},
     {file = "pywlroots-0.16.6-cp311-cp311-manylinux_2_28_x86_64.whl", hash = "sha256:2410539bee0a7a70c5c1053cc395630b44bcfdce8c4a696e012cd62ddd80103c"},
+    {file = "pywlroots-0.16.6-cp312-cp312-manylinux_2_28_x86_64.whl", hash = "sha256:8cd6e4fdedc6cf454f6921a778410cfdbcbaaaaa98d38cb3e52cb522b3c9e0bf"},
     {file = "pywlroots-0.16.6-pp310-pypy310_pp73-manylinux_2_28_x86_64.whl", hash = "sha256:191511b513b4cade1f5940476d400d8d0a4129f29bc5ee0bc853fc5baa866c5f"},
     {file = "pywlroots-0.16.6-pp38-pypy38_pp73-manylinux_2_28_x86_64.whl", hash = "sha256:e5dbe20ec35833faf324a227533f9dd165f85cf53235a50fb49022571b1c0959"},
     {file = "pywlroots-0.16.6-pp39-pypy39_pp73-manylinux_2_28_x86_64.whl", hash = "sha256:94b43497a20eb068ada75249cf4eb3783192a7cf9d04c1030b23a5eb98307c12"},
