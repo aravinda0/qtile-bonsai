@@ -255,15 +255,16 @@ class Bonsai(Layout):
         raise NotImplementedError
 
     def add_client(self, window: Window):
-        """Register a newly added window in the context of this layout.
+        """Register a newly added window with this layout.
 
         This is usually straightforward, but we do some funky things here to support
-        restoration of state after a qtile 'reload config' event or a 'restart' event.
+        restoration of state after a qtile 'reload config'/'restart' event.
 
-        qtile-bonsai is a stateless layout - the end user controls the positioning of
-        windows. So when qtile is reloaded after config changes, or restarted entirely,
-        we would normally lose all the positioning information, since qtile will destroy
-        the layout instance and create it anew post-reload/restart.
+        In qtile-bonsai, the end user completely controls window positioning. It's not
+        predictable the way most of qtile's built-in formulatic layouts are.
+        So when qtile is reloaded after config changes, or restarted entirely, we would
+        normally lose all the positioning information, since qtile will destroy the
+        layout instance and create it anew post-reload/restart.
 
         We work around this by saving the layout state to a file just before reload
         happens. Then, post-reload, we read back the file to try and restore the layout
@@ -271,16 +272,16 @@ class Bonsai(Layout):
 
         Now, post-reload, qtile creates the layout instance again. Then it uses its
         usual window-creation flow and passes each existing window to the layout
-        one-by-one as if new windows were being created in rapid succession. So our
-        restoration has to work over multiple steps, each time qtile calls
-        `Layout.add_client()`.
+        one-by-one as if new windows were being created in rapid succession.
 
-        As an aside, since there is no 'reload' or 'restart' hook in qtile, and since we
-        have no other non-layout place to put our code, we also have to do the initial
-        'restoration check' here in this method. To see if a reload/restart event
-        happened recently by looking at the timestamp saved in our state file.
-        If the state file exists at all and the timestamp is within a few seconds, it's
-        safe enough in practice to assume that a reload/restart happened just recently.
+        We have to hook into this 're-addition of windows' flow to perform our
+        restoration. Note that this has to work over multiple steps, each time when
+        qtile calls `Layout.add_client()`.
+
+        To see if a reload/restart event happened recently, we look at the timestamp
+        saved in our state file. If the state file exists at all and the timestamp is
+        within a few seconds, it's safe enough in practice to assume that a
+        reload/restart happened just recently.
 
         In summary, `add_client()` goes through a bit of state machine magic. The states
         are specified in `Bonsai.AddClientMode`.
