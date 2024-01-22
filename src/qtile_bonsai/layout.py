@@ -793,6 +793,7 @@ class Bonsai(Layout):
         # We initialize the tree with arbitrary dimensions. These get reset soon as this
         # layout's group is assigned to a screen.
         self._tree = BonsaiTree(100, 100, config=config)
+        self._tree.validate_config()
 
         self._tree.subscribe(
             TreeEvent.node_added, lambda nodes: self._handle_added_tree_nodes(nodes)
@@ -835,8 +836,6 @@ class Bonsai(Layout):
                     value = option.default_value
 
             multi_level_config[level][key] = value
-
-        validation.validate_across_options(multi_level_config)
 
         return multi_level_config
 

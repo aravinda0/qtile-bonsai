@@ -4,13 +4,6 @@
 
 from typing import Any
 
-from qtile_bonsai.tree import BonsaiTree
-
-
-def validate_across_options(multi_level_config: BonsaiTree.MultiLevelConfig):
-    for level, config in multi_level_config.items():
-        pass
-
 
 def validate_border_size(key: str, value: Any) -> tuple[bool, str | None]:
     if not isinstance(value, int):

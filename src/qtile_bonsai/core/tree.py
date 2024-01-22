@@ -14,6 +14,7 @@ from strenum import StrEnum
 from qtile_bonsai.core.geometry import (
     Axis,
     AxisParam,
+    Box,
     Direction,
     DirectionParam,
     PerimieterParams,
@@ -67,6 +68,7 @@ class Tree:
             for level, lconfig in config.items():
                 for k, v in lconfig.items():
                     self._config[level][k] = v
+            self.validate_config()
 
         self._event_subscribers: collections.defaultdict[
             TreeEvent, dict[str, Tree.TreeEventCallback]
@@ -109,6 +111,15 @@ class Tree:
             raise ValueError("`level` must be a positive number")
 
         self._config[level][key] = value
+
+    def validate_config(self):
+        """Validate config across config keys.
+
+        Raises:
+            `ValueError`: if there are any validation errors.
+        """
+        for level in self._config:
+            self._validate_tab_bar_config(level)
 
     def get_config(
         self,
@@ -1135,6 +1146,29 @@ class Tree:
     def _notify_subscribers(self, event: TreeEvent, nodes: list[Node]):
         for callback in self._event_subscribers[event].values():
             callback(nodes)
+
+    def _validate_tab_bar_config(self, level: int):
+        bar_height = self.get_config(
+            "tab_bar.height", level=level, fall_back_to_default=True
+        )
+        bar_margin = self.get_config(
+            "tab_bar.margin", level=level, fall_back_to_default=True
+        )
+        bar_border_size = self.get_config(
+            "tab_bar.border_size", level=level, fall_back_to_default=True
+        )
+        bar_padding = self.get_config(
+            "tab_bar.padding", level=level, fall_back_to_default=True
+        )
+        try:
+            Box(
+                Rect(0, 0, self.width, bar_height),
+                margin=bar_margin,
+                border=bar_border_size,
+                padding=bar_padding,
+            ).validate()
+        except ValueError as err:
+            raise ValueError(f"Error in tab_bar config. {err}") from err
 
 
 def tree_matches_repr(tree: Tree, test_str: str) -> bool:
