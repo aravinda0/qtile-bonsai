@@ -275,6 +275,10 @@ class Box:
         self.border = border
         self.padding = padding
 
+        # TODO: Want to invoke this here, but need to redo how tab bars are hidden. The
+        # logic currently relies on being able to set `height = 0`.
+        # self.validate()
+
     @property
     def principal_rect(self) -> Rect:
         return self._principal_rect
@@ -364,6 +368,13 @@ class Box:
             w=padding_rect.w - (padding.left + padding.right),
             h=padding_rect.h - (padding.top + padding.bottom),
         )
+
+    def validate(self):
+        content_rect = self.content_rect
+        if content_rect.w <= 0 or content_rect.h <= 0:
+            raise ValueError(
+                "Invalid margin/border/padding values. No space left for content"
+            )
 
     def as_dict(self) -> dict:
         return {

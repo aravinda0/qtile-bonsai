@@ -73,3 +73,23 @@ class TestBox:
 
     def test_content_rect_includes_content_only(self, layered_box: Box):
         assert layered_box.content_rect == Rect(189, 126, 264, 206)
+
+    @pytest.mark.parametrize(
+        ("margin", "border", "padding"),
+        [
+            (80, 0, 0),
+            (0, 80, 0),
+            (0, 0, 80),
+            (80, 80, 80),
+        ],
+    )
+    def test_raises_error_on_invalid_perimeters(self, margin, border, padding):
+        box = Box(
+            Rect(100, 100, 100, 100),
+            margin=margin,
+            border=border,
+            padding=padding,
+        )
+        err_msg = "Invalid margin/border/padding values. No space left for content"
+        with pytest.raises(ValueError, match=err_msg):
+            box.validate()
