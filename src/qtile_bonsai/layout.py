@@ -12,7 +12,7 @@ import pathlib
 import re
 import tempfile
 from datetime import datetime
-from typing import Any, Callable, ClassVar
+from typing import Any, Callable, ClassVar, Sequence
 
 from libqtile.backend.base.window import Window
 from libqtile.command.base import expose_command
@@ -235,7 +235,7 @@ class Bonsai(Layout):
         pseudo_clone._reset()
         return pseudo_clone
 
-    def layout(self, windows: list[Window], screen_rect: ScreenRect):
+    def layout(self, windows: Sequence[Window], screen_rect: ScreenRect):
         """Handles window layout based on the internal tree representation.
 
         Unlike the base class implementation, this does not invoke `Layout.configure()`
