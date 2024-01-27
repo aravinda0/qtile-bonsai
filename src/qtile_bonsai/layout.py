@@ -45,6 +45,10 @@ class Bonsai(Layout):
         restoration_in_progress = 2
         normal = 3
 
+    class InteractionMode(enum.Enum):
+        normal = 1
+        visual_select = 2
+
     level_specific_config_format = re.compile(r"^L(\d+)\.(.+)")
 
     # Analogous to qtile's `Layout.defaults`, but has some more handy metadata.
@@ -197,6 +201,7 @@ class Bonsai(Layout):
         # docs for `self.clone()`.
         self._tree: Tree
         self._focused_window: Window | None
+        self._interaction_mode: Bonsai.InteractionMode
         self._windows_to_panes: dict[Window, BonsaiPane]
         self._on_next_window: Callable[[], BonsaiPane]
 
@@ -777,6 +782,15 @@ class Bonsai(Layout):
         self._request_relayout()
 
     @expose_command
+    def toggle_visual_select_mode(self):
+        if self._interaction_mode == self.InteractionMode.normal:
+            self._interaction_mode = self.InteractionMode.visual_select
+            self._visual_select_focused_window = self._focused_window
+        else:
+            self._interaction_mode = self.InteractionMode.normal
+            self._visual_select_focused_window = None
+
+    @expose_command
     def info(self):
         return {
             "name": "bonsai",
@@ -801,7 +815,9 @@ class Bonsai(Layout):
             TreeEvent.node_removed, lambda nodes: self._handle_removed_tree_nodes(nodes)
         )
 
+        self._interaction_mode = self.InteractionMode.normal
         self._focused_window = None
+        self._visual_select_focused_window = None
         self._windows_to_panes = {}
 
         def _handle_next_window():
