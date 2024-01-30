@@ -252,9 +252,6 @@ class Box:
     ones. So even if we keep tweaking margins/borders/padding, the principal_rect
     relationships between different windows remains constant and simplifies
     calculations.
-
-    NOTE: At the moment, we must be wary of doing something like
-    `box.content_rect.x = 100` - which cant't trigger the sync logic.
     """
 
     _principal_rect: Rect
