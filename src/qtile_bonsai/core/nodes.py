@@ -325,7 +325,7 @@ class Tab(Node):
 
     @property
     def principal_rect(self) -> Rect:
-        return self.children[0].principal_rect
+        return Rect.from_rect(self.children[0].principal_rect)
 
     def shrinkability(self, axis: AxisParam) -> int:
         return self.children[0].shrinkability(axis)
@@ -366,7 +366,7 @@ class TabContainer(Node):
         All of the tabs under a tab container occupy the same total space, so we can
         just pick one.
         """
-        return self.children[0].principal_rect
+        return Rect.from_rect(self.children[0].principal_rect)
 
     def shrinkability(self, axis: AxisParam) -> int:
         # We are limited by what is contained in the nested tabs. The entire TC can only
