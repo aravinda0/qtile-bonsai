@@ -48,6 +48,34 @@ class TestIsEmpty:
         assert not tree.is_empty
 
 
+class TestTrashNewSplit:
+    @pytest.mark.a()
+    def test_can_split_any_node(self, tree: Tree):
+        p1 = tree.tab()
+        p2 = tree.split(p1, "x")
+        p3 = tree.split(p1, "y")
+        p4 = tree.split(p2, "y")
+
+        sc = p3.parent
+        p5 = tree.split(sc, "x")
+
+        assert tree_matches_repr(
+            tree,
+            """
+            - tc:1
+                - t:2
+                    - sc.x:3
+                        - sc.y:6
+                            - p:4 | {x: 0, y: 20, w: 100, h: 140}
+                            - p:7 | {x: 0, y: 160, w: 100, h: 140}
+                        - p:10 | {x: 100, y: 20, w: 100, h: 280}
+                        - sc.y:8
+                            - p:5 | {x: 200, y: 20, w: 200, h: 140}
+                            - p:9 | {x: 200, y: 160, w: 200, h: 140}
+            """,
+        )
+
+
 class TestSplit:
     def test_returns_correct_pane(self, tree: Tree):
         p1 = tree.tab()
