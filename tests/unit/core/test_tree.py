@@ -75,6 +75,9 @@ class TestTrashNewSplit:
             """,
         )
 
+    def test_more_pleshku(self):
+        pass
+
 
 class TestSplit:
     def test_returns_correct_pane(self, tree: Tree):

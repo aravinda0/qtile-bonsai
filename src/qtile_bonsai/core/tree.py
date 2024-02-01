@@ -260,13 +260,15 @@ class Tree:
 
         added_nodes = []
 
-        node_container = node.parent
+        node_container = node.get_first_ancestor(SplitContainer)
         node_index = node_container.children.index(node)
 
         self._maybe_morph_split_container(node_container, axis)
 
         n1_rect, n2_rect = node.principal_rect.split(axis, ratio)
-        node.principal_rect = n1_rect
+
+        # node.principal_rect = n1_rect
+        node.transform(axis, n1_rect.coord(axis), n1_rect.size(axis))
 
         # During the flow below, we try to ensure `new_pane` is created after any other
         # new nodes to maintain ID sequence.
