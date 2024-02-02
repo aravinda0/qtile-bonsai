@@ -49,7 +49,6 @@ class TestIsEmpty:
 
 
 class TestTrashNewSplit:
-    @pytest.mark.a()
     def test_can_split_any_node(self, tree: Tree):
         p1 = tree.tab()
         p2 = tree.split(p1, "x")
@@ -77,6 +76,36 @@ class TestTrashNewSplit:
 
     def test_more_pleshku(self):
         pass
+
+
+class TestTrashPullOut:
+    @pytest.mark.a()
+    def test_pull_out_1(self, tree: Tree):
+        p1 = tree.tab()
+        p2 = tree.split(p1, "x")
+        p3 = tree.split(p2, "y")
+        p4 = tree.split(p3, "x")
+        tree.split(p4, "x")
+
+        print(tree)
+
+        tree.pull_out(p4)
+
+        assert tree_matches_repr(
+            tree,
+            """
+            - tc:1
+                - t:2
+                    - sc.x:3
+                        - p:4 | {x: 0, y: 20, w: 200, h: 280}
+                        - sc.y:6
+                            - p:5 | {x: 200, y: 20, w: 200, h: 140}
+                            - p:9 | {x: 200, y: 160, w: 200, h: 70}
+                            - sc.x:8
+                                - p:7 | {x: 200, y: 230, w: 100, h: 70}
+                                - p:10 | {x: 300, y: 230, w: 100, h: 70}
+            """,
+        )
 
 
 class TestSplit:
