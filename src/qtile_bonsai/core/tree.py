@@ -506,6 +506,28 @@ class Tree:
             t2.transform(Axis.x, t1_rect.x, t1_rect.w)
             t2.transform(Axis.y, t1_rect.y, t1_rect.h)
 
+    def pull_out(self, node: Node, *, normalize: bool = False):
+        container_node = node.get_first_ancestor(SplitContainer)
+        container_parent = container_node.get_first_ancestor(SplitContainer)
+        index = container_parent.children.index(container_node)
+
+        # only passing panes for now, since that's all remove() can accept
+        # ie. `node` is expected to be a pane
+        self.remove(node, normalize=normalize)
+
+        node.parent = container_parent
+        container_parent.children.insert(index, node)
+
+        r1, r2 = container_node.principal_rect.split(container_parent.axis)
+
+        # again with the assumption that node is always a pane
+        node.box.principal_rect = r1
+        container_node.transform(
+            container_parent.axis,
+            r2.coord(container_parent.axis),
+            r2.size(container_parent.axis),
+        )
+
     def is_visible(self, node: Node) -> bool:
         """Whether a node is visible or not. A node is visible if all its ancestor
         tabs are active.

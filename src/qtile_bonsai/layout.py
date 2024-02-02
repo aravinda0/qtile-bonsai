@@ -726,6 +726,14 @@ class Bonsai(Layout):
             self._request_relayout()
 
     @expose_command
+    def pull_out(self, *, normalize: bool = True):
+        if self._tree.is_empty:
+            return
+
+        self._tree.pull_out(self.focused_pane, normalize=normalize)
+        self._request_relayout()
+
+    @expose_command
     def rename_tab(self, widget: str = "prompt"):
         """
         Rename the currently active tab.
