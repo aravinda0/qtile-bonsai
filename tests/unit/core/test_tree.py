@@ -87,8 +87,6 @@ class TestTrashPullOut:
         p4 = tree.split(p3, "x")
         tree.split(p4, "x")
 
-        print(tree)
-
         tree.pull_out(p4)
 
         assert tree_matches_repr(
@@ -106,6 +104,9 @@ class TestTrashPullOut:
                                 - p:10 | {x: 300, y: 230, w: 100, h: 70}
             """,
         )
+
+    def test_with_normalize(self, tree: Tree):
+        pass
 
 
 class TestSplit:
