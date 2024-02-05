@@ -450,9 +450,7 @@ class Tree:
         return self._next_tab(node, -1, wrap=wrap)
 
     def swap(self, p1: Pane, p2: Pane):
-        """Swaps the two panes provided in the tree. Their geometries are modified so
-        that the overall tree geometry remains the same.
-        """
+        """Swaps the two panes provided in the tree."""
         sc1 = p1.parent
         p1_index = sc1.children.index(p1)
 
