@@ -785,10 +785,10 @@ class Bonsai(Layout):
     def toggle_visual_select_mode(self):
         if self._interaction_mode == self.InteractionMode.normal:
             self._interaction_mode = self.InteractionMode.visual_select
-            self._visual_select_focused_window = self._focused_window
+            self._vis_focused_window = self._focused_window
         else:
             self._interaction_mode = self.InteractionMode.normal
-            self._visual_select_focused_window = None
+            self._vis_focused_window = None
 
     @expose_command
     def info(self):
@@ -817,7 +817,7 @@ class Bonsai(Layout):
 
         self._interaction_mode = self.InteractionMode.normal
         self._focused_window = None
-        self._visual_select_focused_window = None
+        self._vis_focused_window = None
         self._windows_to_panes = {}
 
         def _handle_next_window():
