@@ -791,11 +791,14 @@ class Bonsai(Layout):
     @expose_command
     def toggle_visual_select_mode(self):
         if self._interaction_mode == self.InteractionMode.normal:
+            print("yessum")
             self._interaction_mode = self.InteractionMode.visual_select
             self._tree.vis_selection.node = self.focused_pane
         else:
+            print("noum")
             self._interaction_mode = self.InteractionMode.normal
             self._tree.vis_selection.node = None
+        self._request_relayout()
 
     @expose_command
     def info(self):

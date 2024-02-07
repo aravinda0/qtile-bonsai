@@ -196,18 +196,25 @@ class BonsaiPane(BonsaiNodeMixin, Pane):
 class VisModeSelection:
     def __init__(self, qtile, vis_mega_win, vis_mega_drawer):
         self.node: Node | None = None
-        self.win = qtile.core.create_internal(0, 0, 1, 1)
-        self.drawer = self.win.create_drawer(1, 1)
-        self.text_layout = self.drawer.textlayout("", "000000", "mono", 15, None)
+        # self.win = qtile.core.create_internal(0, 0, 1, 1)
+        # self.drawer = self.win.create_drawer(1, 1)
+        # self.text_layout = self.drawer.textlayout("", "000000", "mono", 15, None)
 
         self._vis_mega_win = vis_mega_win
         self._vis_mega_drawer = vis_mega_drawer
 
-    def render(self):
+    def render(self, screen_rect):
         if self.node is not None:
+            print("in nodey")
+            box = Box(Rect(0, 0, screen_rect.width, screen_rect.height))
+            place_window_using_box(self._vis_mega_win, box, "00ff00", screen_rect)
             self._vis_mega_win.unhide()
-            self._vis_mega_drawer.fillrect(0, 0, 100, 100)
-            self._vis_mega_drawer.draw(100, 100, 100, 100)
+            n_pr = self.node.principal_rect
+            print(n_pr)
+            self._vis_mega_drawer.fillrect(0, 0, n_pr.w, n_pr.h)
+            self._vis_mega_drawer.draw(
+                n_pr.x, n_pr.y, screen_rect.width, screen_rect.height
+            )
         else:
             self._vis_mega_win.hide()
 
@@ -269,9 +276,12 @@ class BonsaiTree(Tree):
             else:
                 node.hide()
 
-        self.vis_selection.render()
+        self.vis_selection.render(screen_rect)
 
     def finalize(self):
+        self._vis_mega_drawer.finalize()
+        self._vis_mega_win.kill()
+
         for node in self.iter_walk():
             node.finalize()
 
