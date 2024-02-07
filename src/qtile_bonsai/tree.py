@@ -7,7 +7,7 @@ from libqtile.backend.base.window import Internal, Window
 from libqtile.config import ScreenRect
 from libqtile.core.manager import Qtile
 
-from qtile_bonsai.core.geometry import Box, Rect
+from qtile_bonsai.core.geometry import Box, PerimieterParams, Rect
 from qtile_bonsai.core.tree import Pane, SplitContainer, Tab, TabContainer, Tree
 
 
@@ -153,8 +153,8 @@ class BonsaiPane(BonsaiNodeMixin, Pane):
         self,
         principal_rect: Rect | None = None,
         *,
-        margin: int = 0,
-        border: int = 1,
+        margin: PerimieterParams = 0,
+        border: PerimieterParams = 1,
     ):
         super().__init__(
             principal_rect=principal_rect,
@@ -198,8 +198,8 @@ class BonsaiTree(Tree):
         self,
         principal_rect: Rect | None = None,
         *,
-        margin: int | None = None,
-        border: int | None = None,
+        margin: PerimieterParams | None = None,
+        border: PerimieterParams | None = None,
         tab_level: int | None = None,
     ) -> BonsaiPane:
         if margin is None:
