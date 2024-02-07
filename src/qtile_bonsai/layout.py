@@ -240,6 +240,13 @@ class Bonsai(Layout):
         """
         pseudo_clone = super().clone(group)
         pseudo_clone._init()
+
+        # wtf. where can i init it. Here, the 'orig' instance is left without UI elems.
+        # Just as well? Since it's never assigned to a group?
+        # oh god, it's even worse. doing _tree.init_ui(). Maybe need layout.init_ui() or
+        # something? sigh...
+        pseudo_clone._tree.init_ui(group.qtile)
+
         return pseudo_clone
 
     def layout(self, windows: Sequence[Window], screen_rect: ScreenRect):
@@ -785,10 +792,10 @@ class Bonsai(Layout):
     def toggle_visual_select_mode(self):
         if self._interaction_mode == self.InteractionMode.normal:
             self._interaction_mode = self.InteractionMode.visual_select
-            self._vis_focused_window = self._focused_window
+            self._tree.vis_selection.node = self.focused_pane
         else:
             self._interaction_mode = self.InteractionMode.normal
-            self._vis_focused_window = None
+            self._tree.vis_selection.node = None
 
     @expose_command
     def info(self):
@@ -817,7 +824,6 @@ class Bonsai(Layout):
 
         self._interaction_mode = self.InteractionMode.normal
         self._focused_window = None
-        self._vis_focused_window = None
         self._windows_to_panes = {}
 
         def _handle_next_window():

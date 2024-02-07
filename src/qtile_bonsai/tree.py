@@ -8,7 +8,7 @@ from libqtile.config import ScreenRect
 from libqtile.core.manager import Qtile
 
 from qtile_bonsai.core.geometry import Box, PerimieterParams, Rect
-from qtile_bonsai.core.tree import Pane, SplitContainer, Tab, TabContainer, Tree
+from qtile_bonsai.core.tree import Node, Pane, SplitContainer, Tab, TabContainer, Tree
 
 
 class BonsaiNodeMixin:
@@ -193,7 +193,47 @@ class BonsaiPane(BonsaiNodeMixin, Pane):
         return state
 
 
+class VisModeSelection:
+    def __init__(self, qtile, vis_mega_win, vis_mega_drawer):
+        self.node: Node | None = None
+        self.win = qtile.core.create_internal(0, 0, 1, 1)
+        self.drawer = self.win.create_drawer(1, 1)
+        self.text_layout = self.drawer.textlayout("", "000000", "mono", 15, None)
+
+        self._vis_mega_win = vis_mega_win
+        self._vis_mega_drawer = vis_mega_drawer
+
+    def render(self):
+        if self.node is not None:
+            self._vis_mega_win.unhide()
+            self._vis_mega_drawer.fillrect(0, 0, 100, 100)
+            self._vis_mega_drawer.draw(100, 100, 100, 100)
+        else:
+            self._vis_mega_win.hide()
+
+
 class BonsaiTree(Tree):
+    def __init__(
+        self,
+        width: int,
+        height: int,
+        config: Tree.MultiLevelConfig | None = None,
+    ):
+        super().__init__(width, height, config)
+
+        # self.vis_focused_node: Node | None = None
+        self.vis_selection: VisModeSelection
+
+    def init_ui(self, qtile):
+        self._vis_mega_win = qtile.core.create_internal(0, 0, self.width, self.height)
+        self._vis_mega_drawer = self._vis_mega_win.create_drawer(
+            self.width, self.height
+        )
+
+        self.vis_selection = VisModeSelection(
+            qtile, self._vis_mega_win, self._vis_mega_drawer
+        )
+
     def create_pane(
         self,
         principal_rect: Rect | None = None,
@@ -228,6 +268,8 @@ class BonsaiTree(Tree):
                 node.render(screen_rect, self)
             else:
                 node.hide()
+
+        self.vis_selection.render()
 
     def finalize(self):
         for node in self.iter_walk():
