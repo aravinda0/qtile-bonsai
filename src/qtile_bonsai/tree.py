@@ -194,29 +194,34 @@ class BonsaiPane(BonsaiNodeMixin, Pane):
 
 
 class VisModeSelection:
-    def __init__(self, qtile, vis_mega_win, vis_mega_drawer):
+    def __init__(self, qtile):
         self.node: Node | None = None
-        # self.win = qtile.core.create_internal(0, 0, 1, 1)
-        # self.drawer = self.win.create_drawer(1, 1)
-        # self.text_layout = self.drawer.textlayout("", "000000", "mono", 15, None)
-
-        self._vis_mega_win = vis_mega_win
-        self._vis_mega_drawer = vis_mega_drawer
+        self.win = qtile.core.create_internal(0, 0, 1, 1)
+        self.drawer = self.win.create_drawer(1, 1)
+        self.text_layout = self.drawer.textlayout("", "000000", "mono", 15, None)
 
     def render(self, screen_rect):
         if self.node is not None:
             print("in nodey")
-            box = Box(Rect(0, 0, screen_rect.width, screen_rect.height))
-            place_window_using_box(self._vis_mega_win, box, "00ff00", screen_rect)
-            self._vis_mega_win.unhide()
+
             n_pr = self.node.principal_rect
-            print(n_pr)
-            self._vis_mega_drawer.fillrect(0, 0, n_pr.w, n_pr.h)
-            self._vis_mega_drawer.draw(
-                n_pr.x, n_pr.y, screen_rect.width, screen_rect.height
-            )
+
+            place_window_using_box(self.win, Box(n_pr, border=2), "00ff00", screen_rect)
+            self.win.unhide()
+
+            self.drawer.width = n_pr.w
+            self.drawer.height = n_pr.h
+
+            # self.drawer.clear("#ff0000")
+            # self.drawer.set_source_rgb("#ff0000")
+            # self.drawer.fillrect(0, 0, n_pr.w, n_pr.h)
+            self.drawer.draw(0, 0, n_pr.w, n_pr.h)
         else:
-            self._vis_mega_win.hide()
+            self.win.hide()
+
+    def finalize(self):
+        self.drawer.finalize()
+        self.win.kill()
 
 
 class BonsaiTree(Tree):
@@ -232,14 +237,7 @@ class BonsaiTree(Tree):
         self.vis_selection: VisModeSelection
 
     def init_ui(self, qtile):
-        self._vis_mega_win = qtile.core.create_internal(0, 0, self.width, self.height)
-        self._vis_mega_drawer = self._vis_mega_win.create_drawer(
-            self.width, self.height
-        )
-
-        self.vis_selection = VisModeSelection(
-            qtile, self._vis_mega_win, self._vis_mega_drawer
-        )
+        self.vis_selection = VisModeSelection(qtile)
 
     def create_pane(
         self,
@@ -279,8 +277,7 @@ class BonsaiTree(Tree):
         self.vis_selection.render(screen_rect)
 
     def finalize(self):
-        self._vis_mega_drawer.finalize()
-        self._vis_mega_win.kill()
+        self.vis_selection.finalize()
 
         for node in self.iter_walk():
             node.finalize()
