@@ -245,7 +245,7 @@ class Bonsai(Layout):
         # Just as well? Since it's never assigned to a group?
         # oh god, it's even worse. doing _tree.init_ui(). Maybe need layout.init_ui() or
         # something? sigh...
-        pseudo_clone._tree.init_ui(group.qtile)
+        # pseudo_clone._tree.init_ui(group.qtile)
 
         return pseudo_clone
 
@@ -793,6 +793,8 @@ class Bonsai(Layout):
         if self._interaction_mode == self.InteractionMode.normal:
             print("yessum")
             self._interaction_mode = self.InteractionMode.visual_select
+            # oh lawdy lawd
+            self._tree.init_ui(self.group.qtile)
             self._tree.vis_selection.node = self.focused_pane
         else:
             print("noum")

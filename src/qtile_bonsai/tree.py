@@ -200,7 +200,67 @@ class VisModeSelection:
         self.drawer = self.win.create_drawer(1, 1)
         self.text_layout = self.drawer.textlayout("", "000000", "mono", 15, None)
 
+        # oh lord plz forgive.
+        # Can't do transparent wins without picom on X it seems. Don't want to require
+        # picom.
+        self.win_t = qtile.core.create_internal(0, 0, 1, 1)
+        self.win_b = qtile.core.create_internal(0, 0, 1, 1)
+        self.win_l = qtile.core.create_internal(0, 0, 1, 1)
+        self.win_r = qtile.core.create_internal(0, 0, 1, 1)
+
+        self.drawer_t = self.win_t.create_drawer(1, 1)
+        self.drawer_b = self.win_b.create_drawer(1, 1)
+        self.drawer_l = self.win_l.create_drawer(1, 1)
+        self.drawer_r = self.win_r.create_drawer(1, 1)
+
     def render(self, screen_rect):
+        if self.node is not None:
+            n_pr = self.node.principal_rect
+            border_size = 2
+            border_color = "#00ff00"
+
+            r_t = Rect(n_pr.x, n_pr.y, n_pr.w, border_size)
+            place_window_using_box(self.win_t, Box(r_t), "000000", screen_rect)
+            self.win_t.unhide()
+            self.drawer_t.width = r_t.w
+            self.drawer_t.height = r_t.h
+            self.drawer_t._check_xcb()
+            self.drawer_t.clear(border_color)
+            self.drawer_t.draw(0, 0, r_t.w, r_t.h)
+
+            r_b = Rect(n_pr.x, n_pr.y2 - border_size, n_pr.w, border_size)
+            place_window_using_box(self.win_b, Box(r_b), "000000", screen_rect)
+            self.win_b.unhide()
+            self.drawer_b.width = r_b.w
+            self.drawer_b.height = r_b.h
+            self.drawer_b._check_xcb()
+            self.drawer_b.clear(border_color)
+            self.drawer_b.draw(0, 0, r_t.w, r_t.h)
+
+            r_l = Rect(n_pr.x, n_pr.y, border_size, n_pr.h)
+            place_window_using_box(self.win_l, Box(r_l), "000000", screen_rect)
+            self.win_l.unhide()
+            self.drawer_l.width = r_l.w
+            self.drawer_l.height = r_l.h
+            self.drawer_l._check_xcb()
+            self.drawer_l.clear(border_color)
+            self.drawer_l.draw(0, 0, r_l.w, r_l.h)
+
+            r_r = Rect(n_pr.x2 - border_size, n_pr.y, border_size, n_pr.h)
+            place_window_using_box(self.win_r, Box(r_r), "000000", screen_rect)
+            self.win_r.unhide()
+            self.drawer_r.width = r_r.w
+            self.drawer_r.height = r_r.h
+            self.drawer_r._check_xcb()
+            self.drawer_r.clear(border_color)
+            self.drawer_r.draw(0, 0, r_r.w, r_r.h)
+        else:
+            self.win_t.hide()
+            self.win_b.hide()
+            self.win_l.hide()
+            self.win_r.hide()
+
+    def render_old(self, screen_rect):
         if self.node is not None:
             print("in nodey")
 
@@ -212,8 +272,9 @@ class VisModeSelection:
             self.drawer.width = n_pr.w
             self.drawer.height = n_pr.h
 
-            # self.drawer.clear("#ff0000")
-            # self.drawer.set_source_rgb("#ff0000")
+            self.drawer._check_xcb()
+            self.drawer.clear("#00000010")
+            # self.drawer.set_source_rgb("#000000.5")
             # self.drawer.fillrect(0, 0, n_pr.w, n_pr.h)
             self.drawer.draw(0, 0, n_pr.w, n_pr.h)
         else:
@@ -237,6 +298,9 @@ class BonsaiTree(Tree):
         self.vis_selection: VisModeSelection
 
     def init_ui(self, qtile):
+        # oh lawdy lawd
+        if hasattr(self, "vis_selection"):
+            self.vis_selection.finalize()
         self.vis_selection = VisModeSelection(qtile)
 
     def create_pane(
@@ -274,7 +338,10 @@ class BonsaiTree(Tree):
             else:
                 node.hide()
 
-        self.vis_selection.render(screen_rect)
+        # vis mode stuff
+        # oh lawdy the checks...
+        if hasattr(self, "vis_selection"):
+            self.vis_selection.render(screen_rect)
 
     def finalize(self):
         self.vis_selection.finalize()
