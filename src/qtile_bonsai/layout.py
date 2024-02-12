@@ -21,6 +21,7 @@ from libqtile.layout.base import Layout
 from libqtile.log_utils import logger
 
 import qtile_bonsai.validation as validation
+from qtile_bonsai.core.geometry import DirectionParam
 from qtile_bonsai.core.tree import Axis, Pane, SplitContainer, Tab, Tree, TreeEvent
 from qtile_bonsai.theme import Gruvbox
 from qtile_bonsai.tree import BonsaiNodeMixin, BonsaiPane, BonsaiTree
@@ -731,6 +732,18 @@ class Bonsai(Layout):
             return
 
         self._tree.pull_out(self.focused_pane, normalize=normalize)
+        self._request
+
+    @expose_command
+    def merge_to_subtab(self, direction: DirectionParam):
+        if self._tree.is_empty:
+            return
+
+        pp = self._tree.find_adjacent_panes(self.focused_pane, direction)
+        p = pp[0]
+        print(p)
+
+        self._tree.merge_to_subtab(self.focused_pane, p)
         self._request_relayout()
 
     @expose_command
@@ -1006,3 +1019,4 @@ class Bonsai(Layout):
     def _get_state_file_path(self, group) -> pathlib.Path:
         tmp_dir = tempfile.gettempdir()
         return pathlib.Path(f"{tmp_dir}/qtile_bonsai/state_{os.getpid()}_{group.name}")
+
