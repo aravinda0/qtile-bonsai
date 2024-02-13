@@ -352,7 +352,9 @@ class Tree:
 
         if br_remove is self._root:
             self._root = None
-            self._notify_subscribers(TreeEvent.node_removed, removed_nodes)
+            for node in removed_nodes:
+                node.finalize()
+            # self._notify_subscribers(TreeEvent.node_removed, removed_nodes)
             return None
 
         assert br_remove.parent is not None
@@ -376,7 +378,9 @@ class Tree:
 
         removed_nodes.extend(self._do_post_removal_pruning(br_sibling))
 
-        self._notify_subscribers(TreeEvent.node_removed, removed_nodes)
+        for node in removed_nodes:
+            node.finalize()
+        # self._notify_subscribers(TreeEvent.node_removed, removed_nodes)
 
         return self._pick_mru_pane(self.iter_panes(start=br_sibling))
 
@@ -398,7 +402,9 @@ class Tree:
         """
         removed_nodes = list(self.iter_walk())
         self._root = None
-        self._notify_subscribers(TreeEvent.node_removed, removed_nodes)
+        for node in removed_nodes:
+            node.finalize()
+        # self._notify_subscribers(TreeEvent.node_removed, removed_nodes)
 
         if from_state is not None:
             self._root = self._parse_state(from_state)

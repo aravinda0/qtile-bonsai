@@ -28,10 +28,6 @@ class BonsaiNodeMixin:
         """Hides any UI elements of this node."""
         pass
 
-    def finalize(self):
-        """Performs any cleanup that may be needed, such as releasing UI resources."""
-        pass
-
 
 class BonsaiTabContainer(BonsaiNodeMixin, TabContainer):
     def __init__(self):
@@ -135,6 +131,7 @@ class BonsaiTabContainer(BonsaiNodeMixin, TabContainer):
         self.bar_window.hide()
 
     def finalize(self):
+        print("finalize TC")
         self.bar_text_layout.finalize()
         self.bar_drawer.finalize()
         self.bar_window.kill()

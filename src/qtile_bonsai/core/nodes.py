@@ -163,6 +163,10 @@ class Node(metaclass=abc.ABCMeta):
             node = node.parent
         raise ValueError(f"No node of type {of_type} in ancestor chain")
 
+    def finalize(self):  # noqa: B027
+        """Any cleanup operations that a node may need to perform on being removed."""
+        pass
+
     def __repr__(self):
         return f"{self.abbrv()}:{self.id}"
 
