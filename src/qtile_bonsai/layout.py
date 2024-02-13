@@ -193,6 +193,8 @@ class Bonsai(Layout):
         super().__init__(**config)
         self.add_defaults(self.defaults)
 
+        # We declare everything here, but things are initialized in `self._init()`. See
+        # docs for `self.clone()`.
         self._tree: Tree
         self._focused_window: Window | None
         self._windows_to_panes: dict[Window, BonsaiPane]
@@ -202,8 +204,6 @@ class Bonsai(Layout):
             self.AddClientMode.initial_restoration_check
         )
         self._restoration_window_id_to_pane_id: dict[int, int] = {}
-
-        self._reset()
 
     @property
     def focused_window(self) -> Window | None:
@@ -221,18 +221,20 @@ class Bonsai(Layout):
 
         This is a bit different from traditional copying/cloning of any 'current' state
         of the layout instance. In qtile, the config file holds the 'first' instance of
-        the layout, then each Group instance 'clones' of that original instance (which
-        likely remains in its initial state) and uses the new instance for all future
-        operations.
+        the layout. Then, as each `Group` is created, it is initialized with 'clones' of
+        that original instance.
 
-        All the built-in layouts perform a state-resetting in their `clone()`
-        implementations.
+        All the qtile-provided built-in layouts perform a state-resetting in their
+        `clone()` implementations.
 
-        So in practice, qtile treats the `Layout.clone()` method more like a factory
-        method, to create fresh instances.
+        So in practice, it seems qtile treats `Layout.clone()` sort of like an 'init'
+        function.
+        Here, we lean into this fully. We can instantiate a `Bonsai` layout instance,
+        but we can only use it after `_init()` is called, which happens via `clone()`
+        when qtile is ready to provide us with the associated `Group` instance.
         """
         pseudo_clone = super().clone(group)
-        pseudo_clone._reset()
+        pseudo_clone._init()
         return pseudo_clone
 
     def layout(self, windows: Sequence[Window], screen_rect: ScreenRect):
@@ -788,7 +790,7 @@ class Bonsai(Layout):
     def _handle_default_next_window(self) -> BonsaiPane:
         return self._tree.tab()
 
-    def _reset(self):
+    def _init(self):
         config = self.parse_multi_level_config()
 
         # We initialize the tree with arbitrary dimensions. These get reset soon as this
