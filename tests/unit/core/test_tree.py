@@ -325,6 +325,120 @@ class TestNestedSplits:
         )
 
 
+class TestSplitOnArbitraryNodes:
+    def test_when_split_on_sc_along_axis(self, tree: Tree):
+        p1 = tree.tab()
+        p2 = tree.split(p1, "y")
+        p3 = tree.split(p2, "x")
+        sc = p3.parent
+
+        tree.split(sc, "x")
+
+        assert tree_matches_repr(
+            tree,
+            """
+            - tc:1
+                - t:2
+                    - sc.y:3
+                        - p:4 | {x: 0, y: 20, w: 400, h: 140}
+                        - sc.x:6
+                            - p:5 | {x: 0, y: 160, w: 100, h: 140}
+                            - p:7 | {x: 100, y: 160, w: 100, h: 140}
+                            - p:8 | {x: 200, y: 160, w: 200, h: 140}
+            """,
+        )
+
+    def test_when_split_on_sc_against_axis(self, tree: Tree):
+        p1 = tree.tab()
+        p2 = tree.split(p1, "y")
+        p3 = tree.split(p2, "x")
+        sc = p3.parent
+
+        tree.split(sc, "y")
+
+        assert tree_matches_repr(
+            tree,
+            """
+            - tc:1
+                - t:2
+                    - sc.y:3
+                        - p:4 | {x: 0, y: 20, w: 400, h: 140}
+                        - sc.x:6
+                            - p:5 | {x: 0, y: 160, w: 200, h: 70}
+                            - p:7 | {x: 200, y: 160, w: 200, h: 70}
+                        - p:8 | {x: 0, y: 230, w: 400, h: 70}
+            """,
+        )
+
+    def test_when_split_on_t(self, tree: Tree):
+        p1 = tree.tab()
+        p2 = tree.split(p1, "y")
+        p3 = tree.tab(p2, new_level=True)
+
+        t = p3.parent.parent
+        tree.split(t, "x")
+
+        assert tree_matches_repr(
+            tree,
+            """
+            - tc:1
+                - t:2
+                    - sc.y:3
+                        - p:4 | {x: 0, y: 20, w: 400, h: 140}
+                        - sc.x:12
+                            - tc:6
+                                - t:7
+                                    - sc.x:8
+                                        - p:5 | {x: 0, y: 180, w: 200, h: 120}
+                                - t:9
+                                    - sc.x:10
+                                        - p:11 | {x: 0, y: 180, w: 200, h: 120}
+                            - p:13 | {x: 200, y: 160, w: 200, h: 140}
+            """,
+        )
+
+    def test_when_split_on_tc(self, tree: Tree):
+        p1 = tree.tab()
+        p2 = tree.split(p1, "y")
+        p3 = tree.tab(p2, new_level=True)
+
+        tc = p3.parent.parent.parent
+        tree.split(tc, "x")
+
+        assert tree_matches_repr(
+            tree,
+            """
+            - tc:1
+                - t:2
+                    - sc.y:3
+                        - p:4 | {x: 0, y: 20, w: 400, h: 140}
+                        - sc.x:12
+                            - tc:6
+                                - t:7
+                                    - sc.x:8
+                                        - p:5 | {x: 0, y: 180, w: 200, h: 120}
+                                - t:9
+                                    - sc.x:10
+                                        - p:11 | {x: 0, y: 180, w: 200, h: 120}
+                            - p:13 | {x: 200, y: 160, w: 200, h: 140}
+            """,
+        )
+
+    def test_when_invalid_node_is_provided_then_raises_value_error(self, tree: Tree):
+        p1 = tree.tab()
+        p2 = tree.split(p1, "y")
+
+        err_msg = "Invalid node provided to split"
+
+        t = p1.get_first_ancestor(Tab)
+        with pytest.raises(ValueError, match=err_msg):
+            tree.split(t, "x")
+
+        tc = p1.get_first_ancestor(TabContainer)
+        with pytest.raises(ValueError, match=err_msg):
+            tree.split(tc, "x")
+
+
 class TestAddTab:
     class TestParameterValidity:
         def test_when_tree_is_empty_and_pane_reference_is_provided_then_raises_error(
