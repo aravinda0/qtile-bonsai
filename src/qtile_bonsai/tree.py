@@ -222,9 +222,20 @@ class BonsaiTree(Tree):
     def create_tab_container(self) -> BonsaiTabContainer:
         return BonsaiTabContainer()
 
+    def render(self, screen_rect: ScreenRect):
+        for node in self.iter_walk():
+            if self.is_visible(node):
+                node.render(screen_rect, self)
+            else:
+                node.hide()
+
     def finalize(self):
         for node in self.iter_walk():
             node.finalize()
+
+    def hide(self):
+        for node in self.iter_walk():
+            node.hide()
 
 
 def place_window_using_box(

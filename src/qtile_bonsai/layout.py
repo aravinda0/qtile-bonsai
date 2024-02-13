@@ -244,11 +244,7 @@ class Bonsai(Layout):
         for each window, as there are other elements such as tab-bar panels to process
         as well.
         """
-        for node in self._tree.iter_walk():
-            if self._tree.is_visible(node):
-                node.render(screen_rect, self._tree)
-            else:
-                node.hide()
+        self._tree.render(screen_rect)
 
     def configure(self, window: Window, screen_rect: ScreenRect):
         """Defined since this is an abstract method, but not implemented since things
@@ -358,7 +354,7 @@ class Bonsai(Layout):
         # consistenty with the default tab layout here.
         self._on_next_window = self._handle_default_next_window
 
-        self._hide_all_internal_windows()
+        self._tree.hide()
 
     def finalize(self):
         self._persist_tree_state()
@@ -854,10 +850,6 @@ class Bonsai(Layout):
         tab = self.focused_pane.get_first_ancestor(Tab)
         tab.title = new_title
         self._request_relayout()
-
-    def _hide_all_internal_windows(self):
-        for node in self._tree.iter_walk():
-            node.hide()
 
     def _request_focus(self, pane: BonsaiPane):
         self.group.focus(pane.window)
