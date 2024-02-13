@@ -534,8 +534,10 @@ class Tree:
     def merge_to_subtab(
         self, src_node: Node, dest_node: Node, *, normalize: bool = True
     ):
+        # checks to ensure src and dest not subset of one or other
+
         # change later
-        assert isinstance(src_node, Pane)
+        # assert isinstance(src_node, Pane)
 
         # resolve merge point from dest_node:
         #   TC or SC?
