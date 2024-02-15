@@ -531,10 +531,32 @@ class Tree:
             r2.size(container_parent.axis),
         )
 
+    def smart_tab_merge(
+        self,
+        src_node: Node,
+        direction: DirectionParam,
+        src_target=None,
+        dest_target=None,
+    ):
+        direction = Direction(direction)
+
+        if src_target == "besp":
+            src_node = self._find_oriented_border_encompassing_super_node(
+                src_node, direction
+            )
+
+        if dest_target == "deepest":
+            dest_node = self._pick_mru_pane(self.find_adjacent_panes(src_node))
+        else:
+            dest_node = src_node.sibling(direction.axis_unit)
+
+        if isinstance(src_node, TabContainer):
+            src_node
+
     def merge_to_subtab(
         self, src_node: Node, dest_node: Node, *, normalize: bool = True
     ):
-        # checks to ensure src and dest not subset of one or other
+        pass  # checks to ensure src and dest not subset of one or other
 
         # change later
         # assert isinstance(src_node, Pane)
