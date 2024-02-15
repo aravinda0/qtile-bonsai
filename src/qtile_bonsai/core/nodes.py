@@ -141,7 +141,7 @@ class Node(metaclass=abc.ABCMeta):
         return parent.children[requested_index]
 
     def get_ancestors(
-        self, of_type: type[NodeType] = None, *, include_self=False
+        self, of_type: type[NodeType] = None, *, include_self: bool = False
     ) -> list[NodeType]:
         ancestors = [self] if include_self else []
 
