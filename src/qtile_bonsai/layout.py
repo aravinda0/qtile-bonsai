@@ -732,7 +732,7 @@ class Bonsai(Layout):
             return
 
         self._tree.pull_out(self.focused_pane, normalize=normalize)
-        self._request
+        self._request_relayout()
 
     @expose_command
     def merge_to_subtab(self, direction: DirectionParam):
