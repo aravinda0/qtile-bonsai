@@ -899,8 +899,8 @@ class Tree:
         ):
             split_container.axis = requested_axis
 
-    def _find_removal_branch(self, pane: Pane) -> tuple[Node, list[Node]]:
-        n = pane
+    def _find_removal_branch(self, node: Node) -> tuple[Node, list[Node]]:
+        n = node
         nodes_to_remove: list[Node] = [n]
         while n is not self._root and n.is_sole_child:
             n = n.parent
