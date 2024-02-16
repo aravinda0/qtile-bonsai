@@ -48,8 +48,34 @@ class TestIsEmpty:
         assert not tree.is_empty
 
 
-class TestTrashPullOut:
+class TestTrashSmartTabMerge:
     @pytest.mark.a()
+    def test_1(self, tree: Tree):
+        p1 = tree.tab()
+        p2 = tree.split(p1, "x")
+        p3 = tree.split(p2, "x")
+
+        tree.smart_tab_merge(p2, "right")
+
+        assert tree_matches_repr(
+            tree,
+            """
+            - tc:1
+                - t:2
+                    - sc.x:3
+                        - p:4 | {x: 0, y: 20, w: 200, h: 280}
+                        - tc:7
+                            - t:8
+                                - sc.x:9
+                                    - p:6 | {x: 200, y: 40, w: 200, h: 260}
+                            - t:10
+                                - sc.x:11
+                                    - p:5 | {x: 200, y: 40, w: 200, h: 260}
+            """,
+        )
+
+
+class TestTrashPullOut:
     def test_pull_out_1(self, tree: Tree):
         p1 = tree.tab()
         p2 = tree.split(p1, "x")

@@ -393,6 +393,34 @@ class Tree:
 
         return self._pick_mru_pane(self.iter_panes(start=br_sibling))
 
+    def _remove(self, node: Node, *, normalize: bool) -> tuple[Node, list[Node]]:
+        br_remove, br_remove_nodes = self._find_removal_branch(node)
+
+        if br_remove is self._root:
+            self._root = None
+            return (br_remove, br_remove_nodes)
+
+        container = br_remove.parent
+        br_sibling = br_remove.operational_sibling
+
+        container.children.remove(br_remove)
+
+        if isinstance(container, SplitContainer):
+            # Space redistribution is applicable. Give space to sibling node.
+            br_remove_rect = br_remove.principal_rect
+            br_sibling_rect = br_sibling.principal_rect
+            axis = container.axis
+            start = min(br_remove_rect.coord(axis), br_sibling_rect.coord(axis))
+            br_sibling.transform(
+                axis, start, br_sibling_rect.size(axis) + br_remove_rect.size(axis)
+            )
+            if normalize:
+                self.normalize(container)
+
+        br_remove_nodes.extend(self._do_post_removal_pruning(br_sibling))
+
+        return (br_remove, br_remove_nodes)
+
     def reset(self, from_state: dict | None = None):
         """Clear the current tree. If `from_state` is provided, restore state from
         there.
@@ -550,8 +578,14 @@ class Tree:
         else:
             dest_node = src_node.sibling(direction.axis_unit)
 
-        if isinstance(src_node, TabContainer):
-            src_node
+        src_node, _ = self._remove(src_node, normalize=False)
+
+        p, added_nodes = self._add_tab_at_new_level(dest_node, using_pane=src_node)
+
+        self._notify_subscribers(TreeEvent.node_added, added_nodes)
+
+        # if isinstance(src_node, TabContainer):
+        #     src_node
 
     def merge_to_subtab(
         self, src_node: Node, dest_node: Node, *, normalize: bool = True

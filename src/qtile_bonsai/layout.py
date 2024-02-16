@@ -746,7 +746,9 @@ class Bonsai(Layout):
         )
         target_besp = besp.sibling(d.axis_unit)
 
-        self._tree.merge_to_subtab(besp, target_besp, normalize=True)
+        # self._tree.merge_to_subtab(besp, target_besp, normalize=True)
+
+        self._tree.smart_tab_merge(self.focused_pane, direction)
         self._request_relayout()
 
     @expose_command
