@@ -49,8 +49,7 @@ class TestIsEmpty:
 
 
 class TestTrashSmartTabMerge:
-    @pytest.mark.a()
-    def test_1(self, tree: Tree):
+    def test_1__perhaps_make_directional(self, tree: Tree):
         p1 = tree.tab()
         p2 = tree.split(p1, "x")
         p3 = tree.split(p2, "x")
@@ -73,6 +72,38 @@ class TestTrashSmartTabMerge:
                                     - p:5 | {x: 200, y: 40, w: 200, h: 260}
             """,
         )
+
+    @pytest.mark.a()
+    def test_2_besp_to_besp_merge(self, tree: Tree):
+        p1 = tree.tab()
+        p2 = tree.split(p1, "x")
+        p3 = tree.split(p2, "x")
+        tree.split(p2, "y")
+        tree.split(p3, "y")
+
+        tree.smart_tab_merge(p2, "right", src_selection="besp", dest_selection="besp")
+
+        assert tree_matches_repr(
+            tree,
+            """
+            - tc:1
+                - t:2
+                    - sc.x:3
+                        - p:4 | {x: 0, y: 20, w: 200, h: 280}
+                        - tc:11
+                            - t:12
+                                - sc.y:9
+                                    - p:6 | {x: 300, y: 20, w: 100, h: 140}
+                                    - p:10 | {x: 300, y: 160, w: 100, h: 140}
+                            - t:13
+                                - sc.y:7
+                                    - p:5 | {x: 200, y: 20, w: 100, h: 140}
+                                    - p:8 | {x: 200, y: 160, w: 100, h: 140}
+            """,
+        )
+
+    def test_3_and_more_for_combos_of_src_selection_and_dest_selection(self):
+        pass
 
 
 class TestTrashPullOut:
