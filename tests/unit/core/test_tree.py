@@ -439,7 +439,7 @@ class TestSplitOnArbitraryNodes:
             tree.split(tc, "x")
 
 
-class TestAddTab:
+class TestTab:
     class TestParameterValidity:
         def test_when_tree_is_empty_and_pane_reference_is_provided_then_raises_error(
             self, tree: Tree
