@@ -448,7 +448,7 @@ class TestTab:
 
             err_msg = "The tree is empty. The provided arguments are invalid."
             with pytest.raises(ValueError, match=err_msg):
-                tree.tab(at_pane=dummy_pane)
+                tree.tab(at_node=dummy_pane)
 
         def test_when_tree_is_empty_and_new_level_is_requested_then_raises_error(
             self, tree: Tree
@@ -470,7 +470,7 @@ class TestTab:
             tree.tab()
 
             err_msg = (
-                "`new_level` requires a reference `at_pane` under which to add tabs"
+                "`new_level` requires a reference `at_node` under which to add tabs"
             )
             with pytest.raises(ValueError, match=err_msg):
                 tree.tab(new_level=True)
@@ -480,7 +480,7 @@ class TestTab:
         ):
             tree.tab()
 
-            err_msg = "`level` requires a reference `at_pane`"
+            err_msg = "`level` requires a reference `at_node`"
             with pytest.raises(ValueError, match=err_msg):
                 tree.tab(level=2)
 
@@ -885,12 +885,13 @@ class TestTab:
         sc2, t2, _ = p2.get_ancestors()
 
         p3 = tree.tab(p2, new_level=True)
-        sc3, t3, tc2, _, _, _ = p3.get_ancestors()
+        sc3, t3, tc2, _, _, _ = p2.get_ancestors()
+        sc4, t4, _, _, _, _ = p3.get_ancestors()
 
         assert callback.mock_calls == [
             mock.call([tc1, t1, sc1, p1]),
             mock.call([t2, sc2, p2]),
-            mock.call([tc2, t3, sc3, p3]),
+            mock.call([tc2, t3, sc3, t4, sc4, p3]),
         ]
 
 
@@ -1041,6 +1042,117 @@ class TestSplitsUnderTabs:
                                             - p:21 | {x: 200, y: 180, w: 100, h: 60}
                                             - p:27 | {x: 200, y: 240, w: 100, h: 60}
                                         - p:25 | {x: 300, y: 180, w: 100, h: 120}
+            """,
+        )
+
+
+class TestTabOnArbitraryNode:
+    def test_when_invalid_node_is_provided_then_raises_value_error(self, tree: Tree):
+        p1 = tree.tab()
+
+        t = p1.parent.parent
+        tc = t.parent
+
+        err_msg = "Invalid node provided to tab on. No ancestor SplitContainer found."
+        with pytest.raises(ValueError, match=err_msg):
+            tree.tab(t, new_level=True)
+        with pytest.raises(ValueError, match=err_msg):
+            tree.tab(tc, new_level=True)
+
+    def test_when_tab_on_sc(self, tree: Tree):
+        p1 = tree.tab()
+        p2 = tree.split(p1, "x")
+        p3 = tree.split(p2, "y")
+        p4 = tree.split(p3, "x")
+
+        sc = p4.parent
+        tree.tab(sc, new_level=True)
+
+        assert tree_matches_repr(
+            tree,
+            """
+            - tc:1
+                - t:2
+                    - sc.x:3
+                        - p:4 | {x: 0, y: 20, w: 200, h: 280}
+                        - sc.y:6
+                            - p:5 | {x: 200, y: 20, w: 200, h: 140}
+                            - tc:10
+                                - t:11
+                                    - sc.x:8
+                                        - p:7 | {x: 200, y: 180, w: 100, h: 120}
+                                        - p:9 | {x: 300, y: 180, w: 100, h: 120}
+                                - t:12
+                                    - sc.x:13
+                                        - p:14 | {x: 200, y: 180, w: 200, h: 120}
+            """,
+        )
+
+    def test_when_tab_on_t(self, tree: Tree):
+        p1 = tree.tab()
+        p2 = tree.split(p1, "x")
+        p3 = tree.split(p2, "y")
+        p4 = tree.tab(p3, new_level=True)
+
+        t = p4.parent.parent
+        tree.tab(t, new_level=True)
+
+        assert tree_matches_repr(
+            tree,
+            """
+            - tc:1
+                - t:2
+                    - sc.x:3
+                        - p:4 | {x: 0, y: 20, w: 200, h: 280}
+                        - sc.y:6
+                            - p:5 | {x: 200, y: 20, w: 200, h: 140}
+                            - tc:14
+                                - t:15
+                                    - sc.x:16
+                                        - tc:8
+                                            - t:9
+                                                - sc.x:10
+                                                    - p:7 | {x: 200, y: 200, w: 200, h: 100}
+                                            - t:11
+                                                - sc.x:12
+                                                    - p:13 | {x: 200, y: 200, w: 200, h: 100}
+                                - t:17
+                                    - sc.x:18
+                                        - p:19 | {x: 200, y: 180, w: 200, h: 120}
+            """,
+        )
+
+    def test_when_tab_on_tc(self, tree: Tree):
+        p1 = tree.tab()
+        p2 = tree.split(p1, "x")
+        p3 = tree.split(p2, "y")
+        p4 = tree.tab(p3, new_level=True)
+
+        tc = p4.parent.parent.parent
+        tree.tab(tc, new_level=True)
+
+        assert tree_matches_repr(
+            tree,
+            """
+            - tc:1
+                - t:2
+                    - sc.x:3
+                        - p:4 | {x: 0, y: 20, w: 200, h: 280}
+                        - sc.y:6
+                            - p:5 | {x: 200, y: 20, w: 200, h: 140}
+                            - tc:14
+                                - t:15
+                                    - sc.x:16
+                                        - tc:8
+                                            - t:9
+                                                - sc.x:10
+                                                    - p:7 | {x: 200, y: 200, w: 200, h: 100}
+                                            - t:11
+                                                - sc.x:12
+                                                    - p:13 | {x: 200, y: 200, w: 200, h: 100}
+                                - t:17
+                                    - sc.x:18
+                                        - p:19 | {x: 200, y: 180, w: 200, h: 120}
             """,
         )
 

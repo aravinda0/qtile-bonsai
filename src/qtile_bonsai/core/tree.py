@@ -191,32 +191,32 @@ class Tree:
 
     def tab(
         self,
-        at_pane: Pane | None = None,
+        at_node: Node | None = None,
         *,
         new_level: bool = False,
         level: int | None = None,
     ) -> Pane:
         if self.is_empty:
-            if at_pane is not None or new_level or level is not None:
+            if at_node is not None or new_level or level is not None:
                 raise ValueError(
                     "The tree is empty. The provided arguments are invalid."
                 )
 
             pane, added_nodes = self._add_very_first_tab()
         elif new_level:
-            if at_pane is None:
+            if at_node is None:
                 raise ValueError(
-                    "`new_level` requires a reference `at_pane` under which to add tabs"
+                    "`new_level` requires a reference `at_node` under which to add tabs"
                 )
 
-            pane, added_nodes = self._add_tab_at_new_level(at_pane)
+            pane, added_nodes = self._add_tab_at_new_level(at_node)
         elif level is not None:
-            if at_pane is None:
-                raise ValueError("`level` requires a reference `at_pane`")
+            if at_node is None:
+                raise ValueError("`level` requires a reference `at_node`")
             if level < 1:
                 raise ValueError("`level` must be 1 or higher")
 
-            ancestor_tab_containers = at_pane.get_ancestors(TabContainer)
+            ancestor_tab_containers = at_node.get_ancestors(TabContainer)
             max_tab_level = len(ancestor_tab_containers)
             if level > max_tab_level:
                 raise ValueError(
@@ -227,10 +227,10 @@ class Tree:
             tab_container = ancestor_tab_containers[-level]
             pane, added_nodes = self._add_tab(tab_container)
         else:
-            if at_pane is None:
+            if at_node is None:
                 tab_container = self._root
             else:
-                tab_container = at_pane.get_first_ancestor(TabContainer)
+                tab_container = at_node.get_first_ancestor(TabContainer)
 
             if tab_container is None:
                 raise InvalidTreeStructureError
@@ -708,58 +708,71 @@ class Tree:
 
         return new_pane, added_nodes
 
-    def _add_tab_at_new_level(self, at_pane: Pane) -> tuple[Pane, list[Node]]:
-        """Converts the provided `at_pane` into a subtab tree, placing `at_pane` as the
+    def _add_tab_at_new_level(
+        self, at_node: Node, insert_node: Node | None = None
+    ) -> tuple[Node, list[Node]]:
+        """Converts the provided `at_node` into a subtab tree, placing `at_node` as the
         first tab in the new level, and creates a new second tab in that subtab tree.
+
+        If `insert_node` is provided, it is inserted under the new tab. Else we create a
+        new pane to place there instead.
         """
+        if isinstance(insert_node, Tab):
+            raise ValueError("Invalid node branch provided for `insert_node")
+
         added_nodes = []
 
-        at_split_container = at_pane.parent
-        if at_split_container is None:
-            raise InvalidTreeStructureError
+        # Find the nearest SplitContainer under which tabbing should happen
+        try:
+            at_node, at_container = next(
+                (n, n.parent)
+                for n in at_node.get_ancestors(include_self=True)
+                if isinstance(n.parent, SplitContainer)
+            )
+        except StopIteration:
+            raise ValueError(
+                "Invalid node provided to tab on. No ancestor SplitContainer found."
+            ) from None
 
-        # Remove `at_pane` from tree so we can begin to insert a new tab container
+        at_node_rect = at_node.principal_rect
+
+        # Remove `at_node` from tree so we can begin to insert a new tab container
         # subtree. We add it back later as a leaf under the new subtree.
-        at_pane_pos = at_split_container.children.index(at_pane)
-        at_split_container.children.remove(at_pane)
+        at_node_pos = at_container.children.index(at_node)
+        at_node.parent = None
+        at_container.children.remove(at_node)
 
         new_tab_container = self.create_tab_container()
-        new_tab_container.parent = at_split_container
-        at_split_container.children.insert(at_pane_pos, new_tab_container)
-        added_nodes.append(new_tab_container)
-
-        new_tab_level = at_pane.tab_level + 1
+        new_tab_container.parent = at_container
+        new_tab_level = at_node.tab_level + 1
         new_tab_container.tab_bar = self._build_tab_bar(
-            at_pane.principal_rect.x,
-            at_pane.principal_rect.y,
-            at_pane.principal_rect.w,
+            at_node.principal_rect.x,
+            at_node.principal_rect.y,
+            at_node.principal_rect.w,
             new_tab_level,
             2,
         )
+        new_bar_rect = new_tab_container.tab_bar.box.principal_rect
+        at_container.children.insert(at_node_pos, new_tab_container)
+        added_nodes.append(new_tab_container)
 
         tab1 = self.create_tab()
         tab1.parent = new_tab_container
         new_tab_container.children.append(tab1)
+        added_nodes.append(tab1)
 
-        split_container1 = self.create_split_container()
-        split_container1.parent = tab1
-        tab1.children.append(split_container1)
+        if isinstance(at_node, SplitContainer):
+            at_node.parent = tab1
+            tab1.children.append(at_node)
+        else:
+            split_container1 = self.create_split_container()
+            split_container1.parent = tab1
+            tab1.children.append(split_container1)
+            added_nodes.append(split_container1)
 
-        # Attach `at_pane` under the first tab of our new subtree.
-        at_pane.parent = split_container1
-        split_container1.children.append(at_pane)
-
-        # Adjust `at_pane's` dimensions to account for the new tab bar
-        at_pane_rect = at_pane.principal_rect
-        at_pane_rect.y = new_tab_container.tab_bar.box.principal_rect.y2
-        at_pane_rect.h -= new_tab_container.tab_bar.box.principal_rect.h
-        at_pane.box.principal_rect = at_pane_rect
-
-        # `at_pane` is now at tab_level = n + 1. We modify properties to align
-        # with n + 1 level config.
-        at_pane.box.margin = self.get_config("window.margin", level=new_tab_level)
-        at_pane.box.border = self.get_config("window.border_size", level=new_tab_level)
-        at_pane.box.padding = self.get_config("window.padding", level=new_tab_level)
+            # Connect `at_node` to our new SC
+            at_node.parent = split_container1
+            split_container1.children.append(at_node)
 
         # Start adding the real new tab that was requested and mark it as the active
         # tab.
@@ -769,22 +782,38 @@ class Tree:
         new_tab_container.active_child = tab2
         added_nodes.append(tab2)
 
-        split_container2 = self.create_split_container()
+        # Ensure we have proper connection point under the new tab
+        if insert_node is None or not isinstance(insert_node, SplitContainer):
+            split_container2 = self.create_split_container()
+            added_nodes.append(split_container2)
+        else:
+            split_container2 = insert_node
+
         split_container2.parent = tab2
         tab2.children.append(split_container2)
-        added_nodes.append(split_container2)
 
-        # The new tab's pane will have the same dimensions as `at_pane` after it was
-        # adjusted above.
-        new_pane = self.create_pane(
-            principal_rect=Rect.from_rect(at_pane.principal_rect),
-            tab_level=new_tab_level,
-        )
-        new_pane.parent = split_container2
-        split_container2.children.append(new_pane)
-        added_nodes.append(new_pane)
+        if insert_node is None:
+            # The new tab's pane will have the same dimensions as `at_node` after it was
+            # adjusted above.
+            new_node = self.create_pane(
+                principal_rect=Rect.from_rect(at_node.principal_rect),
+                tab_level=new_tab_level,
+            )
+            added_nodes.append(new_node)
+        else:
+            new_node = insert_node
+            # TODO: x-based redim. To be handled during subtab merge impl.
+            new_node.transform(Axis.y, new_bar_rect.y2, at_node_rect.h - new_bar_rect.h)
 
-        return new_pane, added_nodes
+        new_node.parent = split_container2
+        split_container2.children.append(new_node)
+
+        # All nodes under the new TabContainer are now at tab_level = n + 1. We walk
+        # down the branch to update level based config. This may include some
+        # re-dimensioning due to `tab_bar.height` config impact.
+        self._reevaluate_level_dependent_attributes(start_node=at_container)
+
+        return new_node, added_nodes
 
     def _build_tab_bar(
         self, x: int, y: int, w: int, tab_level: int, tab_count: int
@@ -804,6 +833,38 @@ class Tree:
             border=self.get_config("tab_bar.border_size", level=tab_level),
             padding=self.get_config("tab_bar.padding", level=tab_level),
         )
+
+    def _reevaluate_level_dependent_attributes(self, start_node: Node):
+        for node in self.iter_walk(start=start_node):
+            tab_level = node.tab_level
+            if isinstance(node, TabContainer):
+                tab_bar = node.tab_bar
+                node_rect = node.principal_rect
+
+                tab_bar.box.margin = self.get_config("tab_bar.margin", level=tab_level)
+                tab_bar.box.border = self.get_config(
+                    "tab_bar.border_size", level=tab_level
+                )
+                tab_bar.box.padding = self.get_config(
+                    "tab_bar.padding", level=tab_level
+                )
+
+                # Update bar height based on new tab level. Then adjust the heights of
+                # the underlying tabs as well.
+                tab_bar_rect = tab_bar.box.principal_rect
+                tab_bar.box.principal_rect = Rect(
+                    tab_bar_rect.x,
+                    tab_bar_rect.y,
+                    tab_bar_rect.w,
+                    self.get_config("tab_bar.height", level=tab_level),
+                )
+                for child in node.children:
+                    new_height = node_rect.h - tab_bar.box.principal_rect.h
+                    child.transform(Axis.y, tab_bar.box.principal_rect.y2, new_height)
+            elif isinstance(node, Pane):
+                node.box.margin = self.get_config("window.margin", level=tab_level)
+                node.box.border = self.get_config("window.border_size", level=tab_level)
+                node.box.padding = self.get_config("window.padding", level=tab_level)
 
     def _maybe_restore_tab_bar(self, tab_container: TabContainer):
         """Depending on the `tab_bar.hide_when` config, we may require that a tab bar
