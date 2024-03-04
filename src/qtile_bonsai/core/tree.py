@@ -531,7 +531,7 @@ class Tree:
         """
         direction = Direction(direction)
 
-        super_node = self._find_oriented_border_encompassing_super_node(pane, direction)
+        super_node = self.find_border_encompassing_supernode(pane, direction)
         if super_node is None:
             return []
 
@@ -552,6 +552,41 @@ class Tree:
                 adjacent.append(candidate)
 
         return adjacent
+
+    def find_border_encompassing_supernode(
+        self, node: Node, border_direction: Direction, *, stop_at_tc: bool = False
+    ) -> Node | None:
+        """
+        For the provided `node's` border in the specified `direction`, finds the largest
+        ancestor node that `node's` border is a part of.
+
+        The chosen super node is one that is of the correct 'orientation', ie. it is
+        under a SC for which `sc.axis == direction.axis`.
+
+        If `stop_at_tc` is provided, then we stop the seach at the nearest TabContainer.
+
+        For the edge cases where there is no such oriented super node, `None` is
+        returned. This happens when:
+            - `node` is a sole top level pane under the root TC
+            - There are only top level panes under the root TC and the requested
+              direction is in the inverse direction of those panes.
+        """
+        # TODO: Better docs for explaining the 'orientation' aspect. Or make it so it is
+        # no longer needed.
+
+        supernode = None
+        n, p = node, node.parent
+        while p is not None:
+            if isinstance(p, SplitContainer) and p.axis == border_direction.axis:
+                supernode = n
+                edge_node = p.children[-1 if border_direction.axis_unit > 0 else 0]
+                if n is not edge_node:
+                    break
+            if stop_at_tc and isinstance(p, TabContainer):
+                supernode = p
+                break
+            n, p = p, p.parent
+        return supernode
 
     def iter_walk(
         self, start: Node | None = None, *, only_visible: bool = False
@@ -1149,33 +1184,6 @@ class Tree:
                 )
                 if not n_is_sole_top_level_node and p.axis == axis:
                     super_node = n
-                    break
-            n, p = p, p.parent
-        return super_node
-
-    def _find_oriented_border_encompassing_super_node(
-        self, pane: Pane, direction: Direction
-    ) -> Node | None:
-        """
-        For the provided `pane's` border of the specified `direction`, finds the largest
-        ancestor node that the pane's border is a subset of.
-
-        The chosen super node is one that is of the correct 'orientation', ie. it is
-        under a SC for which `sc.axis == direction.axis`.
-
-        For the edge cases where there is no such oriented super node, `None` is
-        returned. This happens when:
-            - `pane` is a sole top level pane under the root TC
-            - There are only top level panes under the root TC and the requested
-              direction is in the inverse direction of those panes.
-        """
-        super_node = None
-        n, p = pane, pane.parent
-        while p is not None:
-            if isinstance(p, SplitContainer) and p.axis == direction.axis:
-                super_node = n
-                edge_node = p.children[-1 if direction.axis_unit > 0 else 0]
-                if n is not edge_node:
                     break
             n, p = p, p.parent
         return super_node
