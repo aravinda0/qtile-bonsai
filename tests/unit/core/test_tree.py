@@ -4090,6 +4090,6 @@ class TestAsDict:
         assert state == complex_tree_as_dict
 
 
-class TestStr:
+class TestRepr:
     def test_empty_tree(self, tree: Tree):
         assert repr(tree) == "<empty>"
