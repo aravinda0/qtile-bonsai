@@ -906,6 +906,12 @@ class Tree:
         )
 
     def _reevaluate_level_dependent_attributes(self, start_node: Node):
+        """Walks down the provided `start_node` and re-applies any level dependent
+        configuration.
+
+        Used in cases like when a subtree is added under an existing node. The moved
+        nodes may now be at a different tab level than before.
+        """
         for node in self.iter_walk(start=start_node):
             tab_level = node.tab_level
             if isinstance(node, TabContainer):
