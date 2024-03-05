@@ -225,7 +225,8 @@ class Tree:
                 )
 
             tab_container = ancestor_tab_containers[-level]
-            pane, added_nodes = self._add_tab(tab_container)
+            tab, added_nodes = self._add_tab(tab_container)
+            pane = self.find_mru_pane(start_node=tab)
         else:
             if at_node is None:
                 tab_container = self._root
@@ -235,7 +236,8 @@ class Tree:
             if tab_container is None:
                 raise InvalidTreeStructureError
 
-            pane, added_nodes = self._add_tab(tab_container)
+            tab, added_nodes = self._add_tab(tab_container)
+            pane = self.find_mru_pane(start_node=tab)
 
         self._notify_subscribers(TreeEvent.node_added, added_nodes)
 
@@ -762,31 +764,93 @@ class Tree:
 
         return new_pane, added_nodes
 
-    def _add_tab(self, tab_container: TabContainer) -> tuple[Pane, list[Node]]:
+    def _add_tab(
+        self,
+        tc: TabContainer,
+        *,
+        insert_node: Node | None = None,
+        tc_rect: Rect | None = None,
+    ) -> tuple[Tab, list[Node]]:
+        """Add a new tab to the provided TabContainer instance.
+
+        Args:
+            `tc`:
+                The TabContainer instance under which the new tab should be added.
+            `insert_node`:
+                If provided, add the provided branch under the new tab. Or if the node
+                provided is a `Tab`, just use that.
+                If nothing is provided, a new Pane instance is created to add under the
+                new tab.
+            `tc_rect`:
+                If provided, this Rect will be used determine the dimensions of the new
+                tab. Else will determine dimensions from the provided `tc`.
+                Used primarily when adding a tab to a brand new TabContainer that
+                doesn't have any children yet.
+
+        Returns:
+            A 2-tuple with:
+                1. The new `Tab` node instance.
+                2. The list of newly created nodes.
+        """
+        if not tc.children and tc_rect is None:
+            raise ValueError(
+                "If `tc` has no children to obtain a Rect from, a `tc_content_rect` "
+                "must be provided."
+            )
+
+        tc_rect = Rect.from_rect(tc.principal_rect) if tc_rect is None else tc_rect
+        bar_rect = tc.tab_bar.box.principal_rect
+        tc_content_rect = Rect(
+            tc_rect.x, bar_rect.y2, tc_rect.w, tc_rect.h - bar_rect.h
+        )
+
+        def _transform_tab(t: Tab):
+            t.transform(Axis.x, tc_content_rect.x, tc_content_rect.w)
+            t.transform(Axis.y, tc_content_rect.y, tc_content_rect.h)
+            self._reevaluate_level_dependent_attributes(start_node=t)
+
         added_nodes = []
 
-        self._ensure_tab_bar_restored(tab_container)
+        self._ensure_tab_bar_restored(tc)
 
-        new_tab = self.create_tab()
-        new_tab.parent = tab_container
-        tab_container.children.append(new_tab)
-        added_nodes.append(new_tab)
+        # Handle the need for a T under the TC
+        if isinstance(insert_node, Tab):
+            t = insert_node
+            t.parent = tc
+            tc.children.append(t)
+            tc.active_child = t
+            _transform_tab(t)
+            return (t, added_nodes)
+        t = self.create_tab()
+        t.parent = tc
+        tc.children.append(t)
+        added_nodes.append(t)
+        tc.active_child = t
 
-        new_split_container = self.create_split_container()
-        new_split_container.parent = new_tab
-        new_tab.children.append(new_split_container)
-        added_nodes.append(new_split_container)
+        # Handle the need for a SC under the T
+        if isinstance(insert_node, SplitContainer):
+            sc = insert_node
+            sc.parent = t
+            t.children.append(sc)
+            _transform_tab(t)
+            return (t, added_nodes)
+        sc = self.create_split_container()
+        sc.parent = t
+        t.children.append(sc)
+        added_nodes.append(sc)
 
-        new_pane_rect = tab_container.get_inner_rect()
+        # Handle the need for content under the SC. Can be P or TC.
+        if insert_node is not None:
+            content = insert_node
+        else:
+            content = self.create_pane(tc_content_rect, tab_level=tc.tab_level)
+            added_nodes.append(content)
+        content.parent = sc
+        sc.children.append(content)
 
-        new_pane = self.create_pane(
-            principal_rect=new_pane_rect, tab_level=tab_container.tab_level
-        )
-        new_pane.parent = new_split_container
-        new_split_container.children.append(new_pane)
-        added_nodes.append(new_pane)
+        _transform_tab(t)
 
-        return new_pane, added_nodes
+        return (t, added_nodes)
 
     def _add_tab_at_new_level(
         self, at_node: Node, insert_node: Node | None = None
@@ -888,9 +952,6 @@ class Tree:
         new_node.parent = split_container2
         split_container2.children.append(new_node)
 
-        # All nodes under the new TabContainer are now at tab_level = n + 1. We walk
-        # down the branch to update level based config. This may include some
-        # re-dimensioning due to `tab_bar.height` config impact.
         self._reevaluate_level_dependent_attributes(start_node=at_container)
 
         return new_node, added_nodes
