@@ -756,7 +756,7 @@ class Tree:
     def _add_tab(self, tab_container: TabContainer) -> tuple[Pane, list[Node]]:
         added_nodes = []
 
-        self._maybe_restore_tab_bar(tab_container)
+        self._ensure_tab_bar_restored(tab_container)
 
         new_tab = self.create_tab()
         new_tab.parent = tab_container
@@ -937,7 +937,7 @@ class Tree:
                 node.box.border = self.get_config("window.border_size", level=tab_level)
                 node.box.padding = self.get_config("window.padding", level=tab_level)
 
-    def _maybe_restore_tab_bar(self, tab_container: TabContainer):
+    def _ensure_tab_bar_restored(self, tab_container: TabContainer):
         """Depending on the `tab_bar.hide_when` config, we may require that a tab bar
         that was previously hidden be made visible again.
         """
