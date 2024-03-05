@@ -1984,7 +1984,7 @@ class TestRemove:
         p1 = tree.tab()
         p2 = tree.split(p1, "x")
 
-        p = tree.remove(p1)
+        _, _, p = tree.remove(p1)
 
         assert p is p2
 
@@ -1998,7 +1998,7 @@ class TestRemove:
 
         tree.focus(p3)
 
-        p = tree.remove(p1)
+        _, _, p = tree.remove(p1)
 
         assert p is p3
 
@@ -2012,7 +2012,7 @@ class TestRemove:
 
         tree.focus(p4)
 
-        p = tree.remove(p3)
+        _, _, p = tree.remove(p3)
 
         assert p is p4
 
@@ -2020,7 +2020,7 @@ class TestRemove:
         self, tree: Tree
     ):
         p1 = tree.tab()
-        p = tree.remove(p1)
+        _, _, p = tree.remove(p1)
 
         assert p is None
 
@@ -2370,6 +2370,8 @@ class TestRemove:
                 p3 = tree.split(p2, "y")
                 tree.tab(p3, new_level=True)
 
+                sc = p2.parent
+
                 tree.remove(p2)
 
                 assert tree_matches_repr(
@@ -2390,7 +2392,7 @@ class TestRemove:
                 )
 
                 assert callback.mock_calls == [
-                    mock.call([p2, p2.parent]),
+                    mock.call([p2, sc]),
                 ]
 
             class TestWhenN1_N2_N3_Is_SC_TC_T:  # noqa: N801

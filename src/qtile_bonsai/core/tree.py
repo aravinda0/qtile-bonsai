@@ -354,41 +354,43 @@ class Tree:
 
         _normalize(node, recurse=recurse)
 
-    def remove(self, pane: Pane, *, normalize: bool = False) -> Pane | None:
-        removed_nodes = []
+    def remove(
+        self, node: Node, *, normalize: bool = False
+    ) -> tuple[Node, Node | None, Pane | None]:
+        """Remove the provided `node` from the tree.
 
-        br_remove, br_remove_nodes = self._find_removal_branch(pane)
-        removed_nodes.extend(br_remove_nodes)
+        Will also notify subscribers of `TreeEvent.node_removed` of all removed nodes.
 
-        if br_remove is self._root:
-            self._root = None
-            self._notify_subscribers(TreeEvent.node_removed, removed_nodes)
-            return None
+        Args:
+            `node`:
+                The node to be removed. Note that the resolved removal point could also
+                be an ancestor of this node.
+            `normalize`:
+                Whether removal should lead to all the `node` siblings to re-dimension
+                themselves to take equal amounts of space.
 
-        assert br_remove.parent is not None
-        assert br_remove.operational_sibling is not None
+        Returns:
+            3-tuple:
+                1. The `node` or an ancestor node that was the point of removal. This
+                branch is now unlinked from the main tree.
+                2. The sibling node of the removed node. Or `None` if no sibling exists.
+                3. The next pane under the sibling that ought to get focus.
+        """
+        rm_nodes = []
+        next_focus_pane = None
 
-        container = br_remove.parent
-        br_sibling = br_remove.operational_sibling
-        container.children.remove(br_remove)
+        br_rm, br_sib, br_rm_nodes = self._remove(
+            node, consume_vacant_space=True, normalize=normalize
+        )
 
-        if isinstance(container, SplitContainer):
-            # Space redistribution is applicable. Give space to sibling node.
-            br_remove_rect = br_remove.principal_rect
-            br_sibling_rect = br_sibling.principal_rect
-            axis = container.axis
-            start = min(br_remove_rect.coord(axis), br_sibling_rect.coord(axis))
-            br_sibling.transform(
-                axis, start, br_sibling_rect.size(axis) + br_remove_rect.size(axis)
-            )
-            if normalize:
-                self.normalize(container)
+        rm_nodes.extend(br_rm_nodes)
+        if br_sib is not None:
+            rm_nodes.extend(self._do_post_removal_pruning(br_sib))
+            next_focus_pane = self._pick_mru_pane(self.iter_panes(start=br_sib))
 
-        removed_nodes.extend(self._do_post_removal_pruning(br_sibling))
+        self._notify_subscribers(TreeEvent.node_removed, rm_nodes)
 
-        self._notify_subscribers(TreeEvent.node_removed, removed_nodes)
-
-        return self._pick_mru_pane(self.iter_panes(start=br_sibling))
+        return (br_rm, br_sib, next_focus_pane)
 
     def reset(self, from_state: dict | None = None):
         """Clear the current tree. If `from_state` is provided, restore state from
@@ -652,6 +654,40 @@ class Tree:
             return frags
 
         return "\n".join(walk(self._root))
+
+    def _remove(
+        self, node: Node, *, consume_vacant_space: bool = True, normalize: bool = False
+    ) -> tuple[Node, Node | None, list[Node]]:
+        """Internal helper for removing node subtrees.
+
+        Returns:
+            A 3-tuple with the following items:
+                1. The resolved node that is the point of removal. May be the provided
+                `node` or an ancestor.
+                2. The sibling of the removed node.
+                3. List of nodes under the removed node.
+        """
+        br_rm, br_rm_nodes = self._find_removal_branch(node)
+        if br_rm is self._root:
+            self._root = None
+            return (br_rm, None, br_rm_nodes)
+
+        container = br_rm.parent
+        br_sib = br_rm.operational_sibling
+        union_rect = br_rm.principal_rect.union(br_sib.principal_rect)
+
+        container.children.remove(br_rm)
+        br_rm.parent = None
+
+        assert br_sib is not None
+
+        if consume_vacant_space and isinstance(container, SplitContainer):
+            br_sib.transform(Axis.x, union_rect.x, union_rect.w)
+            br_sib.transform(Axis.y, union_rect.y, union_rect.h)
+            if normalize:
+                self.normalize(container)
+
+        return (br_rm, br_sib, br_rm_nodes)
 
     def _get_pruning_cases(self) -> list[_PruningCase]:
         return [

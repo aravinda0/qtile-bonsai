@@ -299,7 +299,7 @@ class Bonsai(Layout):
         normalize_on_remove = self._tree.get_config(
             "window.normalize_on_remove", level=pane.tab_level
         )
-        next_focus_pane = self._tree.remove(pane, normalize=normalize_on_remove)
+        _, _, next_focus_pane = self._tree.remove(pane, normalize=normalize_on_remove)
         del self._windows_to_panes[window]
         if next_focus_pane is not None:
             return next_focus_pane.window
