@@ -782,6 +782,8 @@ class Tree:
                 "must be provided."
             )
 
+        self._ensure_tab_bar_restored(tc)
+
         tc_rect = Rect.from_rect(tc.principal_rect) if tc_rect is None else tc_rect
         bar_rect = tc.tab_bar.box.principal_rect
         tc_content_rect = Rect(
@@ -794,8 +796,6 @@ class Tree:
             self._reevaluate_level_dependent_attributes(start_node=t)
 
         added_nodes = []
-
-        self._ensure_tab_bar_restored(tc)
 
         # Handle the need for a T under the TC
         if isinstance(insert_node, Tab):

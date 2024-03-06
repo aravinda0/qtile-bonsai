@@ -4058,6 +4058,22 @@ class TestConfig:
             assert tc1.tab_bar.box.padding.as_list() == [1, 2, 3, 4]
             assert tc2.tab_bar.box.padding.as_list() == [5, 6, 7, 8]
 
+        def test_when_hide_when_is_single_tab_then_first_tab_should_have_bar_hidden_and_second_tab_should_make_it_visible(
+            self, tree: Tree
+        ):
+            tree.set_config("tab_bar.hide_when", "single_tab")
+
+            p1 = tree.tab()
+
+            # bar should not be consuming space
+            assert p1.principal_rect == Rect(0, 0, 400, 300)
+
+            p2 = tree.tab()
+
+            # bar should now be taking up space
+            assert p1.principal_rect == Rect(0, 20, 400, 280)
+            assert p2.principal_rect == Rect(0, 20, 400, 280)
+
 
 class TestIterWalk:
     def test_new_tree_instance_has_no_nodes(self, tree: Tree):
