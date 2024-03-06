@@ -202,7 +202,8 @@ class Tree:
                     "The tree is empty. The provided arguments are invalid."
                 )
 
-            pane, added_nodes = self._add_very_first_tab()
+            tab, added_nodes = self._add_very_first_tab()
+            pane = self.find_mru_pane(start_node=tab)
         elif new_level:
             if at_node is None:
                 raise ValueError(
@@ -726,43 +727,26 @@ class Tree:
             ),
         ]
 
-    def _add_very_first_tab(self) -> tuple[Pane, list[Node]]:
+    def _add_very_first_tab(self) -> tuple[Tab, list[Node]]:
         """Add the first tab and its pane on an empty tree. A special case where the
         root is set and initial rects are set for use by all subsequent tabs and panes.
         """
         added_nodes = []
 
         top_level = 1
-        tab_container = self.create_tab_container()
-        tab_container.tab_bar = self._build_tab_bar(0, 0, self.width, top_level, 1)
+        tc = self.create_tab_container()
+        tc.tab_bar = self._build_tab_bar(0, 0, self.width, top_level, 1)
+        added_nodes.append(tc)
 
-        added_nodes.append(tab_container)
+        # Max sized rect to start things off
+        tc_rect = Rect(0, 0, self.width, self.height)
 
-        new_tab = self.create_tab()
-        new_tab.parent = tab_container
-        tab_container.children.append(new_tab)
-        tab_container.active_child = new_tab
-        added_nodes.append(new_tab)
+        t, _added_nodes = self._add_tab(tc, tc_rect=tc_rect)
+        added_nodes.extend(_added_nodes)
 
-        new_split_container = self.create_split_container()
-        new_split_container.parent = new_tab
-        new_tab.children.append(new_split_container)
-        added_nodes.append(new_split_container)
+        self._root = tc
 
-        # Max sized rect, allowing for top level tab bar
-        tab_bar_rect = tab_container.tab_bar.box.principal_rect
-        new_pane_rect = Rect(
-            0, tab_bar_rect.y2, self.width, self.height - tab_bar_rect.h
-        )
-
-        new_pane = self.create_pane(principal_rect=new_pane_rect, tab_level=top_level)
-        new_pane.parent = new_split_container
-        new_split_container.children.append(new_pane)
-        added_nodes.append(new_pane)
-
-        self._root = tab_container
-
-        return new_pane, added_nodes
+        return t, added_nodes
 
     def _add_tab(
         self,
@@ -1017,6 +1001,10 @@ class Tree:
         """Depending on the `tab_bar.hide_when` config, we may require that a tab bar
         that was previously hidden be made visible again.
         """
+        if not tab_container.children:
+            # Nothing to do if we're dealing with a TC that is being prepped for the
+            # first time.
+            return
         if len(tab_container.children) > 2:
             # If tab bar restoration was required, we'd have already done it when the
             # 2nd tab was added.
