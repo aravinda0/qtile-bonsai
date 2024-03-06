@@ -385,6 +385,8 @@ class Tree:
         br_rm, br_sib, br_rm_nodes = self._remove(
             node, consume_vacant_space=True, normalize=normalize
         )
+        if br_rm is self._root:
+            self._root = None
 
         rm_nodes.extend(br_rm_nodes)
         if br_sib is not None:
@@ -681,7 +683,6 @@ class Tree:
         """
         br_rm, br_rm_nodes = self._find_removal_branch(node)
         if br_rm is self._root:
-            self._root = None
             return (br_rm, None, br_rm_nodes)
 
         container = br_rm.parent
