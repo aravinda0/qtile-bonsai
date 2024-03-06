@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: MIT
 
 import pytest
+
 from qtile_bonsai.core.tree import Node, Pane
 
 
