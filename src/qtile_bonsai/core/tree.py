@@ -210,7 +210,8 @@ class Tree:
                     "`new_level` requires a reference `at_node` under which to add tabs"
                 )
 
-            pane, added_nodes = self._add_tab_at_new_level(at_node)
+            tc, added_nodes = self._add_tab_at_new_level(at_node)
+            pane = self.find_mru_pane(start_node=tc.children[-1])
         elif level is not None:
             if at_node is None:
                 raise ValueError("`level` requires a reference `at_node`")
@@ -225,19 +226,19 @@ class Tree:
                     f"{max_tab_level} levels."
                 )
 
-            tab_container = ancestor_tab_containers[-level]
-            tab, added_nodes = self._add_tab(tab_container)
+            tc = ancestor_tab_containers[-level]
+            tab, added_nodes = self._add_tab(tc)
             pane = self.find_mru_pane(start_node=tab)
         else:
             if at_node is None:
-                tab_container = self._root
+                tc = self._root
             else:
-                tab_container = at_node.get_first_ancestor(TabContainer)
+                tc = at_node.get_first_ancestor(TabContainer)
 
-            if tab_container is None:
+            if tc is None:
                 raise InvalidTreeStructureError
 
-            tab, added_nodes = self._add_tab(tab_container)
+            tab, added_nodes = self._add_tab(tc)
             pane = self.find_mru_pane(start_node=tab)
 
         self._notify_subscribers(TreeEvent.node_added, added_nodes)
@@ -382,7 +383,7 @@ class Tree:
         rm_nodes = []
         next_focus_pane = None
 
-        br_rm, br_sib, br_rm_nodes = self._remove(
+        br_rm, _, br_sib, br_rm_nodes = self._remove(
             node, consume_vacant_space=True, normalize=normalize
         )
         if br_rm is self._root:
@@ -671,21 +672,24 @@ class Tree:
 
     def _remove(
         self, node: Node, *, consume_vacant_space: bool = True, normalize: bool = False
-    ) -> tuple[Node, Node | None, list[Node]]:
+    ) -> tuple[Node, int, Node | None, list[Node]]:
         """Internal helper for removing node subtrees.
 
         Returns:
-            A 3-tuple with the following items:
+            A 4-tuple with the following items:
                 1. The resolved node that is the point of removal. May be the provided
                 `node` or an ancestor.
-                2. The sibling of the removed node.
-                3. List of nodes under the removed node.
+                2. The position index of the removed node under its parent.
+                3. The sibling of the removed node.
+                4. List of nodes under the removed node.
         """
         br_rm, br_rm_nodes = self._find_removal_branch(node)
         if br_rm is self._root:
-            return (br_rm, None, br_rm_nodes)
+            self._root = None
+            return (br_rm, 0, None, br_rm_nodes)
 
         container = br_rm.parent
+        br_rm_pos = container.children.index(br_rm)
         br_sib = br_rm.operational_sibling
         union_rect = br_rm.principal_rect.union(br_sib.principal_rect)
 
@@ -700,7 +704,7 @@ class Tree:
             if normalize:
                 self.normalize(container)
 
-        return (br_rm, br_sib, br_rm_nodes)
+        return (br_rm, br_rm_pos, br_sib, br_rm_nodes)
 
     def _get_pruning_cases(self) -> list[_PruningCase]:
         return [
@@ -863,7 +867,9 @@ class Tree:
                 "Invalid node provided to tab on. No ancestor SplitContainer found."
             ) from None
 
-        at_node_rect = at_node.principal_rect
+        # Freeze some attributes to use in subsequent operations
+        at_node_rect = Rect.from_rect(at_node.principal_rect)
+        new_tab_level = at_node.tab_level + 1
 
         # Remove `at_node` from tree so we can begin to insert a new tab container
         # subtree. We add it back later as a leaf under the new subtree.
@@ -871,75 +877,27 @@ class Tree:
         at_node.parent = None
         at_container.children.remove(at_node)
 
-        new_tab_container = self.create_tab_container()
-        new_tab_container.parent = at_container
-        new_tab_level = at_node.tab_level + 1
-        new_tab_container.tab_bar = self._build_tab_bar(
+        tc = self.create_tab_container()
+        tc.parent = at_container
+        at_container.children.insert(at_node_pos, tc)
+        tc.tab_bar = self._build_tab_bar(
             at_node.principal_rect.x,
             at_node.principal_rect.y,
             at_node.principal_rect.w,
             new_tab_level,
             2,
         )
-        new_bar_rect = new_tab_container.tab_bar.box.principal_rect
-        at_container.children.insert(at_node_pos, new_tab_container)
-        added_nodes.append(new_tab_container)
+        added_nodes.append(tc)
 
-        tab1 = self.create_tab()
-        tab1.parent = new_tab_container
-        new_tab_container.children.append(tab1)
-        added_nodes.append(tab1)
+        _, _added_nodes = self._add_tab(tc, insert_node=at_node, tc_rect=at_node_rect)
+        added_nodes.extend(_added_nodes)
 
-        if isinstance(at_node, SplitContainer):
-            at_node.parent = tab1
-            tab1.children.append(at_node)
-        else:
-            split_container1 = self.create_split_container()
-            split_container1.parent = tab1
-            tab1.children.append(split_container1)
-            added_nodes.append(split_container1)
+        _, _added_nodes = self._add_tab(
+            tc, insert_node=insert_node, tc_rect=at_node_rect
+        )
+        added_nodes.extend(_added_nodes)
 
-            # Connect `at_node` to our new SC
-            at_node.parent = split_container1
-            split_container1.children.append(at_node)
-
-        # Start adding the real new tab that was requested and mark it as the active
-        # tab.
-        tab2 = self.create_tab()
-        tab2.parent = new_tab_container
-        new_tab_container.children.append(tab2)
-        new_tab_container.active_child = tab2
-        added_nodes.append(tab2)
-
-        # Ensure we have proper connection point under the new tab
-        if insert_node is None or not isinstance(insert_node, SplitContainer):
-            split_container2 = self.create_split_container()
-            added_nodes.append(split_container2)
-        else:
-            split_container2 = insert_node
-
-        split_container2.parent = tab2
-        tab2.children.append(split_container2)
-
-        if insert_node is None:
-            # The new tab's pane will have the same dimensions as `at_node` after it was
-            # adjusted above.
-            new_node = self.create_pane(
-                principal_rect=Rect.from_rect(at_node.principal_rect),
-                tab_level=new_tab_level,
-            )
-            added_nodes.append(new_node)
-        else:
-            new_node = insert_node
-            # TODO: x-based redim. To be handled during subtab merge impl.
-            new_node.transform(Axis.y, new_bar_rect.y2, at_node_rect.h - new_bar_rect.h)
-
-        new_node.parent = split_container2
-        split_container2.children.append(new_node)
-
-        self._reevaluate_level_dependent_attributes(start_node=at_container)
-
-        return new_node, added_nodes
+        return tc, added_nodes
 
     def _build_tab_bar(
         self, x: int, y: int, w: int, tab_level: int, tab_count: int
