@@ -386,7 +386,7 @@ class Tree:
         rm_nodes.extend(br_rm_nodes)
         if br_sib is not None:
             rm_nodes.extend(self._do_post_removal_pruning(br_sib))
-            next_focus_pane = self._pick_mru_pane(self.iter_panes(start=br_sib))
+            next_focus_pane = self.find_mru_pane(start_node=br_sib)
 
         self._notify_subscribers(TreeEvent.node_removed, rm_nodes)
 
@@ -435,25 +435,25 @@ class Tree:
         adjacent = self.find_adjacent_panes(pane, "left", wrap=wrap)
         if not adjacent:
             return pane
-        return self._pick_mru_pane(adjacent)
+        return self.find_mru_pane(panes=adjacent)
 
     def right(self, pane: Pane, *, wrap: bool = True) -> Pane:
         adjacent = self.find_adjacent_panes(pane, "right", wrap=wrap)
         if not adjacent:
             return pane
-        return self._pick_mru_pane(adjacent)
+        return self.find_mru_pane(panes=adjacent)
 
     def up(self, pane: Pane, *, wrap: bool = True) -> Pane:
         adjacent = self.find_adjacent_panes(pane, "up", wrap=wrap)
         if not adjacent:
             return pane
-        return self._pick_mru_pane(adjacent)
+        return self.find_mru_pane(panes=adjacent)
 
     def down(self, pane: Pane, *, wrap: bool = True) -> Pane:
         adjacent = self.find_adjacent_panes(pane, "down", wrap=wrap)
         if not adjacent:
             return pane
-        return self._pick_mru_pane(adjacent)
+        return self.find_mru_pane(panes=adjacent)
 
     def next_tab(self, node: Node, *, wrap: bool = True) -> Pane | None:
         return self._next_tab(node, 1, wrap=wrap)
@@ -619,6 +619,15 @@ class Tree:
                         yield node
                 else:
                     yield node
+
+    def find_mru_pane(
+        self, *, panes: Iterable[Pane] | None = None, start_node: Node | None = None
+    ) -> Pane:
+        if not ((panes is not None) ^ (start_node is not None)):
+            raise ValueError("Exactly one of `panes` or `start_node` must be provided.")
+
+        candidates = panes if panes is not None else self.iter_panes(start=start_node)
+        return sorted(candidates, key=lambda p: p.recency, reverse=True)[0]
 
     def subscribe(self, event: TreeEvent, callback: Tree.TreeEventCallback) -> str:
         subscription_id = uuid.uuid4().hex
@@ -1248,9 +1257,6 @@ class Tree:
             panes.extend(self._find_panes_along_border(inv_axis_child, direction))
         return panes
 
-    def _pick_mru_pane(self, panes: Iterable[Pane]) -> Pane:
-        return sorted(panes, key=lambda p: p.recency, reverse=True)[0]
-
     def _next_tab(self, node: Node, n: int, *, wrap: bool = True) -> Pane | None:
         ancestor_tabs = node.get_ancestors(Tab, include_self=True)
         if not ancestor_tabs:
@@ -1260,7 +1266,7 @@ class Tree:
         if next_tab is None:
             return None
 
-        return self._pick_mru_pane(self.iter_panes(start=next_tab))
+        return self.find_mru_pane(start_node=next_tab)
 
     def _notify_subscribers(self, event: TreeEvent, nodes: list[Node]):
         for callback in self._event_subscribers[event].values():
