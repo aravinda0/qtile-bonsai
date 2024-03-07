@@ -282,17 +282,17 @@ class Tree:
 
             node_container.children.remove(node)
 
-            new_split_container = self.create_split_container()
-            new_split_container.axis = axis
-            new_split_container.parent = node_container
-            node_container.children.insert(node_index, new_split_container)
-            added_nodes.append(new_split_container)
+            new_sc = self.create_split_container()
+            new_sc.axis = axis
+            new_sc.parent = node_container
+            node_container.children.insert(node_index, new_sc)
+            added_nodes.append(new_sc)
 
-            node.parent = new_split_container
-            new_split_container.children.append(node)
+            node.parent = new_sc
+            new_sc.children.append(node)
 
             # Now use this new SC as the node container for further processing
-            node_container = new_split_container
+            node_container = new_sc
             node_index = 0
         elif isinstance(node, SplitContainer) and node.axis == axis:
             # Treat this case as if we were splitting within the SC. Just that all the
@@ -304,18 +304,18 @@ class Tree:
         n1_rect, n2_rect = node.principal_rect.split(axis, ratio)
         node.transform(axis, n1_rect.coord(axis), n1_rect.size(axis))
 
-        new_pane = self.create_pane(principal_rect=n2_rect, tab_level=node.tab_level)
-        new_pane.parent = node_container
-        node_container.children.insert(node_index + 1, new_pane)
+        new_p = self.create_pane(principal_rect=n2_rect, tab_level=node.tab_level)
+        new_p.parent = node_container
+        node_container.children.insert(node_index + 1, new_p)
 
         if normalize:
             self.normalize(node_container)
 
-        added_nodes.append(new_pane)
+        added_nodes.append(new_p)
 
         self._notify_subscribers(TreeEvent.node_added, added_nodes)
 
-        return new_pane
+        return new_p
 
     def resize(self, pane: Pane, axis: AxisParam, amount: int):
         axis = Axis(axis)
@@ -956,42 +956,40 @@ class Tree:
                 node.box.border = self.get_config("window.border_size", level=tab_level)
                 node.box.padding = self.get_config("window.padding", level=tab_level)
 
-    def _ensure_tab_bar_restored(self, tab_container: TabContainer):
+    def _ensure_tab_bar_restored(self, tc: TabContainer):
         """Depending on the `tab_bar.hide_when` config, we may require that a tab bar
         that was previously hidden be made visible again.
         """
-        if not tab_container.children:
+        if not tc.children:
             # Nothing to do if we're dealing with a TC that is being prepped for the
             # first time.
             return
-        if len(tab_container.children) > 2:
+        if len(tc.children) > 2:
             # If tab bar restoration was required, we'd have already done it when the
             # 2nd tab was added.
             return
 
-        tab_level = tab_container.tab_level
+        tab_level = tc.tab_level
         bar_hide_when = self.get_config("tab_bar.hide_when", level=tab_level)
-        bar_rect = tab_container.tab_bar.box.principal_rect
+        bar_rect = tc.tab_bar.box.principal_rect
         if bar_hide_when != "always" and bar_rect.h == 0:
             bar_height = self.get_config("tab_bar.height", level=tab_level)
             bar_rect.h = bar_height
 
             # We need to adjust the contents of the first tab after the bar takes up its
             # space.
-            first_tab = tab_container.children[0]
+            first_tab = tc.children[0]
             first_tab.transform(
                 Axis.y, bar_rect.y2, first_tab.principal_rect.h - bar_height
             )
 
-    def _maybe_morph_split_container(
-        self, split_container: SplitContainer, requested_axis
-    ):
+    def _maybe_morph_split_container(self, sc: SplitContainer, requested_axis):
         if (
-            split_container.axis != requested_axis
-            and split_container.is_nearest_under_tab_container
-            and split_container.has_single_child
+            sc.axis != requested_axis
+            and sc.is_nearest_under_tab_container
+            and sc.has_single_child
         ):
-            split_container.axis = requested_axis
+            sc.axis = requested_axis
 
     def _find_removal_branch(self, node: Node) -> tuple[Node, list[Node]]:
         n = node
