@@ -526,36 +526,37 @@ class Tree:
         return True
 
     def find_adjacent_panes(
-        self, pane: Pane, direction: DirectionParam, *, wrap: bool = True
+        self, node: Pane, direction: DirectionParam, *, wrap: bool = True
     ) -> list[Pane]:
-        """Returns all panes that are adjacent to the provided `pane` in the specified
+        """Returns all panes that are adjacent to the provided `node` in the specified
         `direction`.
 
         NOTES:
-            - 'Adjacent' here means that two panes may partially or wholly share a
-                border.
+            - 'Adjacent' here means that panes may partially or wholly share a border
+              with the provided `node`.
             - A pane is not adjacent to itself.
-            - Any tab bars of sub-tab levels that are in between two panes are ignored.
+            - Tab bars are ignored. Two panes can be adjacent even if a subtab bar
+              appears between them.
         """
         direction = Direction(direction)
 
-        super_node = self.find_border_encompassing_supernode(pane, direction)
-        if super_node is None:
+        supernode = self.find_border_encompassing_supernode(node, direction)
+        if supernode is None:
             return []
 
-        super_node_sibling = super_node.sibling(direction.axis_unit, wrap=wrap)
-        if super_node_sibling is None or super_node_sibling is super_node:
+        supernode_sibling = supernode.sibling(direction.axis_unit, wrap=wrap)
+        if supernode_sibling is None or supernode_sibling is supernode:
             return []
 
         adjacent = []
         inv_axis = direction.axis.inv
-        for candidate in self._find_panes_along_border(super_node_sibling, direction):
+        for candidate in self._find_panes_along_border(supernode_sibling, direction):
             coord1_ok = candidate.principal_rect.coord(
                 inv_axis
-            ) < pane.principal_rect.coord2(inv_axis)
+            ) < node.principal_rect.coord2(inv_axis)
             coord2_ok = candidate.principal_rect.coord2(
                 inv_axis
-            ) > pane.principal_rect.coord(inv_axis)
+            ) > node.principal_rect.coord(inv_axis)
             if coord1_ok and coord2_ok:
                 adjacent.append(candidate)
 
