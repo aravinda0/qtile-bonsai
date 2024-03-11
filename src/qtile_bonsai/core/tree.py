@@ -686,7 +686,6 @@ class Tree:
         """
         br_rm, br_rm_nodes = self._find_removal_branch(node)
         if br_rm is self._root:
-            self._root = None
             return (br_rm, 0, None, br_rm_nodes)
 
         container = br_rm.parent
