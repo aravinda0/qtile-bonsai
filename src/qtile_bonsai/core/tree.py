@@ -698,10 +698,10 @@ class Tree:
 
         assert br_sib is not None
 
-        if consume_vacant_space and isinstance(container, SplitContainer):
+        if consume_vacant_space:
             br_sib.transform(Axis.x, union_rect.x, union_rect.w)
             br_sib.transform(Axis.y, union_rect.y, union_rect.h)
-            if normalize:
+            if normalize and isinstance(container, SplitContainer):
                 self.normalize(container)
 
         return (br_rm, br_rm_pos, br_sib, br_rm_nodes)
