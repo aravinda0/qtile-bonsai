@@ -793,10 +793,12 @@ class Tree:
                     yield node
 
     def find_mru_pane(
-        self, *, panes: Iterable[Pane] | None = None, start_node: Node | None = None
+        self, *, start_node: Node | None = None, panes: Iterable[Pane] | None = None
     ) -> Pane:
-        if not ((panes is not None) ^ (start_node is not None)):
-            raise ValueError("Exactly one of `panes` or `start_node` must be provided.")
+        if start_node is not None and panes is not None:
+            raise ValueError(
+                "Either of `panes` or `start_node` can be provided, but not both."
+            )
 
         candidates = panes if panes is not None else self.iter_panes(start=start_node)
         return sorted(candidates, key=lambda p: p.recency, reverse=True)[0]
