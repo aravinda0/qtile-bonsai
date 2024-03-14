@@ -33,6 +33,39 @@ def test_when_bonsai_layout_is_inactive_and_windows_are_added_in_another_active_
     )
 
 
+def test_when_floating_window_is_unfloated_then_it_is_added_back_to_layout(
+    manager, spawn_test_window_cmd
+):
+    manager.layout.spawn_tab(spawn_test_window_cmd)
+    time.sleep(0.5)
+
+    manager.layout.spawn_split(spawn_test_window_cmd, "x")
+    time.sleep(0.5)
+
+    manager.window.toggle_floating()
+    assert tree_repr_matches_repr(
+        manager.layout.info()["tree"],
+        """
+        - tc:1
+            - t:2
+                - sc.x:3
+                    - p:4 | {x: 0, y: 0, w: 800, h: 600}
+        """,
+    )
+
+    manager.window.toggle_floating()
+    assert tree_repr_matches_repr(
+        manager.layout.info()["tree"],
+        """
+        - tc:1
+            - t:2
+                - sc.x:3
+                    - p:4 | {x: 0, y: 0, w: 400, h: 600}
+                    - p:6 | {x: 400, y: 0, w: 400, h: 600}
+        """,
+    )
+
+
 @pytest.mark.skip(
     reason="""
     Need to fix bug in qtile first where config reload leads to a 'dictionary changed

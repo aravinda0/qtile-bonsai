@@ -308,10 +308,17 @@ class Bonsai(Layout):
         normalize_on_remove = self._tree.get_config(
             "window.normalize_on_remove", level=pane.tab_level
         )
+
         _, _, next_focus_pane = self._tree.remove(pane, normalize=normalize_on_remove)
         del self._windows_to_panes[window]
+
+        # Set to None immediately so as not to use stale references in the time between
+        # remove() and the next focus() invocation. eg. float/unfloat
+        self._focused_window = None
+
         if next_focus_pane is not None:
             return next_focus_pane.window
+
         return None
 
     def focus(self, window: Window):
@@ -416,9 +423,8 @@ class Bonsai(Layout):
             return
 
         def _handle_next_window():
-            return self._tree.split(
-                self.focused_pane, axis, ratio=ratio, normalize=normalize
-            )
+            target = self.focused_pane or self._tree.find_mru_pane()
+            return self._tree.split(target, axis, ratio=ratio, normalize=normalize)
 
         self._on_next_window = _handle_next_window
 
