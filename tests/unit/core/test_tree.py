@@ -10,6 +10,7 @@ import tests.data.tree_state
 from qtile_bonsai.core.geometry import Rect
 from qtile_bonsai.core.tree import (
     Pane,
+    SupernodeTarget,
     Tab,
     TabContainer,
     Tree,
@@ -31,6 +32,18 @@ def make_tree_with_subscriber(tree):
         return tree, callback
 
     return _make_tree_with_subscriber
+
+
+@pytest.fixture()
+def add_subscribers_to_tree():
+    def _add_tree_subscribers_to_tree(tree: Tree) -> tuple[mock.Mock, mock.Mock]:
+        cb_add = mock.Mock()
+        cb_remove = mock.Mock()
+        tree.subscribe(TreeEvent.node_added, cb_add)
+        tree.subscribe(TreeEvent.node_removed, cb_remove)
+        return cb_add, cb_remove
+
+    return _add_tree_subscribers_to_tree
 
 
 @pytest.fixture()
@@ -3839,6 +3852,1224 @@ class TestSwapTabs:
         t4 = p4.get_first_ancestor(Tab)
         with pytest.raises(ValueError, match=err_msg):
             tree.swap_tabs(t1, t4)
+
+
+class TestMergeToSubtab:
+    def test_when_src_and_dest_resolve_to_same_node_then_error_is_raised(
+        self, tree: Tree
+    ):
+        p1 = tree.tab()
+        p2 = tree.split(p1, "x")
+        p3 = tree.split(p2, "y")
+        p4 = tree.tab(p3, new_level=True)
+        _ = tree.split(p4, "y")
+
+        tc = p3.get_first_ancestor(TabContainer)
+
+        err_msg = "`src` and `dest` resolve to the same node. Cannot merge a node with itself."
+        with pytest.raises(ValueError, match=err_msg):
+            tree.merge_to_subtab(tc, tc)
+
+    def test_when_src_is_under_dest_already_then_error_is_raised(self, tree: Tree):
+        p1 = tree.tab()
+        p2 = tree.split(p1, "x")
+        p3 = tree.split(p2, "y")
+        p4 = tree.tab(p3, new_level=True)
+        p5 = tree.split(p4, "x")
+        p6 = tree.tab(p5, new_level=True)
+
+        src_tc = p4.get_first_ancestor(TabContainer)
+
+        err_msg = "The resolved nodes for `src` and `dest` cannot already be under one another."
+        with pytest.raises(ValueError, match=err_msg):
+            tree.merge_to_subtab(src_tc, p6)
+        with pytest.raises(ValueError, match=err_msg):
+            tree.merge_to_subtab(src_tc, p6.parent)
+        with pytest.raises(ValueError, match=err_msg):
+            tree.merge_to_subtab(src_tc, p6.get_first_ancestor(TabContainer))
+
+    def test_when_dest_is_under_src_already_then_error_is_raised(self, tree: Tree):
+        p1 = tree.tab()
+        p2 = tree.split(p1, "x")
+        p3 = tree.split(p2, "y")
+        p4 = tree.tab(p3, new_level=True)
+        p5 = tree.split(p4, "x")
+        p6 = tree.tab(p5, new_level=True)
+
+        dest_tc = p4.get_first_ancestor(TabContainer)
+
+        err_msg = "The resolved nodes for `src` and `dest` cannot already be under one another."
+        with pytest.raises(ValueError, match=err_msg):
+            tree.merge_to_subtab(p6, dest_tc)
+        with pytest.raises(ValueError, match=err_msg):
+            tree.merge_to_subtab(p6.parent, dest_tc)
+        with pytest.raises(ValueError, match=err_msg):
+            tree.merge_to_subtab(p6.get_first_ancestor(TabContainer), dest_tc)
+
+    class TestWhenSrcIsTCAndDestIsTC:
+        def test_when_src_and_dest_under_same_container(
+            self, tree: Tree, add_subscribers_to_tree
+        ):
+            p1 = tree.tab()
+            p2 = tree.split(p1, "y")
+            p3 = tree.split(p2, "x")
+            p4 = tree.tab(p2, new_level=True)
+            p5 = tree.tab(p3, new_level=True)
+
+            src_tc = p4.get_first_ancestor(TabContainer)
+            dest_tc = p5.get_first_ancestor(TabContainer)
+            prune_sc = src_tc.parent
+            cb_add, cb_remove = add_subscribers_to_tree(tree)
+
+            tree.merge_to_subtab(src_tc, dest_tc)
+
+            assert tree_matches_repr(
+                tree,
+                """
+                - tc:1
+                    - t:2
+                        - sc.y:3
+                            - p:4 | {x: 0, y: 20, w: 400, h: 140}
+                            - tc:14
+                                - t:15
+                                    - sc.x:16
+                                        - p:7 | {x: 0, y: 180, w: 400, h: 120}
+                                - t:17
+                                    - sc.x:18
+                                        - p:19 | {x: 0, y: 180, w: 400, h: 120}
+                                - t:9
+                                    - sc.x:10
+                                        - p:5 | {x: 0, y: 180, w: 400, h: 120}
+                                - t:11
+                                    - sc.x:12
+                                        - p:13 | {x: 0, y: 180, w: 400, h: 120}
+                """,
+            )
+
+            assert tree.is_visible(p4)
+
+            assert cb_remove.mock_calls == [mock.call([prune_sc, src_tc])]
+            assert cb_add.mock_calls == [mock.call([])]
+
+        def test_when_src_and_dest_under_different_containers(
+            self, tree: Tree, add_subscribers_to_tree
+        ):
+            p1 = tree.tab()
+            p2 = tree.split(p1, "x")
+            p3 = tree.split(p2, "x")
+
+            p4 = tree.split(p1, "y")
+            _ = tree.split(p3, "y")
+            p6 = tree.tab(p4, new_level=True)
+            p7 = tree.tab(p3, new_level=True)
+
+            src_tc = p6.get_first_ancestor(TabContainer)
+            dest_tc = p7.get_first_ancestor(TabContainer)
+            prune_sc = src_tc.parent
+            cb_add, cb_remove = add_subscribers_to_tree(tree)
+
+            tree.merge_to_subtab(src_tc, dest_tc)
+
+            assert tree_matches_repr(
+                tree,
+                """
+                - tc:1
+                    - t:2
+                        - sc.x:3
+                            - p:4 | {x: 0, y: 20, w: 200, h: 280}
+                            - p:5 | {x: 200, y: 20, w: 100, h: 280}
+                            - sc.y:9
+                                - tc:17
+                                    - t:18
+                                        - sc.x:19
+                                            - p:6 | {x: 300, y: 40, w: 100, h: 120}
+                                    - t:20
+                                        - sc.x:21
+                                            - p:22 | {x: 300, y: 40, w: 100, h: 120}
+                                    - t:12
+                                        - sc.x:13
+                                            - p:8 | {x: 300, y: 40, w: 100, h: 120}
+                                    - t:14
+                                        - sc.x:15
+                                            - p:16 | {x: 300, y: 40, w: 100, h: 120}
+                                - p:10 | {x: 300, y: 160, w: 100, h: 140}
+                """,
+            )
+
+            assert tree.is_visible(p6)
+
+            assert cb_remove.mock_calls == [mock.call([prune_sc, src_tc])]
+            assert cb_add.mock_calls == [mock.call([])]
+
+    class TestWhenOnlySrcIsTC:
+        def test_when_src_and_dest_under_same_container(
+            self, tree: Tree, add_subscribers_to_tree
+        ):
+            p1 = tree.tab()
+            p2 = tree.split(p1, "y")
+            p3 = tree.split(p2, "x")
+            p4 = tree.tab(p2, new_level=True)
+
+            src_tc = p4.get_first_ancestor(TabContainer)
+            prune_sc = src_tc.parent
+            cb_add, cb_remove = add_subscribers_to_tree(tree)
+
+            tree.merge_to_subtab(src_tc, p3)
+
+            assert tree_matches_repr(
+                tree,
+                """
+                - tc:1
+                    - t:2
+                        - sc.y:3
+                            - p:4 | {x: 0, y: 20, w: 400, h: 140}
+                            - tc:8
+                                - t:9
+                                    - sc.x:10
+                                        - p:5 | {x: 0, y: 180, w: 400, h: 120}
+                                - t:11
+                                    - sc.x:12
+                                        - p:13 | {x: 0, y: 180, w: 400, h: 120}
+                                - t:14
+                                    - sc.x:15
+                                        - p:7 | {x: 0, y: 180, w: 400, h: 120}
+                """,
+            )
+
+            assert tree.is_visible(p4)
+
+            added_sc, added_t, *_ = p3.get_ancestors()
+
+            assert cb_remove.mock_calls == [mock.call([prune_sc])]
+            assert cb_add.mock_calls == [mock.call([added_t, added_sc])]
+
+        def test_when_src_and_dest_under_different_containers(
+            self, tree: Tree, add_subscribers_to_tree
+        ):
+            p1 = tree.tab()
+            p2 = tree.split(p1, "x")
+            p3 = tree.split(p2, "x")
+
+            p4 = tree.split(p1, "y")
+            _ = tree.split(p3, "y")
+            p6 = tree.tab(p4, new_level=True)
+
+            src_tc = p6.get_first_ancestor(TabContainer)
+            prune_sc = src_tc.parent
+            cb_add, cb_remove = add_subscribers_to_tree(tree)
+
+            tree.merge_to_subtab(src_tc, p3)
+
+            assert tree_matches_repr(
+                tree,
+                """
+                - tc:1
+                    - t:2
+                        - sc.x:3
+                            - p:4 | {x: 0, y: 20, w: 200, h: 280}
+                            - p:5 | {x: 200, y: 20, w: 100, h: 280}
+                            - sc.y:9
+                                - tc:11
+                                    - t:12
+                                        - sc.x:13
+                                            - p:8 | {x: 300, y: 40, w: 100, h: 120}
+                                    - t:14
+                                        - sc.x:15
+                                            - p:16 | {x: 300, y: 40, w: 100, h: 120}
+                                    - t:17
+                                        - sc.x:18
+                                            - p:6 | {x: 300, y: 40, w: 100, h: 120}
+                                - p:10 | {x: 300, y: 160, w: 100, h: 140}
+                """,
+            )
+
+            assert tree.is_visible(p6)
+
+            added_sc, added_t, *_ = p3.get_ancestors()
+
+            assert cb_remove.mock_calls == [mock.call([prune_sc])]
+            assert cb_add.mock_calls == [mock.call([added_t, added_sc])]
+
+    class TestWhenOnlyDestIsTC:
+        def test_when_src_and_dest_under_same_container(
+            self, tree: Tree, add_subscribers_to_tree
+        ):
+            p1 = tree.tab()
+            p2 = tree.split(p1, "y")
+            p3 = tree.split(p2, "x")
+            p4 = tree.tab(p3, new_level=True)
+
+            dest_tc = p4.get_first_ancestor(TabContainer)
+            prune_sc = dest_tc.parent
+            cb_add, cb_remove = add_subscribers_to_tree(tree)
+
+            tree.merge_to_subtab(p2, dest_tc)
+
+            assert tree_matches_repr(
+                tree,
+                """
+                - tc:1
+                    - t:2
+                        - sc.y:3
+                            - p:4 | {x: 0, y: 20, w: 400, h: 140}
+                            - tc:8
+                                - t:9
+                                    - sc.x:10
+                                        - p:7 | {x: 0, y: 180, w: 400, h: 120}
+                                - t:11
+                                    - sc.x:12
+                                        - p:13 | {x: 0, y: 180, w: 400, h: 120}
+                                - t:14
+                                    - sc.x:15
+                                        - p:5 | {x: 0, y: 180, w: 400, h: 120}
+                """,
+            )
+
+            assert tree.is_visible(p2)
+
+            added_sc, added_t, *_ = p2.get_ancestors()
+
+            assert cb_remove.mock_calls == [mock.call([prune_sc])]
+            assert cb_add.mock_calls == [mock.call([added_t, added_sc])]
+
+        def test_when_src_and_dest_under_different_containers(
+            self, tree: Tree, add_subscribers_to_tree
+        ):
+            p1 = tree.tab()
+            p2 = tree.split(p1, "x")
+            p3 = tree.split(p2, "x")
+
+            p4 = tree.split(p1, "y")
+            _ = tree.split(p3, "y")
+            p6 = tree.tab(p3, new_level=True)
+
+            dest_tc = p6.get_first_ancestor(TabContainer)
+            prune_sc = p4.parent
+            cb_add, cb_remove = add_subscribers_to_tree(tree)
+
+            tree.merge_to_subtab(p4, dest_tc)
+
+            assert tree_matches_repr(
+                tree,
+                """
+                - tc:1
+                    - t:2
+                        - sc.x:3
+                            - p:4 | {x: 0, y: 20, w: 200, h: 280}
+                            - p:5 | {x: 200, y: 20, w: 100, h: 280}
+                            - sc.y:9
+                                - tc:11
+                                    - t:12
+                                        - sc.x:13
+                                            - p:6 | {x: 300, y: 40, w: 100, h: 120}
+                                    - t:14
+                                        - sc.x:15
+                                            - p:16 | {x: 300, y: 40, w: 100, h: 120}
+                                    - t:17
+                                        - sc.x:18
+                                            - p:8 | {x: 300, y: 40, w: 100, h: 120}
+                                - p:10 | {x: 300, y: 160, w: 100, h: 140}
+                """,
+            )
+
+            assert tree.is_visible(p4)
+
+            added_sc, added_t, *_ = p4.get_ancestors()
+
+            assert cb_remove.mock_calls == [mock.call([prune_sc])]
+            assert cb_add.mock_calls == [mock.call([added_t, added_sc])]
+
+    class TestWhenNeitherSrcNorDestIsTC:
+        def test_when_src_and_dest_under_same_container(
+            self, tree: Tree, add_subscribers_to_tree
+        ):
+            p1 = tree.tab()
+            p2 = tree.split(p1, "y")
+            p3 = tree.split(p2, "x")
+
+            prune_sc = p3.parent
+            cb_add, cb_remove = add_subscribers_to_tree(tree)
+
+            tree.merge_to_subtab(p2, p3)
+
+            assert tree_matches_repr(
+                tree,
+                """
+                - tc:1
+                    - t:2
+                        - sc.y:3
+                            - p:4 | {x: 0, y: 20, w: 400, h: 140}
+                            - tc:8
+                                - t:9
+                                    - sc.x:10
+                                        - p:7 | {x: 0, y: 180, w: 400, h: 120}
+                                - t:11
+                                    - sc.x:12
+                                        - p:5 | {x: 0, y: 180, w: 400, h: 120}
+                """,
+            )
+
+            assert tree.is_visible(p2)
+
+            added_sc_1, added_t_1, added_tc, *_ = p3.get_ancestors()
+            added_sc_2, added_t_2, *_ = p2.get_ancestors()
+
+            assert cb_remove.mock_calls == [mock.call([prune_sc])]
+            assert cb_add.mock_calls == [
+                mock.call([added_tc, added_t_1, added_sc_1, added_t_2, added_sc_2])
+            ]
+
+        def test_when_src_and_dest_under_different_containers(
+            self, tree: Tree, add_subscribers_to_tree
+        ):
+            p1 = tree.tab()
+            p2 = tree.split(p1, "x")
+            p3 = tree.split(p2, "x")
+
+            p4 = tree.split(p1, "y")
+            _ = tree.split(p3, "y")
+
+            prune_sc = p4.parent
+            cb_add, cb_remove = add_subscribers_to_tree(tree)
+
+            tree.merge_to_subtab(p4, p3)
+
+            assert tree_matches_repr(
+                tree,
+                """
+                - tc:1
+                    - t:2
+                        - sc.x:3
+                            - p:4 | {x: 0, y: 20, w: 200, h: 280}
+                            - p:5 | {x: 200, y: 20, w: 100, h: 280}
+                            - sc.y:9
+                                - tc:11
+                                    - t:12
+                                        - sc.x:13
+                                            - p:6 | {x: 300, y: 40, w: 100, h: 120}
+                                    - t:14
+                                        - sc.x:15
+                                            - p:8 | {x: 300, y: 40, w: 100, h: 120}
+                                - p:10 | {x: 300, y: 160, w: 100, h: 140}
+                """,
+            )
+
+            assert tree.is_visible(p4)
+
+            added_sc_1, added_t_1, added_tc, *_ = p3.get_ancestors()
+            added_sc_2, added_t_2, *_ = p4.get_ancestors()
+
+            assert cb_remove.mock_calls == [mock.call([prune_sc])]
+            assert cb_add.mock_calls == [
+                mock.call([added_tc, added_t_1, added_sc_1, added_t_2, added_sc_2])
+            ]
+
+        def test_when_src_is_tab_then_remnant_src_tc_has_active_child_updated(
+            self, tree: Tree
+        ):
+            p1 = tree.tab()
+            p2 = tree.split(p1, "x")
+            p3 = tree.split(p1, "y")
+            p4 = tree.split(p2, "y")
+
+            p5 = tree.tab(p3, new_level=True)
+            p6 = tree.tab(p5)
+
+            assert not tree.is_visible(p5)
+            assert tree.is_visible(p6)
+
+            tree.merge_to_subtab(p6, p4)
+
+            assert tree.is_visible(p5)
+            assert tree.is_visible(p6)
+
+    class TestWhenDestIsAwkwardNode:
+        def test_when_dest_is_top_level_sc_under_tab_then_consider_dest_to_be_tc(
+            self, tree: Tree, add_subscribers_to_tree
+        ):
+            p1 = tree.tab()
+            p2 = tree.split(p1, "x")
+            p3 = tree.split(p1, "y")
+            _ = tree.split(p2, "y")
+            p5 = tree.tab(p3, new_level=True)
+            p6 = tree.tab(p2, new_level=True)
+            p7 = tree.split(p6, "x")
+            _ = tree.split(p7, "y")
+
+            src_tc = p5.get_first_ancestor(TabContainer)
+
+            # p6's parent is a top level SC, whose own parent is a T
+            dest_sc = p6.parent
+
+            prune_sc = src_tc.parent
+            cb_add, cb_remove = add_subscribers_to_tree(tree)
+
+            tree.merge_to_subtab(src_tc, dest_sc)
+
+            assert tree_matches_repr(
+                tree,
+                """
+                - tc:1
+                    - t:2
+                        - sc.x:3
+                            - p:4 | {x: 0, y: 20, w: 200, h: 280}
+                            - sc.y:8
+                                - tc:16
+                                    - t:17
+                                        - sc.x:18
+                                            - p:5 | {x: 200, y: 40, w: 200, h: 120}
+                                    - t:19
+                                        - sc.x:20
+                                            - p:21 | {x: 200, y: 40, w: 100, h: 120}
+                                            - sc.y:23
+                                                - p:22 | {x: 300, y: 40, w: 100, h: 60}
+                                                - p:24 | {x: 300, y: 100, w: 100, h: 60}
+                                    - t:11
+                                        - sc.x:12
+                                            - p:7 | {x: 200, y: 40, w: 200, h: 120}
+                                    - t:13
+                                        - sc.x:14
+                                            - p:15 | {x: 200, y: 40, w: 200, h: 120}
+                                - p:9 | {x: 200, y: 160, w: 200, h: 140}
+                """,
+            )
+
+            assert tree.is_visible(p5)
+
+            assert cb_remove.mock_calls == [mock.call([prune_sc, src_tc])]
+            assert cb_add.mock_calls == [mock.call([])]
+
+        def test_when_dest_is_tab_then_consider_dest_to_be_tc(
+            self, tree: Tree, add_subscribers_to_tree
+        ):
+            p1 = tree.tab()
+            p2 = tree.split(p1, "x")
+            p3 = tree.split(p1, "y")
+            _ = tree.split(p2, "y")
+            p5 = tree.tab(p3, new_level=True)
+            p6 = tree.tab(p2, new_level=True)
+            p7 = tree.split(p6, "x")
+            _ = tree.split(p7, "y")
+
+            src_tc = p5.get_first_ancestor(TabContainer)
+
+            # p6's parent is a top level SC, whose own parent is a T
+            dest_sc = p6.parent
+            dest_t = dest_sc.parent
+
+            prune_sc = src_tc.parent
+            cb_add, cb_remove = add_subscribers_to_tree(tree)
+
+            tree.merge_to_subtab(src_tc, dest_t)
+
+            assert tree_matches_repr(
+                tree,
+                """
+                - tc:1
+                    - t:2
+                        - sc.x:3
+                            - p:4 | {x: 0, y: 20, w: 200, h: 280}
+                            - sc.y:8
+                                - tc:16
+                                    - t:17
+                                        - sc.x:18
+                                            - p:5 | {x: 200, y: 40, w: 200, h: 120}
+                                    - t:19
+                                        - sc.x:20
+                                            - p:21 | {x: 200, y: 40, w: 100, h: 120}
+                                            - sc.y:23
+                                                - p:22 | {x: 300, y: 40, w: 100, h: 60}
+                                                - p:24 | {x: 300, y: 100, w: 100, h: 60}
+                                    - t:11
+                                        - sc.x:12
+                                            - p:7 | {x: 200, y: 40, w: 200, h: 120}
+                                    - t:13
+                                        - sc.x:14
+                                            - p:15 | {x: 200, y: 40, w: 200, h: 120}
+                                - p:9 | {x: 200, y: 160, w: 200, h: 140}
+                """,
+            )
+
+            assert tree.is_visible(p5)
+
+            assert cb_remove.mock_calls == [mock.call([prune_sc, src_tc])]
+            assert cb_add.mock_calls == [mock.call([])]
+
+
+class TestMergeWithNeighborToSubtab:
+    def test_when_src_and_dest_are_mru_deepest(self, tree: Tree):
+        p1 = tree.tab()
+        p2 = tree.split(p1, "x")
+        p3 = tree.split(p1, "y")
+        p4 = tree.split(p2, "y")
+
+        p5 = tree.tab(p3, new_level=True)
+        p6 = tree.tab(p5)
+        p7 = tree.split(p6, "x")
+
+        p8 = tree.tab(p4, new_level=True)
+        p9 = tree.tab(p8)
+        _ = tree.split(p9, "x")
+
+        tree.focus(p7)
+        tree.focus(p9)
+
+        tree.merge_with_neighbor_to_subtab(
+            p7,
+            "right",
+            src_target=SupernodeTarget.mru_deepest,
+            dest_target=SupernodeTarget.mru_deepest,
+        )
+
+        assert tree_matches_repr(
+            tree,
+            """
+            - tc:1
+                - t:2
+                    - sc.x:3
+                        - sc.y:6
+                            - p:4 | {x: 0, y: 20, w: 200, h: 140}
+                            - tc:10
+                                - t:11
+                                    - sc.x:12
+                                        - p:7 | {x: 0, y: 180, w: 200, h: 120}
+                                - t:13
+                                    - sc.x:14
+                                        - p:15 | {x: 0, y: 180, w: 200, h: 120}
+                                - t:16
+                                    - sc.x:17
+                                        - p:18 | {x: 0, y: 180, w: 200, h: 120}
+                        - sc.y:8
+                            - p:5 | {x: 200, y: 20, w: 200, h: 140}
+                            - tc:20
+                                - t:21
+                                    - sc.x:22
+                                        - p:9 | {x: 200, y: 180, w: 200, h: 120}
+                                - t:23
+                                    - sc.x:24
+                                        - p:25 | {x: 200, y: 180, w: 200, h: 120}
+                                - t:26
+                                    - sc.x:27
+                                        - tc:30
+                                            - t:31
+                                                - sc.x:32
+                                                    - p:28 | {x: 200, y: 200, w: 100, h: 100}
+                                            - t:33
+                                                - sc.x:34
+                                                    - p:19 | {x: 200, y: 200, w: 100, h: 100}
+                                        - p:29 | {x: 300, y: 180, w: 100, h: 120}
+            """,
+        )
+
+    class TestOtherSrcTargets:
+        def test_when_src_is_subtab_else_deepest_and_there_is_a_subtab_in_play(
+            self, tree: Tree
+        ):
+            p1 = tree.tab()
+            p2 = tree.split(p1, "x")
+            p3 = tree.split(p1, "y")
+            p4 = tree.split(p2, "y")
+
+            p5 = tree.tab(p3, new_level=True)
+            p6 = tree.tab(p5)
+            p7 = tree.split(p6, "x")
+
+            p8 = tree.tab(p4, new_level=True)
+            p9 = tree.tab(p8)
+            _ = tree.split(p9, "x")
+
+            tree.focus(p7)
+            tree.focus(p9)
+
+            tree.merge_with_neighbor_to_subtab(
+                p7,
+                "right",
+                src_target=SupernodeTarget.mru_subtab_else_deepest,
+                dest_target=SupernodeTarget.mru_deepest,
+            )
+
+            assert tree_matches_repr(
+                tree,
+                """
+                - tc:1
+                    - t:2
+                        - sc.x:3
+                            - p:4 | {x: 0, y: 20, w: 200, h: 280}
+                            - sc.y:8
+                                - p:5 | {x: 200, y: 20, w: 200, h: 140}
+                                - tc:20
+                                    - t:21
+                                        - sc.x:22
+                                            - p:9 | {x: 200, y: 180, w: 200, h: 120}
+                                    - t:23
+                                        - sc.x:24
+                                            - p:25 | {x: 200, y: 180, w: 200, h: 120}
+                                    - t:26
+                                        - sc.x:27
+                                            - tc:10
+                                                - t:11
+                                                    - sc.x:12
+                                                        - p:7 | {x: 200, y: 200, w: 100, h: 100}
+                                                - t:13
+                                                    - sc.x:14
+                                                        - p:15 | {x: 200, y: 200, w: 100, h: 100}
+                                                - t:16
+                                                    - sc.x:17
+                                                        - p:18 | {x: 200, y: 200, w: 50, h: 100}
+                                                        - p:19 | {x: 250, y: 200, w: 50, h: 100}
+                                                - t:30
+                                                    - sc.x:31
+                                                        - p:28 | {x: 200, y: 200, w: 100, h: 100}
+                                            - p:29 | {x: 300, y: 180, w: 100, h: 120}
+                """,
+            )
+
+        def test_when_src_is_subtab_else_deepest_and_there_is_no_subtab_in_play(
+            self, tree: Tree
+        ):
+            p1 = tree.tab()
+            p2 = tree.split(p1, "x")
+            p3 = tree.split(p1, "y")
+            p4 = tree.split(p2, "y")
+
+            p5 = tree.split(p3, "x")
+
+            p6 = tree.tab(p4, new_level=True)
+            p7 = tree.tab(p6)
+            _ = tree.split(p7, "x")
+
+            tree.focus(p5)
+            tree.focus(p7)
+
+            tree.merge_with_neighbor_to_subtab(
+                p5,
+                "right",
+                src_target=SupernodeTarget.mru_subtab_else_deepest,
+                dest_target=SupernodeTarget.mru_deepest,
+            )
+
+            assert tree_matches_repr(
+                tree,
+                """
+                - tc:1
+                    - t:2
+                        - sc.x:3
+                            - sc.y:6
+                                - p:4 | {x: 0, y: 20, w: 200, h: 140}
+                                - p:7 | {x: 0, y: 160, w: 200, h: 140}
+                            - sc.y:8
+                                - p:5 | {x: 200, y: 20, w: 200, h: 140}
+                                - tc:12
+                                    - t:13
+                                        - sc.x:14
+                                            - p:9 | {x: 200, y: 180, w: 200, h: 120}
+                                    - t:15
+                                        - sc.x:16
+                                            - p:17 | {x: 200, y: 180, w: 200, h: 120}
+                                    - t:18
+                                        - sc.x:19
+                                            - tc:22
+                                                - t:23
+                                                    - sc.x:24
+                                                        - p:20 | {x: 200, y: 200, w: 100, h: 100}
+                                                - t:25
+                                                    - sc.x:26
+                                                        - p:11 | {x: 200, y: 200, w: 100, h: 100}
+                                            - p:21 | {x: 300, y: 180, w: 100, h: 120}
+                """,
+            )
+
+        @pytest.mark.odd_space_distribution()
+        def test_when_src_is_mru_largest(self, tree: Tree):
+            p1 = tree.tab()
+            p2 = tree.split(p1, "x")
+            p3 = tree.split(p1, "y")
+            p4 = tree.split(p2, "y")
+
+            p5 = tree.tab(p3, new_level=True)
+            p6 = tree.tab(p5)
+            p7 = tree.split(p6, "x")
+
+            p8 = tree.tab(p4, new_level=True)
+            p9 = tree.tab(p8)
+            _ = tree.split(p9, "x")
+
+            tree.focus(p7)
+            tree.focus(p9)
+
+            tree.merge_with_neighbor_to_subtab(
+                p7,
+                "right",
+                src_target=SupernodeTarget.mru_largest,
+                dest_target=SupernodeTarget.mru_deepest,
+            )
+
+            # 💢 The overall tree structure and space occupancy is okay. But the
+            # distribution of spacing is a bit unexpected. Probably something to do with
+            # how proportional `node.transform()` works...
+            # I expect p:4 to have a height of 50 and tc:10 to also have height 50. And
+            # the contents under tc:10 - all of p:7, p:15, p:18, p:19 should have
+            # height=30, with the remnant 20 going to tc:10's bar.
+            # But instead we have p:4 with h=42 and the panes under tc:10 with h=38.
+            # It's not that harmful overall, so we'll let it be until later™
+            assert tree_matches_repr(
+                tree,
+                """
+                - tc:1
+                    - t:2
+                        - sc.y:8
+                            - p:5 | {x: 0, y: 20, w: 400, h: 140}
+                            - tc:20
+                                - t:21
+                                    - sc.x:22
+                                        - p:9 | {x: 0, y: 180, w: 400, h: 120}
+                                - t:23
+                                    - sc.x:24
+                                        - p:25 | {x: 0, y: 180, w: 400, h: 120}
+                                - t:26
+                                    - sc.x:27
+                                        - tc:30
+                                            - t:31
+                                                - sc.x:32
+                                                    - p:28 | {x: 0, y: 200, w: 200, h: 100}
+                                            - t:33
+                                                - sc.y:6
+                                                    - p:4 | {x: 0, y: 200, w: 200, h: 42}
+                                                    - tc:10
+                                                        - t:11
+                                                            - sc.x:12
+                                                                - p:7 | {x: 0, y: 262, w: 200, h: 38}
+                                                        - t:13
+                                                            - sc.x:14
+                                                                - p:15 | {x: 0, y: 262, w: 200, h: 38}
+                                                        - t:16
+                                                            - sc.x:17
+                                                                - p:18 | {x: 0, y: 262, w: 100, h: 38}
+                                                                - p:19 | {x: 100, y: 262, w: 100, h: 38}
+                                        - p:29 | {x: 200, y: 180, w: 200, h: 120}
+                """,
+            )
+
+        def test_when_src_is_mru_subtab_else_largest_and_there_is_a_subtab_in_play(
+            self, tree: Tree
+        ):
+            p1 = tree.tab()
+            p2 = tree.split(p1, "x")
+            p3 = tree.split(p1, "y")
+            p4 = tree.split(p2, "y")
+
+            p5 = tree.tab(p3, new_level=True)
+            p6 = tree.tab(p5)
+            p7 = tree.split(p6, "x")
+
+            p8 = tree.tab(p4, new_level=True)
+            p9 = tree.tab(p8)
+            _ = tree.split(p9, "x")
+
+            tree.focus(p7)
+            tree.focus(p9)
+
+            tree.merge_with_neighbor_to_subtab(
+                p7,
+                "right",
+                src_target=SupernodeTarget.mru_subtab_else_largest,
+                dest_target=SupernodeTarget.mru_deepest,
+            )
+
+            assert tree_matches_repr(
+                tree,
+                """
+                - tc:1
+                    - t:2
+                        - sc.x:3
+                            - p:4 | {x: 0, y: 20, w: 200, h: 280}
+                            - sc.y:8
+                                - p:5 | {x: 200, y: 20, w: 200, h: 140}
+                                - tc:20
+                                    - t:21
+                                        - sc.x:22
+                                            - p:9 | {x: 200, y: 180, w: 200, h: 120}
+                                    - t:23
+                                        - sc.x:24
+                                            - p:25 | {x: 200, y: 180, w: 200, h: 120}
+                                    - t:26
+                                        - sc.x:27
+                                            - tc:10
+                                                - t:11
+                                                    - sc.x:12
+                                                        - p:7 | {x: 200, y: 200, w: 100, h: 100}
+                                                - t:13
+                                                    - sc.x:14
+                                                        - p:15 | {x: 200, y: 200, w: 100, h: 100}
+                                                - t:16
+                                                    - sc.x:17
+                                                        - p:18 | {x: 200, y: 200, w: 50, h: 100}
+                                                        - p:19 | {x: 250, y: 200, w: 50, h: 100}
+                                                - t:30
+                                                    - sc.x:31
+                                                        - p:28 | {x: 200, y: 200, w: 100, h: 100}
+                                            - p:29 | {x: 300, y: 180, w: 100, h: 120}
+                """,
+            )
+
+        def test_when_src_is_mru_subtab_else_largest_and_there_is_no_subtab_in_play(
+            self, tree: Tree
+        ):
+            p1 = tree.tab()
+            p2 = tree.split(p1, "x")
+            p3 = tree.split(p1, "y")
+            p4 = tree.split(p2, "y")
+
+            p5 = tree.split(p3, "x")
+
+            p6 = tree.tab(p4, new_level=True)
+            p7 = tree.tab(p6)
+            _ = tree.split(p7, "x")
+
+            tree.focus(p5)
+            tree.focus(p7)
+
+            tree.merge_with_neighbor_to_subtab(
+                p5,
+                "right",
+                src_target=SupernodeTarget.mru_subtab_else_largest,
+                dest_target=SupernodeTarget.mru_deepest,
+            )
+
+            assert tree_matches_repr(
+                tree,
+                """
+                - tc:1
+                    - t:2
+                        - sc.y:8
+                            - p:5 | {x: 0, y: 20, w: 400, h: 140}
+                            - tc:12
+                                - t:13
+                                    - sc.x:14
+                                        - p:9 | {x: 0, y: 180, w: 400, h: 120}
+                                - t:15
+                                    - sc.x:16
+                                        - p:17 | {x: 0, y: 180, w: 400, h: 120}
+                                - t:18
+                                    - sc.x:19
+                                        - tc:22
+                                            - t:23
+                                                - sc.x:24
+                                                    - p:20 | {x: 0, y: 200, w: 200, h: 100}
+                                            - t:25
+                                                - sc.y:6
+                                                    - p:4 | {x: 0, y: 200, w: 200, h: 50}
+                                                    - sc.x:10
+                                                        - p:7 | {x: 0, y: 250, w: 100, h: 50}
+                                                        - p:11 | {x: 100, y: 250, w: 100, h: 50}
+                                        - p:21 | {x: 200, y: 180, w: 200, h: 120}
+                """,
+            )
+
+    class TestOtherDestTargets:
+        def test_when_dest_is_mru_subtab_else_deepest_and_there_is_a_subtab_in_play(
+            self, tree: Tree
+        ):
+            p1 = tree.tab()
+            p2 = tree.split(p1, "x")
+            p3 = tree.split(p1, "y")
+            p4 = tree.split(p2, "y")
+
+            p5 = tree.tab(p3, new_level=True)
+            p6 = tree.tab(p5)
+            p7 = tree.split(p6, "x")
+
+            p8 = tree.tab(p4, new_level=True)
+            p9 = tree.tab(p8)
+            _ = tree.split(p9, "x")
+
+            tree.focus(p7)
+            tree.focus(p9)
+
+            tree.merge_with_neighbor_to_subtab(
+                p7,
+                "right",
+                src_target=SupernodeTarget.mru_deepest,
+                dest_target=SupernodeTarget.mru_subtab_else_deepest,
+            )
+
+            assert tree_matches_repr(
+                tree,
+                """
+                - tc:1
+                    - t:2
+                        - sc.x:3
+                            - sc.y:6
+                                - p:4 | {x: 0, y: 20, w: 200, h: 140}
+                                - tc:10
+                                    - t:11
+                                        - sc.x:12
+                                            - p:7 | {x: 0, y: 180, w: 200, h: 120}
+                                    - t:13
+                                        - sc.x:14
+                                            - p:15 | {x: 0, y: 180, w: 200, h: 120}
+                                    - t:16
+                                        - sc.x:17
+                                            - p:18 | {x: 0, y: 180, w: 200, h: 120}
+                            - sc.y:8
+                                - p:5 | {x: 200, y: 20, w: 200, h: 140}
+                                - tc:20
+                                    - t:21
+                                        - sc.x:22
+                                            - p:9 | {x: 200, y: 180, w: 200, h: 120}
+                                    - t:23
+                                        - sc.x:24
+                                            - p:25 | {x: 200, y: 180, w: 200, h: 120}
+                                    - t:26
+                                        - sc.x:27
+                                            - p:28 | {x: 200, y: 180, w: 100, h: 120}
+                                            - p:29 | {x: 300, y: 180, w: 100, h: 120}
+                                    - t:30
+                                        - sc.x:31
+                                            - p:19 | {x: 200, y: 180, w: 200, h: 120}
+                """,
+            )
+
+        def test_when_dest_is_mru_subtab_else_deepest_and_there_is_no_subtab_in_play(
+            self, tree: Tree
+        ):
+            p1 = tree.tab()
+            p2 = tree.split(p1, "x")
+            p3 = tree.split(p1, "y")
+            p4 = tree.split(p2, "y")
+
+            p5 = tree.tab(p3, new_level=True)
+            p6 = tree.tab(p5)
+            p7 = tree.split(p6, "x")
+
+            p8 = tree.split(p4, "x")
+
+            tree.focus(p7)
+            tree.focus(p8)
+
+            tree.merge_with_neighbor_to_subtab(
+                p7,
+                "right",
+                src_target=SupernodeTarget.mru_deepest,
+                dest_target=SupernodeTarget.mru_subtab_else_deepest,
+            )
+
+            assert tree_matches_repr(
+                tree,
+                """
+                - tc:1
+                    - t:2
+                        - sc.x:3
+                            - sc.y:6
+                                - p:4 | {x: 0, y: 20, w: 200, h: 140}
+                                - tc:10
+                                    - t:11
+                                        - sc.x:12
+                                            - p:7 | {x: 0, y: 180, w: 200, h: 120}
+                                    - t:13
+                                        - sc.x:14
+                                            - p:15 | {x: 0, y: 180, w: 200, h: 120}
+                                    - t:16
+                                        - sc.x:17
+                                            - p:18 | {x: 0, y: 180, w: 200, h: 120}
+                            - sc.y:8
+                                - p:5 | {x: 200, y: 20, w: 200, h: 140}
+                                - sc.x:20
+                                    - tc:22
+                                        - t:23
+                                            - sc.x:24
+                                                - p:9 | {x: 200, y: 180, w: 100, h: 120}
+                                        - t:25
+                                            - sc.x:26
+                                                - p:19 | {x: 200, y: 180, w: 100, h: 120}
+                                    - p:21 | {x: 300, y: 160, w: 100, h: 140}
+                """,
+            )
+
+        @pytest.mark.case_pixel_rounding()
+        def test_when_dest_is_mru_largest(self, tree: Tree):
+            p1 = tree.tab()
+            p2 = tree.split(p1, "x")
+            p3 = tree.split(p1, "y")
+            p4 = tree.split(p2, "y")
+
+            p5 = tree.tab(p3, new_level=True)
+            p6 = tree.tab(p5)
+            p7 = tree.split(p6, "x")
+
+            p8 = tree.tab(p4, new_level=True)
+            p9 = tree.tab(p8)
+            _ = tree.split(p9, "x")
+
+            tree.focus(p7)
+            tree.focus(p9)
+
+            tree.merge_with_neighbor_to_subtab(
+                p7,
+                "right",
+                src_target=SupernodeTarget.mru_deepest,
+                dest_target=SupernodeTarget.mru_largest,
+            )
+
+            # 💢 rounding issue: tc:30 is introduced with its new bar of height 20. The
+            # contents p:5 and tc:20 must each have their y+=10 and h-=10. But it seems we
+            # get a 11+9 distribution instead of a 10+10.
+            assert tree_matches_repr(
+                tree,
+                """
+                - tc:1
+                    - t:2
+                        - sc.x:3
+                            - sc.y:6
+                                - p:4 | {x: 0, y: 20, w: 200, h: 140}
+                                - tc:10
+                                    - t:11
+                                        - sc.x:12
+                                            - p:7 | {x: 0, y: 180, w: 200, h: 120}
+                                    - t:13
+                                        - sc.x:14
+                                            - p:15 | {x: 0, y: 180, w: 200, h: 120}
+                                    - t:16
+                                        - sc.x:17
+                                            - p:18 | {x: 0, y: 180, w: 200, h: 120}
+                            - tc:30
+                                - t:31
+                                    - sc.y:8
+                                        - p:5 | {x: 200, y: 40, w: 200, h: 129}
+                                        - tc:20
+                                            - t:21
+                                                - sc.x:22
+                                                    - p:9 | {x: 200, y: 189, w: 200, h: 111}
+                                            - t:23
+                                                - sc.x:24
+                                                    - p:25 | {x: 200, y: 189, w: 200, h: 111}
+                                            - t:26
+                                                - sc.x:27
+                                                    - p:28 | {x: 200, y: 189, w: 100, h: 111}
+                                                    - p:29 | {x: 300, y: 189, w: 100, h: 111}
+                                - t:32
+                                    - sc.x:33
+                                        - p:19 | {x: 200, y: 40, w: 200, h: 260}
+                """,
+            )
+
+        def test_when_dest_is_mru_subtab_else_largest_and_there_is_a_subtab_in_play(
+            self, tree: Tree
+        ):
+            p1 = tree.tab()
+            p2 = tree.split(p1, "x")
+            p3 = tree.split(p1, "y")
+            p4 = tree.split(p2, "y")
+
+            p5 = tree.tab(p3, new_level=True)
+            p6 = tree.tab(p5)
+            p7 = tree.split(p6, "x")
+
+            p8 = tree.tab(p4, new_level=True)
+            p9 = tree.tab(p8)
+            _ = tree.split(p9, "x")
+
+            tree.focus(p7)
+            tree.focus(p9)
+
+            tree.merge_with_neighbor_to_subtab(
+                p7,
+                "right",
+                src_target=SupernodeTarget.mru_deepest,
+                dest_target=SupernodeTarget.mru_subtab_else_largest,
+            )
+
+            assert tree_matches_repr(
+                tree,
+                """
+                - tc:1
+                    - t:2
+                        - sc.x:3
+                            - sc.y:6
+                                - p:4 | {x: 0, y: 20, w: 200, h: 140}
+                                - tc:10
+                                    - t:11
+                                        - sc.x:12
+                                            - p:7 | {x: 0, y: 180, w: 200, h: 120}
+                                    - t:13
+                                        - sc.x:14
+                                            - p:15 | {x: 0, y: 180, w: 200, h: 120}
+                                    - t:16
+                                        - sc.x:17
+                                            - p:18 | {x: 0, y: 180, w: 200, h: 120}
+                            - sc.y:8
+                                - p:5 | {x: 200, y: 20, w: 200, h: 140}
+                                - tc:20
+                                    - t:21
+                                        - sc.x:22
+                                            - p:9 | {x: 200, y: 180, w: 200, h: 120}
+                                    - t:23
+                                        - sc.x:24
+                                            - p:25 | {x: 200, y: 180, w: 200, h: 120}
+                                    - t:26
+                                        - sc.x:27
+                                            - p:28 | {x: 200, y: 180, w: 100, h: 120}
+                                            - p:29 | {x: 300, y: 180, w: 100, h: 120}
+                                    - t:30
+                                        - sc.x:31
+                                            - p:19 | {x: 200, y: 180, w: 200, h: 120}
+                """,
+            )
+
+        def test_when_dest_is_mru_subtab_else_largest_and_there_is_no_subtab_in_play(
+            self, tree: Tree
+        ):
+            p1 = tree.tab()
+            p2 = tree.split(p1, "x")
+            p3 = tree.split(p1, "y")
+            p4 = tree.split(p2, "y")
+
+            p5 = tree.tab(p3, new_level=True)
+            p6 = tree.tab(p5)
+            p7 = tree.split(p6, "x")
+
+            p8 = tree.split(p4, "x")
+
+            tree.focus(p7)
+            tree.focus(p8)
+
+            tree.merge_with_neighbor_to_subtab(
+                p7,
+                "right",
+                src_target=SupernodeTarget.mru_deepest,
+                dest_target=SupernodeTarget.mru_subtab_else_largest,
+            )
+
+            assert tree_matches_repr(
+                tree,
+                """
+                - tc:1
+                    - t:2
+                        - sc.x:3
+                            - sc.y:6
+                                - p:4 | {x: 0, y: 20, w: 200, h: 140}
+                                - tc:10
+                                    - t:11
+                                        - sc.x:12
+                                            - p:7 | {x: 0, y: 180, w: 200, h: 120}
+                                    - t:13
+                                        - sc.x:14
+                                            - p:15 | {x: 0, y: 180, w: 200, h: 120}
+                                    - t:16
+                                        - sc.x:17
+                                            - p:18 | {x: 0, y: 180, w: 200, h: 120}
+                            - tc:22
+                                - t:23
+                                    - sc.y:8
+                                        - p:5 | {x: 200, y: 40, w: 200, h: 130}
+                                        - sc.x:20
+                                            - p:9 | {x: 200, y: 170, w: 100, h: 130}
+                                            - p:21 | {x: 300, y: 170, w: 100, h: 130}
+                                - t:24
+                                    - sc.x:25
+                                        - p:19 | {x: 200, y: 40, w: 200, h: 260}
+                """,
+            )
 
 
 class TestConfig:

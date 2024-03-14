@@ -21,7 +21,16 @@ from libqtile.layout.base import Layout
 from libqtile.log_utils import logger
 
 import qtile_bonsai.validation as validation
-from qtile_bonsai.core.tree import Axis, Pane, SplitContainer, Tab, Tree, TreeEvent
+from qtile_bonsai.core.geometry import DirectionParam
+from qtile_bonsai.core.tree import (
+    Axis,
+    Pane,
+    SplitContainer,
+    SupernodeTarget,
+    Tab,
+    Tree,
+    TreeEvent,
+)
 from qtile_bonsai.theme import Gruvbox
 from qtile_bonsai.tree import BonsaiNodeMixin, BonsaiPane, BonsaiTree
 from qtile_bonsai.utils.process import modify_terminal_cmd_with_cwd
@@ -729,6 +738,61 @@ class Bonsai(Layout):
             return
 
         prompt_widget.start_input("Rename tab: ", self._handle_rename_tab)
+
+    @expose_command
+    def merge_to_subtab(
+        self,
+        direction: DirectionParam,
+        *,
+        src_target: SupernodeTarget = SupernodeTarget.mru_subtab_else_deepest,
+        dest_target: SupernodeTarget = SupernodeTarget.mru_subtab_else_deepest,
+        normalize: bool = True,
+    ):
+        """Merge the currently focused window (or an ancestor node) with a neighboring
+        node in the specified `direction`, so that they both come under a (possibly new)
+        subtab.
+
+        Args:
+            `direction`:
+                The direction in which to find a neighbor to merge with.
+            `src_target`:
+                Determines how the source window/node should be resolved. ie. do we pick
+                just the current window, or all windows under an appropriate ancestor
+                container.
+                Valid values are defined in `SupernodeTarget`. See below.
+            `dest_target`:
+                Determines how the neighboring node should be resolved, similar to how
+                `src_target` is resolved.
+                Valid values are defined in `SupernodeTarget`. See below.
+            `normalize`:
+                If `True`, any removals during the merge process will ensure all sibling
+                nodes are resized to be of equal dimensions.
+
+        Valid values for `SupernodeTarget` are:
+            `"mru_deepest"`:
+                Pick a single innermost window. If there are multiple such neighboring
+                windows, pick the most recently used (MRU) one.
+            `"mru_subtab_else_deepest"` (default):
+                If the target is under a subtab, pick the subtab. If there is no subtab
+                in play, behaves like `mru_deepest`.
+            `"mru_largest"`
+                Given a window, pick the largest ancestor node that the window's border
+                is a fragment of. This resolves to a SplitContainer or a TabContainer.
+            `"mru_subtab_else_largest"`
+                If the target is under a subtab, pick the subtab. If there is no subtab
+                in play, behaves like `mru_largest`.
+        """
+        if self._tree.is_empty:
+            return
+
+        self._tree.merge_with_neighbor_to_subtab(
+            self.focused_pane,
+            direction,
+            src_target=src_target,
+            dest_target=dest_target,
+            normalize=normalize,
+        )
+        self._request_relayout()
 
     @expose_command
     def normalize(self, *, recurse: bool = True):

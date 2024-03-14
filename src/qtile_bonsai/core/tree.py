@@ -39,6 +39,13 @@ class TreeEvent(StrEnum):
     node_removed = "node_removed"
 
 
+class SupernodeTarget(StrEnum):
+    mru_deepest = "mru_deepest"
+    mru_largest = "mru_largest"
+    mru_subtab_else_deepest = "mru_subtab_else_deepest"
+    mru_subtab_else_largest = "mru_subtab_else_largest"
+
+
 class InvalidTreeStructureError(Exception):
     pass
 
@@ -514,6 +521,164 @@ class Tree:
             t2.transform(Axis.x, t1_rect.x, t1_rect.w)
             t2.transform(Axis.y, t1_rect.y, t1_rect.h)
 
+    def merge_to_subtab(self, src: Node, dest: Node, *, normalize: bool = False):
+        """Merge `src` and `dest` such that they both come under a (possibly new)
+        TabContainer.
+
+        Args:
+            `src`:
+                The source branch.
+            `dest`:
+                The target node where the merged branch will exist.
+            `normalize`:
+                Passed on to internal invocations of `remove()` to determine if siblings
+                should be resized to be of equal dimensions.
+        """
+        # If we're provided a Pane target, respect that. Else find an appropriate
+        # ancestor to resolve to.
+        if not isinstance(dest, Pane):
+            dest, _ = self._find_removal_branch(dest)
+            if isinstance(dest, Tab):
+                dest = dest.parent
+
+        if src is dest:
+            raise ValueError(
+                "`src` and `dest` resolve to the same node. Cannot merge a node with "
+                "itself."
+            )
+        if src in dest.get_ancestors() or dest in src.get_ancestors():
+            raise ValueError(
+                "The resolved nodes for `src` and `dest` cannot already be under "
+                "one another."
+            )
+
+        added_nodes = []
+        removed_nodes = []
+
+        src, _, src_remnant_sibling, _ = self._remove(src, normalize=normalize)
+        if src_remnant_sibling is not None:
+            removed_nodes.extend(self._do_post_removal_pruning(src_remnant_sibling))
+
+        # Grab rect only after invoking `_remove()`. In case space redistribution
+        # happens, there may be cases where `dest` is affected. We want to capture those
+        # updates before we shove `src` into `dest`.
+        dest_rect = Rect.from_rect(dest.principal_rect)
+
+        is_src_tc = isinstance(src, TabContainer)
+        is_dest_tc = isinstance(dest, TabContainer)
+
+        if is_src_tc and is_dest_tc:
+            for t in src.children:
+                self._add_tab(dest, insert_node=t, tc_rect=dest_rect)
+            dest.active_child = src.active_child
+            removed_nodes.append(src)
+        elif is_src_tc:
+            # Pluck out `dest`,
+            dest_container = dest.parent
+            dest_pos = dest_container.children.index(dest)
+            dest_container.children.remove(dest)
+            dest.parent = None
+
+            # Put in `src` where `dest` used to be
+            dest_container.children.insert(dest_pos, src)
+            src.parent = dest_container
+            src.transform(Axis.x, dest_rect.x, dest_rect.w)
+            src.transform(Axis.y, dest_rect.y, dest_rect.h)
+
+            # Shove `dest` under `src` as a new tab
+            _, _added_nodes = self._add_tab(
+                src, insert_node=dest, tc_rect=dest_rect, focus_new=False
+            )
+            added_nodes.extend(_added_nodes)
+        elif is_dest_tc:
+            # Shove `src` under `dest` as a new tab
+            _, _added_nodes = self._add_tab(dest, insert_node=src, tc_rect=dest_rect)
+            added_nodes.extend(_added_nodes)
+        else:
+            _, _added_nodes = self._add_tab_at_new_level(dest, insert_node=src)
+            added_nodes.extend(_added_nodes)
+
+        self._notify_subscribers(TreeEvent.node_removed, removed_nodes)
+        self._notify_subscribers(TreeEvent.node_added, added_nodes)
+
+    def merge_with_neighbor_to_subtab(
+        self,
+        node: Node,
+        direction: DirectionParam,
+        *,
+        src_target: SupernodeTarget = SupernodeTarget.mru_subtab_else_deepest,
+        dest_target: SupernodeTarget = SupernodeTarget.mru_subtab_else_deepest,
+        normalize: bool = False,
+    ):
+        """Merge the provided `node` (or a resolved ancestor) with a geometrically
+        neighboring node so that they both come under a (possibly new) TabContainer.
+
+        Args:
+            `node`:
+                The node to merge with a neighbor.
+            `direction`:
+                The geometric direction in which to find a neighboring node to merge
+                with.
+            `src_target`:
+                Determines how `node` should be resolved.
+            `dest_target`:
+                Determines how the neighboring node should be resolved.
+            `normalize`:
+                Passed on to internal invocations of `remove()` to determine if siblings
+                should be resized to be of equal dimensions.
+        """
+        direction = Direction(direction)
+
+        if src_target == SupernodeTarget.mru_deepest:
+            src = self.find_mru_pane(start_node=node)
+        elif src_target == SupernodeTarget.mru_largest:
+            src = self.find_border_encompassing_supernode(
+                node, direction, stop_at_tc=False
+            )
+        elif src_target == SupernodeTarget.mru_subtab_else_deepest:
+            deepest = self.find_mru_pane(start_node=node)
+            tc = deepest.get_first_ancestor(TabContainer)
+            src = tc if tc.tab_level > 1 else deepest
+        elif src_target == SupernodeTarget.mru_subtab_else_largest:
+            src = self.find_border_encompassing_supernode(
+                node, direction, stop_at_tc=True
+            )
+        else:
+            raise ValueError("Invalid value for `src_target`")
+
+        if dest_target == SupernodeTarget.mru_deepest:
+            adjacent_panes = self.find_adjacent_panes(node, direction)
+            dest = self.find_mru_pane(panes=adjacent_panes)
+        elif dest_target == SupernodeTarget.mru_largest:
+            besp = self.find_border_encompassing_supernode(
+                src, direction, stop_at_tc=False
+            )
+            if besp is None:
+                raise ValueError("Invalid value for `dest`")
+            dest = besp.sibling(direction.axis_unit)
+        elif dest_target == SupernodeTarget.mru_subtab_else_deepest:
+            adjacent_panes = self.find_adjacent_panes(node, direction)
+            deepest = self.find_mru_pane(panes=adjacent_panes)
+            tc = deepest.get_first_ancestor(TabContainer)
+            dest = tc if tc.tab_level > 1 else deepest
+        elif dest_target == SupernodeTarget.mru_subtab_else_largest:
+            adjacent_panes = self.find_adjacent_panes(node, direction)
+            deepest = self.find_mru_pane(panes=adjacent_panes)
+            tc = deepest.get_first_ancestor(TabContainer)
+            if tc.tab_level > 1:
+                dest = tc
+            else:
+                besp = self.find_border_encompassing_supernode(
+                    src, direction, stop_at_tc=False
+                )
+                if besp is None:
+                    raise ValueError("Invalid value for `dest`")
+                dest = besp.sibling(direction.axis_unit)
+        else:
+            raise ValueError("Invalid value for `dest_target`")
+
+        self.merge_to_subtab(src, dest, normalize=normalize)
+
     def is_visible(self, node: Node) -> bool:
         """Whether a node is visible or not. A node is visible if all its ancestor
         tabs are active.
@@ -703,6 +868,8 @@ class Tree:
             br_sib.transform(Axis.y, union_rect.y, union_rect.h)
             if normalize and isinstance(container, SplitContainer):
                 self.normalize(container)
+            elif isinstance(container, TabContainer):
+                container.active_child = container.children[br_rm_pos - 1]
 
         return (br_rm, br_rm_pos, br_sib, br_rm_nodes)
 
@@ -759,6 +926,7 @@ class Tree:
         *,
         insert_node: Node | None = None,
         tc_rect: Rect | None = None,
+        focus_new: bool = True,
     ) -> tuple[Tab, list[Node]]:
         """Add a new tab to the provided TabContainer instance.
 
@@ -775,6 +943,8 @@ class Tree:
                 tab. Else will determine dimensions from the provided `tc`.
                 Used primarily when adding a tab to a brand new TabContainer that
                 doesn't have any children yet.
+            `focus_new`:
+                If True, will make the newly added tab the active one.
 
         Returns:
             A 2-tuple with:
@@ -807,14 +977,16 @@ class Tree:
             t = insert_node
             t.parent = tc
             tc.children.append(t)
-            tc.active_child = t
+            if focus_new:
+                tc.active_child = t
             _transform_tab(t)
             return (t, added_nodes)
         t = self.create_tab()
         t.parent = tc
         tc.children.append(t)
         added_nodes.append(t)
-        tc.active_child = t
+        if focus_new:
+            tc.active_child = t
 
         # Handle the need for a SC under the T
         if isinstance(insert_node, SplitContainer):
@@ -850,9 +1022,6 @@ class Tree:
         If `insert_node` is provided, it is inserted under the new tab. Else we create a
         new pane to place there instead.
         """
-        if isinstance(insert_node, Tab):
-            raise ValueError("Invalid node branch provided for `insert_node")
-
         added_nodes = []
 
         # Find the nearest SplitContainer under which tabbing should happen
