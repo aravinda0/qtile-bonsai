@@ -253,6 +253,7 @@ class Bonsai(Layout):
         for each window, as there are other elements such as tab-bar panels to process
         as well.
         """
+        self._sync_with_screen_rect(screen_rect)
         self._tree.render(screen_rect)
 
     def configure(self, window: Window, screen_rect: ScreenRect):
@@ -358,12 +359,6 @@ class Bonsai(Layout):
 
     def previous(self, window) -> Window | None:
         return self.previous(window)
-
-    def show(self, screen_rect: ScreenRect):
-        width_changed = screen_rect.width != self._tree.width
-        height_changed = screen_rect.height != self._tree.height
-        if width_changed or height_changed:
-            self._tree.reset_dimensions(screen_rect.width, screen_rect.height)
 
     def hide(self):
         # While other layouts are active, ensure that any new windows are captured
@@ -907,6 +902,12 @@ class Bonsai(Layout):
             multi_level_config[level][key] = value
 
         return multi_level_config
+
+    def _sync_with_screen_rect(self, screen_rect: ScreenRect):
+        w_changed = screen_rect.width != self._tree.width
+        h_changed = screen_rect.height != self._tree.height
+        if w_changed or h_changed:
+            self._tree.reset_dimensions(screen_rect.width, screen_rect.height)
 
     def _handle_added_tree_nodes(self, nodes: list[BonsaiNodeMixin]):
         for node in nodes:
