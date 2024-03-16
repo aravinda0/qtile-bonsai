@@ -183,6 +183,17 @@ class Bonsai(Layout):
             default_value_label="Gruvbox.fg1",
         ),
         LayoutOption(
+            "auto_cwd_for_terminals",
+            True,
+            """
+            (Experimental)
+
+            If `True`, when spawning new windows by specifying a `program` that happens
+            to be a well-known terminal emulator, will try to open the new terminal
+            window in same working directory as the last focused window.
+            """,
+        ),
+        LayoutOption(
             "restore.threshold_seconds",
             4,
             """
@@ -367,7 +378,6 @@ class Bonsai(Layout):
         *,
         ratio: float = 0.5,
         normalize: bool = True,
-        auto_cwd_for_terminals: bool = True,
     ):
         """
         Launch the provided `program` into a new window that splits the currently
@@ -391,11 +401,6 @@ class Bonsai(Layout):
                 If `True`, overrides `ratio` and leads to the new window and all sibling
                 windows becoming of equal size along the corresponding split axis.
                 Defaults to `True`.
-            `auto_cwd_for_terminals`:
-                (Experimental).
-                If `True`, and the provided `program` is a well known terminal emulator,
-                will try to open the new terminal window in the current working
-                directory.
 
         Examples:
             - layout.spawn_split(my_terminal, "x")
@@ -411,7 +416,7 @@ class Bonsai(Layout):
 
         self._on_next_window = _handle_next_window
 
-        self._spawn_program(program, auto_cwd_for_terminals)
+        self._spawn_program(program)
 
     @expose_command
     def spawn_tab(
@@ -420,7 +425,6 @@ class Bonsai(Layout):
         *,
         new_level: bool = False,
         level: int | None = None,
-        auto_cwd_for_terminals: bool = True,
     ):
         """
         Launch the provided `program` into a new window as a new tab.
@@ -436,8 +440,6 @@ class Bonsai(Layout):
                 If provided, launch the new window as a tab at the provided `level` of
                 tabs in the currently focused window's tab hierarchy.
                 Level 1 is the topmost level.
-            `auto_cwd_for_terminals`:
-                See docs under `spawn_split()`
 
         Examples:
             - layout.spawn_tab(my_terminal)
@@ -466,7 +468,7 @@ class Bonsai(Layout):
 
         self._on_next_window = _handle_next_window
 
-        self._spawn_program(program, auto_cwd_for_terminals)
+        self._spawn_program(program)
 
     @expose_command
     def left(self, *, wrap: bool = True):
@@ -918,7 +920,8 @@ class Bonsai(Layout):
     def _request_relayout(self):
         self.group.layout_all()
 
-    def _spawn_program(self, program: str, auto_cwd_for_terminals: bool):
+    def _spawn_program(self, program: str):
+        auto_cwd_for_terminals = self._tree.get_config("auto_cwd_for_terminals")
         if auto_cwd_for_terminals and self.focused_window is not None:
             program = modify_terminal_cmd_with_cwd(
                 program, self.focused_window.get_pid()
