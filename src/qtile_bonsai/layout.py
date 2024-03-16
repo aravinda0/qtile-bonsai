@@ -50,9 +50,8 @@ class LayoutOption:
 
 class Bonsai(Layout):
     class AddClientMode(enum.Enum):
-        initial_restoration_check = 1
-        restoration_in_progress = 2
-        normal = 3
+        restoration_in_progress = 1
+        normal = 2
 
     level_specific_config_format = re.compile(r"^L(\d+)\.(.+)")
 
@@ -208,10 +207,8 @@ class Bonsai(Layout):
         self._focused_window: Window | None
         self._windows_to_panes: dict[Window, BonsaiPane]
         self._on_next_window: Callable[[], BonsaiPane]
+        self._add_client_mode: Bonsai.AddClientMode
 
-        self._add_client_mode: Bonsai.AddClientMode = (
-            self.AddClientMode.initial_restoration_check
-        )
         self._restoration_window_id_to_pane_id: dict[int, int] = {}
 
     @property
@@ -268,35 +265,26 @@ class Bonsai(Layout):
         This is usually straightforward, but we do some funky things here to support
         restoration of state after a qtile 'reload config'/'restart' event.
 
-        In qtile-bonsai, the end user completely controls window positioning. It's not
-        predictable the way most of qtile's built-in formulatic layouts are.
-        So when qtile is reloaded after config changes, or restarted entirely, we would
-        normally lose all the positioning information, since qtile will destroy the
-        layout instance and create it anew post-reload/restart.
+        Unlike the built-in qtile layouts which are mostly deterministic in how they
+        arrange windows, in qtile-bonsai, windows are arranged at the whims of the
+        end user.
 
-        We work around this by saving the layout state to a file just before reload
-        happens. Then, post-reload, we read back the file to try and restore the layout
-        state.
+        When a qtile 'reload config' or 'restart' event happens, qtile will destroy
+        each layout instance and create it anew post-reload/restart. We use this
+        opportunity to save our state to a file. When the layout is next instantiated,
+        we simply check if a 'very recent' state file exists - which we take to mean
+        that a reload/restart event just happened.
 
-        Now, post-reload, qtile creates the layout instance again. Then it uses its
-        usual window-creation flow and passes each existing window to the layout
-        one-by-one as if new windows were being created in rapid succession.
+        After layout re-instantiation, qtile uses the usual window-creation flow and
+        passes each existing window to it one-by-one as if new windows were being
+        created in rapid succession.
 
         We have to hook into this 're-addition of windows' flow to perform our
         restoration. Note that this has to work over multiple steps, each time when
-        qtile calls `Layout.add_client()`.
-
-        To see if a reload/restart event happened recently, we look at the timestamp
-        saved in our state file. If the state file exists at all and the timestamp is
-        within a few seconds, it's safe enough in practice to assume that a
-        reload/restart happened just recently.
-
-        In summary, `add_client()` goes through a bit of state machine magic. The states
-        are specified in `Bonsai.AddClientMode`.
+        qtile calls `Layout.add_client()`. We keep this up until all existing windows
+        are processed, after which we switch from 'restoration' to 'normal' mode.
         """
-        if self._add_client_mode == Bonsai.AddClientMode.initial_restoration_check:
-            pane = self._handle_add_client__initial_restoration_check(window)
-        elif self._add_client_mode == Bonsai.AddClientMode.restoration_in_progress:
+        if self._add_client_mode == Bonsai.AddClientMode.restoration_in_progress:
             pane = self._handle_add_client__restoration_in_progress(window)
         else:
             pane = self._handle_add_client__normal(window)
@@ -874,6 +862,8 @@ class Bonsai(Layout):
 
         self._on_next_window = _handle_next_window
 
+        self._handle_initial_restoration_check()
+
     def parse_multi_level_config(self) -> BonsaiTree.MultiLevelConfig:
         options_map = {option.name: option for option in self.options}
         merged_user_config = itertools.chain(
@@ -950,7 +940,7 @@ class Bonsai(Layout):
         state_file_path.parent.mkdir(exist_ok=True, parents=True)
         state_file_path.write_text(repr(state))
 
-    def _handle_add_client__initial_restoration_check(self, window) -> BonsaiPane:
+    def _handle_initial_restoration_check(self):
         persisted_state = self._check_for_persisted_state()
         if persisted_state is not None:
             logger.info("Found persisted state. Attempting restoration...")
@@ -963,12 +953,9 @@ class Bonsai(Layout):
             )
 
             self._add_client_mode = Bonsai.AddClientMode.restoration_in_progress
-
-            # Invoke the in-progress handler once to handle the current window.
-            return self._handle_add_client__restoration_in_progress(window)
+            return
 
         self._add_client_mode = Bonsai.AddClientMode.normal
-        return self._handle_add_client__normal(window)
 
     def _handle_add_client__restoration_in_progress(self, window: Window) -> BonsaiPane:
         pane_id = self._restoration_window_id_to_pane_id.get(window.wid)
