@@ -1991,43 +1991,19 @@ class TestRemove:
 
         assert tree.is_empty
 
-    def test_when_operational_sibling_is_pane_then_it_is_returned_as_next_focus_node(
-        self, tree: Tree
-    ):
+    def test_returns_mru_pane_as_next_focus_node(self, tree: Tree):
         p1 = tree.tab()
         p2 = tree.split(p1, "x")
+        _ = tree.tab()
+        p4 = tree.tab()
 
-        _, _, p = tree.remove(p1)
-
-        assert p is p2
-
-    def test_when_operational_sibling_is_sc_then_its_mru_pane_is_returned_as_next_focus_node(
-        self, tree: Tree
-    ):
-        p1 = tree.tab()
-        p2 = tree.split(p1, "x")
-        p3 = tree.split(p2, "y")
-        tree.split(p3, "y")
-
-        tree.focus(p3)
-
-        _, _, p = tree.remove(p1)
-
-        assert p is p3
-
-    def test_when_operational_sibling_is_tc_then_its_mru_pane_is_returned_as_next_focus_node(
-        self, tree: Tree
-    ):
-        p1 = tree.tab()
-        p2 = tree.split(p1, "x")
-        p3 = tree.tab(p2, new_level=True)
-        p4 = tree.split(p2, "y")
-
+        # focus from p2 to p4, skipping p3 sibling of p4
+        tree.focus(p2)
         tree.focus(p4)
 
-        _, _, p = tree.remove(p3)
+        _, _, p = tree.remove(p4)
 
-        assert p is p4
+        assert p is p2
 
     def test_when_tree_becomes_empty_then_returns_none_as_nothing_left_for_subsequent_focus(
         self, tree: Tree

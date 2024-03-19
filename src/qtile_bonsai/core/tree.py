@@ -399,7 +399,7 @@ class Tree:
         rm_nodes.extend(br_rm_nodes)
         if br_sib is not None:
             rm_nodes.extend(self._do_post_removal_pruning(br_sib))
-            next_focus_pane = self.find_mru_pane(start_node=br_sib)
+            next_focus_pane = self.find_mru_pane()
 
         self._notify_subscribers(TreeEvent.node_removed, rm_nodes)
 
