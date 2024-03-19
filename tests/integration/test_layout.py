@@ -60,8 +60,10 @@ def test_when_floating_window_is_unfloated_then_it_is_added_back_to_layout(
         - tc:1
             - t:2
                 - sc.x:3
-                    - p:4 | {x: 0, y: 0, w: 400, h: 600}
-                    - p:6 | {x: 400, y: 0, w: 400, h: 600}
+                    - p:4 | {x: 0, y: 20, w: 800, h: 580}
+            - t:6
+                - sc.x:7
+                    - p:8 | {x: 0, y: 20, w: 800, h: 580}
         """,
     )
 

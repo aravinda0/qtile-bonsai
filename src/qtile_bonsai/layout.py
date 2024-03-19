@@ -97,6 +97,17 @@ class Bonsai(Layout):
             """,
         ),
         LayoutOption(
+            "window.implicit_tabs",
+            True,
+            """
+            If `True`, new windows are created as tabs if not explicitly opened via a
+            `spawn_split()` command. Else the new window is opened in the same manner as
+            the previously spawned window, which could be a split.
+
+            Particularly handy to have GUI apps open as tabs by default.
+            """,
+        ),
+        LayoutOption(
             "tab_bar.height",
             20,
             "Height of tab bars",
@@ -1025,7 +1036,12 @@ class Bonsai(Layout):
         if self._tree.is_empty:
             self._on_next_window = self._handle_default_next_window
 
-        return self._on_next_window()
+        pane = self._on_next_window()
+
+        if self._tree.get_config("window.implicit_tabs"):
+            self._on_next_window = self._handle_default_next_window
+
+        return pane
 
     def _get_windows_to_panes_mapping_from_state(self, state: dict) -> dict:
         windows_to_panes = {}
