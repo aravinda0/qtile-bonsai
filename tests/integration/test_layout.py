@@ -126,7 +126,7 @@ class TestStateRestoration:
         bonsai_layout.spawn_split(spawn_test_window_cmd, "y")
         time.sleep(0.5)
 
-        manager.reload_config()
+        manager.restart()
 
         assert tree_repr_matches_repr(
             manager.layout.info()["tree"],
