@@ -444,29 +444,53 @@ class Tree:
             node = node.parent
         pane.recency = self.next_recency_value()
 
-    def left(self, pane: Pane, *, wrap: bool = True) -> Pane:
-        adjacent = self.find_adjacent_panes(pane, "left", wrap=wrap)
+    def adjacent_pane(
+        self, pane: Pane, direction: DirectionParam, *, wrap: bool = True
+    ) -> Pane:
+        """Returns the single MRU pane that is adjacent to the provided `node` in the
+        specified direction.
+        """
+        adjacent = self.adjacent_panes(pane, direction, wrap=wrap)
         if not adjacent:
             return pane
         return self.find_mru_pane(panes=adjacent)
 
-    def right(self, pane: Pane, *, wrap: bool = True) -> Pane:
-        adjacent = self.find_adjacent_panes(pane, "right", wrap=wrap)
-        if not adjacent:
-            return pane
-        return self.find_mru_pane(panes=adjacent)
+    def adjacent_panes(
+        self, node: Node, direction: DirectionParam, *, wrap: bool = True
+    ) -> list[Pane]:
+        """Returns all panes that are adjacent to the provided `node` in the specified
+        `direction`.
 
-    def up(self, pane: Pane, *, wrap: bool = True) -> Pane:
-        adjacent = self.find_adjacent_panes(pane, "up", wrap=wrap)
-        if not adjacent:
-            return pane
-        return self.find_mru_pane(panes=adjacent)
+        NOTES:
+            - 'Adjacent' here means that panes may partially or wholly share a border
+              with the provided `node`.
+            - A pane is not adjacent to itself.
+            - Tab bars are ignored. Two panes can be adjacent even if a subtab bar
+              appears between them.
+        """
+        direction = Direction(direction)
 
-    def down(self, pane: Pane, *, wrap: bool = True) -> Pane:
-        adjacent = self.find_adjacent_panes(pane, "down", wrap=wrap)
-        if not adjacent:
-            return pane
-        return self.find_mru_pane(panes=adjacent)
+        supernode = self.find_border_encompassing_supernode(node, direction)
+        if supernode is None:
+            return []
+
+        supernode_sibling = supernode.sibling(direction.axis_unit, wrap=wrap)
+        if supernode_sibling is None or supernode_sibling is supernode:
+            return []
+
+        adjacent = []
+        inv_axis = direction.axis.inv
+        for candidate in self._find_panes_along_border(supernode_sibling, direction):
+            coord1_ok = candidate.principal_rect.coord(
+                inv_axis
+            ) < node.principal_rect.coord2(inv_axis)
+            coord2_ok = candidate.principal_rect.coord2(
+                inv_axis
+            ) > node.principal_rect.coord(inv_axis)
+            if coord1_ok and coord2_ok:
+                adjacent.append(candidate)
+
+        return adjacent
 
     def next_tab(self, node: Node, *, wrap: bool = True) -> Pane | None:
         return self._next_tab(node, 1, wrap=wrap)
@@ -647,7 +671,7 @@ class Tree:
             raise ValueError("Invalid value for `src_target`")
 
         if dest_target == SupernodeTarget.mru_deepest:
-            adjacent_panes = self.find_adjacent_panes(node, direction)
+            adjacent_panes = self.adjacent_panes(node, direction)
             dest = self.find_mru_pane(panes=adjacent_panes)
         elif dest_target == SupernodeTarget.mru_largest:
             besp = self.find_border_encompassing_supernode(
@@ -657,12 +681,12 @@ class Tree:
                 raise ValueError("Invalid value for `dest`")
             dest = besp.sibling(direction.axis_unit)
         elif dest_target == SupernodeTarget.mru_subtab_else_deepest:
-            adjacent_panes = self.find_adjacent_panes(node, direction)
+            adjacent_panes = self.adjacent_panes(node, direction)
             deepest = self.find_mru_pane(panes=adjacent_panes)
             tc = deepest.get_first_ancestor(TabContainer)
             dest = tc if tc.tab_level > 1 else deepest
         elif dest_target == SupernodeTarget.mru_subtab_else_largest:
-            adjacent_panes = self.find_adjacent_panes(node, direction)
+            adjacent_panes = self.adjacent_panes(node, direction)
             deepest = self.find_mru_pane(panes=adjacent_panes)
             tc = deepest.get_first_ancestor(TabContainer)
             if tc.tab_level > 1:
@@ -689,43 +713,6 @@ class Tree:
                 return False
             n = n.parent
         return True
-
-    def find_adjacent_panes(
-        self, node: Pane, direction: DirectionParam, *, wrap: bool = True
-    ) -> list[Pane]:
-        """Returns all panes that are adjacent to the provided `node` in the specified
-        `direction`.
-
-        NOTES:
-            - 'Adjacent' here means that panes may partially or wholly share a border
-              with the provided `node`.
-            - A pane is not adjacent to itself.
-            - Tab bars are ignored. Two panes can be adjacent even if a subtab bar
-              appears between them.
-        """
-        direction = Direction(direction)
-
-        supernode = self.find_border_encompassing_supernode(node, direction)
-        if supernode is None:
-            return []
-
-        supernode_sibling = supernode.sibling(direction.axis_unit, wrap=wrap)
-        if supernode_sibling is None or supernode_sibling is supernode:
-            return []
-
-        adjacent = []
-        inv_axis = direction.axis.inv
-        for candidate in self._find_panes_along_border(supernode_sibling, direction):
-            coord1_ok = candidate.principal_rect.coord(
-                inv_axis
-            ) < node.principal_rect.coord2(inv_axis)
-            coord2_ok = candidate.principal_rect.coord2(
-                inv_axis
-            ) > node.principal_rect.coord(inv_axis)
-            if coord1_ok and coord2_ok:
-                adjacent.append(candidate)
-
-        return adjacent
 
     def find_border_encompassing_supernode(
         self, node: Node, border_direction: Direction, *, stop_at_tc: bool = False

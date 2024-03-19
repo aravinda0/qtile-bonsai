@@ -2977,7 +2977,7 @@ class TestMotions:
             p2 = tree.split(p1, "x")
             p3 = tree.split(p2, "x")
 
-            assert tree.right(p2) is p3
+            assert tree.adjacent_pane(p2, "right") is p3
 
         def test_motion_along_axis_in_nested_level(self, tree: Tree):
             p1 = tree.tab()
@@ -2985,14 +2985,14 @@ class TestMotions:
             p3 = tree.split(p2, "y")
             p4 = tree.split(p3, "x")
 
-            assert tree.right(p3) is p4
+            assert tree.adjacent_pane(p3, "right") is p4
 
         def test_motion_against_axis(self, tree: Tree):
             p1 = tree.tab()
             p2 = tree.split(p1, "x")
             p3 = tree.split(p1, "y")
 
-            assert tree.right(p3, wrap=False) is p2
+            assert tree.adjacent_pane(p3, "right", wrap=False) is p2
 
         def test_motion_against_axis_in_nested_level(self, tree: Tree):
             p1 = tree.tab()
@@ -3001,7 +3001,7 @@ class TestMotions:
             p4 = tree.split(p3, "x")
             p5 = tree.split(p3, "y")
 
-            assert tree.right(p5) is p4
+            assert tree.adjacent_pane(p5, "right") is p4
 
         def test_when_wrap_is_true_and_pane_is_at_edge_of_screen_then_pane_from_other_edge_of_screen_is_returned(
             self, tree: Tree
@@ -3010,7 +3010,7 @@ class TestMotions:
             p2 = tree.split(p1, "x")
             p3 = tree.split(p2, "x")
 
-            assert tree.right(p3, wrap=True) is p1
+            assert tree.adjacent_pane(p3, "right", wrap=True) is p1
 
         def test_when_wrap_is_true_and_pane_is_its_own_sibling_then_the_pane_itself_is_returned(
             self, tree: Tree
@@ -3019,7 +3019,7 @@ class TestMotions:
             p2 = tree.split(p1, "y")
             tree.split(p2, "x")
 
-            assert tree.right(p1, wrap=True) is p1
+            assert tree.adjacent_pane(p1, "right", wrap=True) is p1
 
         def test_when_wrap_is_false_and_pane_is_at_edge_of_screen_then_the_pane_itself_is_returned(
             self, tree: Tree
@@ -3028,7 +3028,7 @@ class TestMotions:
             p2 = tree.split(p1, "x")
             p3 = tree.split(p2, "x")
 
-            assert tree.right(p3, wrap=False) is p3
+            assert tree.adjacent_pane(p3, "right", wrap=False) is p3
 
         def test_when_there_are_multiple_adjacent_panes_then_the_most_recently_focused_one_is_chosen(
             self, tree: Tree
@@ -3042,7 +3042,7 @@ class TestMotions:
             tree.focus(p3)
             tree.focus(p4)
 
-            assert tree.right(p1) is p4
+            assert tree.adjacent_pane(p1, "right") is p4
 
         def test_non_adjacent_panes_further_away_in_the_requested_direction_are_not_considered(
             self, tree: Tree
@@ -3052,9 +3052,9 @@ class TestMotions:
             p3 = tree.split(p1, "x")
 
             tree.focus(p3)
-            assert tree.right(p1) is p3
+            assert tree.adjacent_pane(p1, "right") is p3
             tree.focus(p2)
-            assert tree.right(p1) is p3
+            assert tree.adjacent_pane(p1, "right") is p3
 
         def test_adjacent_panes_that_only_partly_share_borders_are_candidates(
             self, tree: Tree
@@ -3071,9 +3071,9 @@ class TestMotions:
             # p2 and p6 both touch p4. p6 is further down and does not touch p4.
 
             tree.focus(p2)
-            assert tree.right(p4) is p2
+            assert tree.adjacent_pane(p4, "right") is p2
             tree.focus(p6)
-            assert tree.right(p4) is p6
+            assert tree.adjacent_pane(p4, "right") is p6
 
         def test_when_there_are_panes_along_the_same_border_but_not_adjacent_then_they_are_not_considered(
             self, tree: Tree
@@ -3092,7 +3092,7 @@ class TestMotions:
 
             # The only adjacent neighbor of p3 is p5. p2 and p6 are along p3's border
             # but not adjacent.
-            assert tree.right(p3) is p5
+            assert tree.adjacent_pane(p3, "right") is p5
 
         def test_when_adjacent_pane_is_under_tab_container_then_only_the_visible_pane_is_considered(
             self, tree: Tree
@@ -3103,7 +3103,7 @@ class TestMotions:
             p4 = tree.tab(p3)
             tree.focus(p4)
 
-            assert tree.right(p1) is p4
+            assert tree.adjacent_pane(p1, "right") is p4
 
         def test_deeply_nested_adjacent_panes_under_different_super_nodes(
             self, tree: Tree
@@ -3127,7 +3127,7 @@ class TestMotions:
 
             tree.focus(pb4)
 
-            assert tree.right(pa4) is pb4
+            assert tree.adjacent_pane(pa4, "right") is pb4
 
     class TestLeft:
         def test_motion_along_axis(self, tree: Tree):
@@ -3135,7 +3135,7 @@ class TestMotions:
             p2 = tree.split(p1, "x")
             tree.split(p2, "x")
 
-            assert tree.left(p2) is p1
+            assert tree.adjacent_pane(p2, "left") is p1
 
         def test_motion_along_axis_in_nested_level(self, tree: Tree):
             p1 = tree.tab()
@@ -3143,14 +3143,14 @@ class TestMotions:
             p3 = tree.split(p2, "y")
             p4 = tree.split(p3, "x")
 
-            assert tree.left(p4) is p3
+            assert tree.adjacent_pane(p4, "left") is p3
 
         def test_motion_against_axis(self, tree: Tree):
             p1 = tree.tab()
             p2 = tree.split(p1, "x")
             p3 = tree.split(p2, "y")
 
-            assert tree.left(p3, wrap=False) is p1
+            assert tree.adjacent_pane(p3, "left", wrap=False) is p1
 
         def test_motion_against_axis_in_nested_level(self, tree: Tree):
             p1 = tree.tab()
@@ -3159,7 +3159,7 @@ class TestMotions:
             p4 = tree.split(p3, "x")
             p5 = tree.split(p4, "y")
 
-            assert tree.left(p5) is p3
+            assert tree.adjacent_pane(p5, "left") is p3
 
         def test_when_wrap_is_true_and_pane_is_at_edge_of_screen_then_pane_from_other_edge_of_screen_is_returned(
             self, tree: Tree
@@ -3168,7 +3168,7 @@ class TestMotions:
             p2 = tree.split(p1, "x")
             p3 = tree.split(p2, "x")
 
-            assert tree.left(p1, wrap=True) is p3
+            assert tree.adjacent_pane(p1, "left", wrap=True) is p3
 
         def test_when_wrap_is_true_and_pane_is_its_own_sibling_then_the_pane_itself_is_returned(
             self, tree: Tree
@@ -3177,7 +3177,7 @@ class TestMotions:
             p2 = tree.split(p1, "y")
             tree.split(p2, "x")
 
-            assert tree.left(p1, wrap=True) is p1
+            assert tree.adjacent_pane(p1, "left", wrap=True) is p1
 
         def test_when_wrap_is_false_and_pane_is_at_edge_of_screen_then_the_pane_itself_is_returned(
             self, tree: Tree
@@ -3186,7 +3186,7 @@ class TestMotions:
             p2 = tree.split(p1, "x")
             tree.split(p2, "x")
 
-            assert tree.left(p1, wrap=False) is p1
+            assert tree.adjacent_pane(p1, "left", wrap=False) is p1
 
         def test_when_there_are_multiple_adjacent_panes_then_the_most_recently_focused_one_is_chosen(
             self, tree: Tree
@@ -3200,7 +3200,7 @@ class TestMotions:
             tree.focus(p3)
             tree.focus(p4)
 
-            assert tree.left(p2) is p4
+            assert tree.adjacent_pane(p2, "left") is p4
 
         def test_non_adjacent_panes_further_away_in_the_requested_direction_are_not_considered(
             self, tree: Tree
@@ -3210,9 +3210,9 @@ class TestMotions:
             p3 = tree.split(p2, "x")
 
             tree.focus(p2)
-            assert tree.left(p3) is p2
+            assert tree.adjacent_pane(p3, "left") is p2
             tree.focus(p1)
-            assert tree.left(p3) is p2
+            assert tree.adjacent_pane(p3, "left") is p2
 
         def test_adjacent_panes_that_only_partly_share_borders_are_candidates(
             self, tree: Tree
@@ -3229,9 +3229,9 @@ class TestMotions:
             # p3 and p4 both touch p6. p1 is further up and does not touch p6.
 
             tree.focus(p3)
-            assert tree.left(p6) is p3
+            assert tree.adjacent_pane(p6, "left") is p3
             tree.focus(p4)
-            assert tree.left(p6) is p4
+            assert tree.adjacent_pane(p6, "left") is p4
 
         def test_when_there_are_panes_along_the_same_border_but_not_adjacent_then_they_are_not_considered(
             self, tree: Tree
@@ -3250,7 +3250,7 @@ class TestMotions:
 
             # The only adjacent neighbor of p5 is p3. p1 and p4 are along p5's border
             # but not adjacent.
-            assert tree.left(p5) is p3
+            assert tree.adjacent_pane(p5, "left") is p3
 
         def test_when_adjacent_pane_is_under_tab_container_then_only_the_visible_pane_is_considered(
             self, tree: Tree
@@ -3261,7 +3261,7 @@ class TestMotions:
             p4 = tree.tab(p3)
             tree.focus(p4)
 
-            assert tree.left(p2) is p4
+            assert tree.adjacent_pane(p2, "left") is p4
 
         def test_deeply_nested_adjacent_panes_in_different_super_containers(
             self, tree: Tree
@@ -3285,7 +3285,7 @@ class TestMotions:
 
             tree.focus(pa4)
 
-            assert tree.left(pb4) is pa4
+            assert tree.adjacent_pane(pb4, "left") is pa4
 
     class TestDown:
         def test_motion_along_axis(self, tree: Tree):
@@ -3293,7 +3293,7 @@ class TestMotions:
             p2 = tree.split(p1, "y")
             p3 = tree.split(p2, "y")
 
-            assert tree.down(p2) is p3
+            assert tree.adjacent_pane(p2, "down") is p3
 
         def test_motion_along_axis_in_nested_level(self, tree: Tree):
             p1 = tree.tab()
@@ -3301,14 +3301,14 @@ class TestMotions:
             p3 = tree.split(p2, "x")
             p4 = tree.split(p3, "y")
 
-            assert tree.down(p3) is p4
+            assert tree.adjacent_pane(p3, "down") is p4
 
         def test_motion_against_axis(self, tree: Tree):
             p1 = tree.tab()
             p2 = tree.split(p1, "y")
             p3 = tree.split(p1, "x")
 
-            assert tree.down(p3, wrap=False) is p2
+            assert tree.adjacent_pane(p3, "down", wrap=False) is p2
 
         def test_motion_against_axis_in_nested_level(self, tree: Tree):
             p1 = tree.tab()
@@ -3317,7 +3317,7 @@ class TestMotions:
             p4 = tree.split(p3, "y")
             p5 = tree.split(p3, "x")
 
-            assert tree.down(p5) is p4
+            assert tree.adjacent_pane(p5, "down") is p4
 
         def test_when_wrap_is_true_and_pane_is_at_edge_of_screen_then_pane_from_other_edge_of_screen_is_returned(
             self, tree: Tree
@@ -3326,7 +3326,7 @@ class TestMotions:
             p2 = tree.split(p1, "y")
             p3 = tree.split(p2, "y")
 
-            assert tree.down(p3, wrap=True) is p1
+            assert tree.adjacent_pane(p3, "down", wrap=True) is p1
 
         def test_when_wrap_is_true_and_pane_is_its_own_sibling_then_the_pane_itself_is_returned(
             self, tree: Tree
@@ -3335,7 +3335,7 @@ class TestMotions:
             p2 = tree.split(p1, "x")
             tree.split(p2, "y")
 
-            assert tree.down(p1, wrap=True) is p1
+            assert tree.adjacent_pane(p1, "down", wrap=True) is p1
 
         def test_when_wrap_is_false_and_pane_is_at_edge_of_screen_then_the_pane_itself_is_returned(
             self, tree: Tree
@@ -3344,7 +3344,7 @@ class TestMotions:
             p2 = tree.split(p1, "y")
             p3 = tree.split(p2, "y")
 
-            assert tree.down(p3, wrap=False) is p3
+            assert tree.adjacent_pane(p3, "down", wrap=False) is p3
 
         def test_when_there_are_multiple_adjacent_panes_then_the_most_recently_focused_one_is_chosen(
             self, tree: Tree
@@ -3358,7 +3358,7 @@ class TestMotions:
             tree.focus(p3)
             tree.focus(p4)
 
-            assert tree.down(p1) is p4
+            assert tree.adjacent_pane(p1, "down") is p4
 
         def test_non_adjacent_panes_further_away_in_the_requested_direction_are_not_considered(
             self, tree: Tree
@@ -3368,9 +3368,9 @@ class TestMotions:
             p3 = tree.split(p1, "y")
 
             tree.focus(p3)
-            assert tree.down(p1) is p3
+            assert tree.adjacent_pane(p1, "down") is p3
             tree.focus(p2)
-            assert tree.down(p1) is p3
+            assert tree.adjacent_pane(p1, "down") is p3
 
         def test_adjacent_panes_that_only_partly_share_borders_are_candidates(
             self, tree: Tree
@@ -3387,9 +3387,9 @@ class TestMotions:
             # p2 and p6 both touch p4. p6 does not touch p4.
 
             tree.focus(p2)
-            assert tree.down(p4) is p2
+            assert tree.adjacent_pane(p4, "down") is p2
             tree.focus(p6)
-            assert tree.down(p4) is p6
+            assert tree.adjacent_pane(p4, "down") is p6
 
         def test_when_there_are_panes_along_the_same_border_but_not_adjacent_then_they_are_not_considered(
             self, tree: Tree
@@ -3408,7 +3408,7 @@ class TestMotions:
 
             # The only adjacent neighbor of p3 is p5. p2 and p6 are along p3's border
             # but not adjacent.
-            assert tree.down(p3) is p5
+            assert tree.adjacent_pane(p3, "down") is p5
 
         def test_when_adjacent_pane_is_under_tab_container_then_only_the_visible_pane_is_considered(
             self, tree: Tree
@@ -3419,7 +3419,7 @@ class TestMotions:
             p4 = tree.tab(p3)
             tree.focus(p4)
 
-            assert tree.down(p1) is p4
+            assert tree.adjacent_pane(p1, "down") is p4
 
         def test_deeply_nested_adjacent_panes_in_different_super_containers(
             self, tree: Tree
@@ -3443,7 +3443,7 @@ class TestMotions:
 
             tree.focus(pb4)
 
-            assert tree.down(pa4) is pb4
+            assert tree.adjacent_pane(pa4, "down") is pb4
 
         def test_when_there_are_tab_bars_between_panes_then_they_are_ignored_for_adjacency_calculations(
             self, tree: Tree
@@ -3461,7 +3461,7 @@ class TestMotions:
             # p6 is still the most relevant adjacent pane downwards from p1, despite it
             # being 'further' away vertically than p3, due to the many tab bars in
             # between.
-            assert tree.down(p1) is p6
+            assert tree.adjacent_pane(p1, "down") is p6
 
     class TestUp:
         def test_motion_along_axis(self, tree: Tree):
@@ -3469,7 +3469,7 @@ class TestMotions:
             p2 = tree.split(p1, "y")
             tree.split(p2, "y")
 
-            assert tree.up(p2) is p1
+            assert tree.adjacent_pane(p2, "up") is p1
 
         def test_motion_along_axis_in_nested_level(self, tree: Tree):
             p1 = tree.tab()
@@ -3477,14 +3477,14 @@ class TestMotions:
             p3 = tree.split(p2, "x")
             p4 = tree.split(p3, "y")
 
-            assert tree.up(p4) is p3
+            assert tree.adjacent_pane(p4, "up") is p3
 
         def test_motion_against_axis(self, tree: Tree):
             p1 = tree.tab()
             p2 = tree.split(p1, "y")
             p3 = tree.split(p2, "x")
 
-            assert tree.up(p3, wrap=False) is p1
+            assert tree.adjacent_pane(p3, "up", wrap=False) is p1
 
         def test_motion_against_axis_in_nested_level(self, tree: Tree):
             p1 = tree.tab()
@@ -3493,7 +3493,7 @@ class TestMotions:
             p4 = tree.split(p3, "y")
             p5 = tree.split(p4, "x")
 
-            assert tree.up(p5) is p3
+            assert tree.adjacent_pane(p5, "up") is p3
 
         def test_when_wrap_is_true_and_pane_is_at_edge_of_screen_then_pane_from_other_edge_of_screen_is_returned(
             self, tree: Tree
@@ -3502,7 +3502,7 @@ class TestMotions:
             p2 = tree.split(p1, "y")
             p3 = tree.split(p2, "y")
 
-            assert tree.up(p1, wrap=True) is p3
+            assert tree.adjacent_pane(p1, "up", wrap=True) is p3
 
         def test_when_wrap_is_true_and_pane_is_its_own_sibling_then_the_pane_itself_is_returned(
             self, tree: Tree
@@ -3511,7 +3511,7 @@ class TestMotions:
             p2 = tree.split(p1, "x")
             tree.split(p2, "y")
 
-            assert tree.up(p1, wrap=True) is p1
+            assert tree.adjacent_pane(p1, "up", wrap=True) is p1
 
         def test_when_wrap_is_false_and_pane_is_at_edge_of_screen_then_the_pane_itself_is_returned(
             self, tree: Tree
@@ -3520,7 +3520,7 @@ class TestMotions:
             p2 = tree.split(p1, "y")
             tree.split(p2, "y")
 
-            assert tree.up(p1, wrap=False) is p1
+            assert tree.adjacent_pane(p1, "up", wrap=False) is p1
 
         def test_when_there_are_multiple_adjacent_panes_then_the_most_recently_focused_one_is_chosen(
             self, tree: Tree
@@ -3534,7 +3534,7 @@ class TestMotions:
             tree.focus(p3)
             tree.focus(p4)
 
-            assert tree.up(p2) is p4
+            assert tree.adjacent_pane(p2, "up") is p4
 
         def test_non_adjacent_panes_further_away_in_the_requested_direction_are_not_considered(
             self, tree: Tree
@@ -3544,9 +3544,9 @@ class TestMotions:
             p3 = tree.split(p2, "y")
 
             tree.focus(p2)
-            assert tree.up(p3) is p2
+            assert tree.adjacent_pane(p3, "up") is p2
             tree.focus(p1)
-            assert tree.up(p3) is p2
+            assert tree.adjacent_pane(p3, "up") is p2
 
         def test_adjacent_panes_that_only_partly_share_borders_are_candidates(
             self, tree: Tree
@@ -3563,9 +3563,9 @@ class TestMotions:
             # p3 and p4 both touch p6. p1 does not touch p6.
 
             tree.focus(p3)
-            assert tree.up(p6) is p3
+            assert tree.adjacent_pane(p6, "up") is p3
             tree.focus(p4)
-            assert tree.up(p6) is p4
+            assert tree.adjacent_pane(p6, "up") is p4
 
         def test_when_there_are_panes_along_the_same_border_but_not_adjacent_then_they_are_not_considered(
             self, tree: Tree
@@ -3584,7 +3584,7 @@ class TestMotions:
 
             # The only adjacent neighbor of p5 is p3. p1 and p4 are along p5's border
             # but not adjacent.
-            assert tree.up(p5) is p3
+            assert tree.adjacent_pane(p5, "up") is p3
 
         def test_when_adjacent_pane_is_under_tab_container_then_only_the_visible_pane_is_considered(
             self, tree: Tree
@@ -3595,7 +3595,7 @@ class TestMotions:
             p4 = tree.tab(p3)
             tree.focus(p4)
 
-            assert tree.up(p2) is p4
+            assert tree.adjacent_pane(p2, "up") is p4
 
         def test_deeply_nested_adjacent_panes_in_different_super_containers(
             self, tree: Tree
@@ -3619,7 +3619,7 @@ class TestMotions:
 
             tree.focus(pa4)
 
-            assert tree.up(pb4) is pa4
+            assert tree.adjacent_pane(pb4, "up") is pa4
 
 
 class TestTabMotions:

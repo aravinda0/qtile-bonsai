@@ -21,7 +21,7 @@ from libqtile.layout.base import Layout
 from libqtile.log_utils import logger
 
 import qtile_bonsai.validation as validation
-from qtile_bonsai.core.geometry import DirectionParam
+from qtile_bonsai.core.geometry import Direction, DirectionParam
 from qtile_bonsai.core.tree import (
     Axis,
     Pane,
@@ -485,7 +485,9 @@ class Bonsai(Layout):
         if self._tree.is_empty:
             return
 
-        next_pane = self._tree.left(self.focused_pane, wrap=wrap)
+        next_pane = self._tree.adjacent_pane(
+            self.focused_pane, Direction.left, wrap=wrap
+        )
         self._request_focus(next_pane)
 
     @expose_command
@@ -496,7 +498,9 @@ class Bonsai(Layout):
         if self._tree.is_empty:
             return
 
-        next_pane = self._tree.right(self.focused_pane, wrap=wrap)
+        next_pane = self._tree.adjacent_pane(
+            self.focused_pane, Direction.right, wrap=wrap
+        )
         self._request_focus(next_pane)
 
     @expose_command
@@ -507,7 +511,7 @@ class Bonsai(Layout):
         if self._tree.is_empty:
             return
 
-        next_pane = self._tree.up(self.focused_pane, wrap=wrap)
+        next_pane = self._tree.adjacent_pane(self.focused_pane, Direction.up, wrap=wrap)
         self._request_focus(next_pane)
 
     @expose_command
@@ -518,7 +522,9 @@ class Bonsai(Layout):
         if self._tree.is_empty:
             return
 
-        next_pane = self._tree.down(self.focused_pane, wrap=wrap)
+        next_pane = self._tree.adjacent_pane(
+            self.focused_pane, Direction.right, wrap=wrap
+        )
         self._request_focus(next_pane)
 
     @expose_command
