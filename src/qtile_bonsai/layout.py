@@ -222,6 +222,9 @@ class Bonsai(Layout):
 
         self._restoration_window_id_to_pane_id: dict[int, int] = {}
 
+        # See docstring for `_handle_delayed_release_of_removed_nodes()`
+        self._removed_nodes_for_delayed_release = []
+
     @property
     def focused_window(self) -> Window | None:
         return self._focused_window
@@ -366,8 +369,12 @@ class Bonsai(Layout):
 
         self._tree.hide()
 
+        # Use this opportunity for some cleanup
+        self._handle_delayed_release_of_removed_nodes()
+
     def finalize(self):
         self._persist_tree_state()
+        self._handle_delayed_release_of_removed_nodes()
         self._tree.finalize()
 
     @expose_command
@@ -912,7 +919,32 @@ class Bonsai(Layout):
             node.init_ui(self.group.qtile)
 
     def _handle_removed_tree_nodes(self, nodes: list[BonsaiNodeMixin]):
-        for node in nodes:
+        self._removed_nodes_for_delayed_release.extend(nodes)
+
+    def _handle_delayed_release_of_removed_nodes(self):
+        """Finally release UI resources acquired by nodes that were removed at some
+        point.
+
+        This is a hacky workaround to get around a problem in qtile's Wayland backend
+        during config-reload.
+
+        In `qtile.backend.wayland.core.on_load_config()`, qtile loops through all
+        windows under its purview. There it invokes `layout.remove(win)` to remove
+        windows from stale pre-reload layout instances and does `layout.add_client(win)`
+        on the new post-reload layout instances.
+        When the `remove()` happens, we release some 'internal windows' - particularly
+        tab bars. But this leads to a modification of the windows-list that qtile is
+        iterating over in the first place, leading to an exception:
+            `RuntimeError: dictionary changed size during iteration`
+
+        Incedentally, there was a similar issue that prevented the dynamic creation of
+        internal windows, fixed on master after qtile 0.24 came out:
+            https://github.com/qtile/qtile/issues/4656
+
+        But this Wayland issue may need some refactoring if it is to be handled at the
+        qtile level.
+        """
+        for node in self._removed_nodes_for_delayed_release:
             node.finalize()
 
     def _handle_rename_tab(self, new_title: str):

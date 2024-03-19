@@ -66,13 +66,6 @@ def test_when_floating_window_is_unfloated_then_it_is_added_back_to_layout(
     )
 
 
-@pytest.mark.skip(
-    reason="""
-    Need to fix bug in qtile first where config reload leads to a 'dictionary changed
-    size during iteration' error since it doesn't anticipate internal windows being
-    created within layouts.
-    """
-)
 class TestStateRestoration:
     def test_when_qtile_config_is_reloaded_then_state_is_restored(
         self, manager, spawn_test_window_cmd
