@@ -611,67 +611,22 @@ class Bonsai(Layout):
         self._request_relayout()
 
     @expose_command
-    def swap_left(self, *, wrap: bool = False):
+    def swap(self, direction: DirectionParam, *, wrap: bool = False):
         """
-        Swaps the currently focused window with the window to the left. If there are
-        multiple candidates to pick from on the left, then the most recently focused one
-        is chosen.
+        Swaps the currently focused window with the nearest window in the specified
+        direction. If there are multiple candidates to pick from, then the most recently
+        focused one is chosen.
 
         Args:
             `wrap`:
-                If `True`, will wrap around the edge and select windows from the right
+                If `True`, will wrap around the edge and select windows from the other
                 end of the screen to swap.
                 Defaults to `False`.
         """
         if self._tree.is_empty:
             return
 
-        other_pane = self._tree.left(self.focused_pane, wrap=wrap)
-        if other_pane is self.focused_pane:
-            return
-
-        self._tree.swap(self.focused_pane, other_pane)
-        self._request_relayout()
-
-    @expose_command
-    def swap_right(self, *, wrap: bool = False):
-        """
-        Same as `swap_left()` but swaps with a right neighbor.
-        """
-        if self._tree.is_empty:
-            return
-
-        other_pane = self._tree.right(self.focused_pane, wrap=wrap)
-        if other_pane is self.focused_pane:
-            return
-
-        self._tree.swap(self.focused_pane, other_pane)
-        self._request_relayout()
-
-    @expose_command
-    def swap_up(self, *, wrap: bool = False):
-        """
-        Same as `swap_left()` but swaps with an upwards neighbor.
-        """
-        if self._tree.is_empty:
-            return
-
-        other_pane = self._tree.up(self.focused_pane, wrap=wrap)
-        if other_pane is self.focused_pane:
-            return
-
-        self._tree.swap(self.focused_pane, other_pane)
-        self._request_relayout()
-
-    @expose_command
-    def swap_down(self, *, wrap: bool = False):
-        """
-        Same as `swap_left()` but swaps with a downwards neighbor.
-        """
-        if self._tree.is_empty:
-            return
-
-        other_pane = self._tree.down(self.focused_pane, wrap=wrap)
+        other_pane = self._tree.adjacent_pane(self.focused_pane, direction, wrap=wrap)
         if other_pane is self.focused_pane:
             return
 
