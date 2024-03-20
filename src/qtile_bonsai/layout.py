@@ -489,61 +489,67 @@ class Bonsai(Layout):
         self._spawn_program(program)
 
     @expose_command
-    def left(self, *, wrap: bool = True):
+    def move_focus(self, direction: DirectionParam, *, wrap: bool = True):
         """
-        Move focus to the window left of the currently focused window. If there are
-        multiple candidates, the most recently focused of them will be chosen.
+        Move focus to the window in the specified direction relative to the currently
+        focused window. If there are multiple candidates, the most recently focused of
+        them will be chosen.
 
         Args:
             `wrap`:
-                If `True`, will wrap around the edge and select windows from the right
+                If `True`, will wrap around the edge and select windows from the other
                 end of the screen.
                 Defaults to `True`.
         """
         if self._tree.is_empty:
             return
 
-        next_pane = self._tree.adjacent_pane(
-            self.focused_pane, Direction.left, wrap=wrap
-        )
+        next_pane = self._tree.adjacent_pane(self.focused_pane, direction, wrap=wrap)
         self._request_focus(next_pane)
+
+    @expose_command
+    def left(self, *, wrap: bool = True):
+        """
+        Same as `move_focus("left")`. For compatibility with API of other built-in
+        layouts.
+        """
+        if self._tree.is_empty:
+            return
+
+        self.move_focus(Direction.left, wrap=wrap)
 
     @expose_command
     def right(self, *, wrap: bool = True):
         """
-        Same as `left()`, but moves focus to the right side.
+        Same as `move_focus("right")`. For compatibility with API of other built-in
+        layouts.
         """
         if self._tree.is_empty:
             return
 
-        next_pane = self._tree.adjacent_pane(
-            self.focused_pane, Direction.right, wrap=wrap
-        )
-        self._request_focus(next_pane)
+        self.move_focus(Direction.right, wrap=wrap)
 
     @expose_command
     def up(self, *, wrap: bool = True):
         """
-        Same as `left()`, but moves focus upwards.
+        Same as `move_focus("up")`. For compatibility with API of other built-in
+        layouts.
         """
         if self._tree.is_empty:
             return
 
-        next_pane = self._tree.adjacent_pane(self.focused_pane, Direction.up, wrap=wrap)
-        self._request_focus(next_pane)
+        self.move_focus(Direction.up, wrap=wrap)
 
     @expose_command
     def down(self, *, wrap: bool = True):
         """
-        Same as `left()`, but moves focus downwards.
+        Same as `move_focus("down")`. For compatibility with API of other built-in
+        layouts.
         """
         if self._tree.is_empty:
             return
 
-        next_pane = self._tree.adjacent_pane(
-            self.focused_pane, Direction.right, wrap=wrap
-        )
-        self._request_focus(next_pane)
+        self.move_focus(Direction.down, wrap=wrap)
 
     @expose_command
     def next_tab(self, *, wrap: bool = True):
