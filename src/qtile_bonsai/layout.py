@@ -702,7 +702,7 @@ class Bonsai(Layout):
         self._request_relayout()
 
     @expose_command
-    def swap_prev_tab(self, *, wrap: bool = True):
+    def swap_tab_prev(self, *, wrap: bool = True):
         """
         Swaps the currently active tab with the previous tab.
 
@@ -723,7 +723,7 @@ class Bonsai(Layout):
             self._request_relayout()
 
     @expose_command
-    def swap_next_tab(self, *, wrap: bool = True):
+    def swap_tab_next(self, *, wrap: bool = True):
         """
         Same as `swap_prev_tab()` but swap with the next tab.
         """
