@@ -582,13 +582,13 @@ class Bonsai(Layout):
             self._request_focus(next_pane)
 
     @expose_command
-    def resize_left(self, amount: int = 10):
+    def resize(self, direction: DirectionParam, amount: int = 50):
         """
-        Resizes by moving an appropriate vertical border leftwards. Usually this is the
-        right border, but for the 'last' window under a SplitContainer, it will be the
-        left border.
+        Resizes by moving an appropriate border leftwards. Usually this is the
+        right/bottom border, but for the 'last' node under a SplitContainer, it will be
+        the left/top border.
 
-        Basically the way tmux does resize.
+        Basically the way tmux does resizing.
 
         If there are multiple nested windows under the area being resized, those windows
         are resized proportionally.
@@ -598,45 +598,16 @@ class Bonsai(Layout):
                 The amount by which to resize.
 
         Examples:
-            - layout.resize_left(30)
+            - layout.resize("left", 100)
+            - layout.resize("right", 100)
         """
         if self._tree.is_empty:
             return
 
-        self._tree.resize(self.focused_pane, Axis.x, -amount)
-        self._request_relayout()
-
-    @expose_command
-    def resize_right(self, amount: int = 10):
-        """
-        Same as `resize_right()` but moves a border rightwards.
-        """
-        if self._tree.is_empty:
-            return
-
-        self._tree.resize(self.focused_pane, Axis.x, amount)
-        self._request_relayout()
-
-    @expose_command
-    def resize_up(self, amount: int = 10):
-        """
-        Same as `resize_right()` but moves a border upwards.
-        """
-        if self._tree.is_empty:
-            return
-
-        self._tree.resize(self.focused_pane, Axis.y, -amount)
-        self._request_relayout()
-
-    @expose_command
-    def resize_down(self, amount: int = 10):
-        """
-        Same as `resize_right()` but moves a border downwards.
-        """
-        if self._tree.is_empty:
-            return
-
-        self._tree.resize(self.focused_pane, Axis.y, amount)
+        direction = Direction(direction)
+        self._tree.resize(
+            self.focused_pane, direction.axis, direction.axis_unit * amount
+        )
         self._request_relayout()
 
     @expose_command
