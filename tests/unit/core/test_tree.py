@@ -1874,6 +1874,29 @@ class TestResize:
 
 
 class TestNormalize:
+    def test_when_no_node_provided_then_the_entire_tree_is_normalized(self, tree: Tree):
+        p1 = tree.tab()
+        _ = tree.split(p1, "x", ratio=0.8)
+        p3 = tree.tab()
+        _ = tree.split(p3, "y", ratio=0.2)
+
+        tree.normalize()
+
+        assert tree_matches_repr(
+            tree,
+            """
+            - tc:1
+                - t:2
+                    - sc.x:3
+                        - p:4 | {x: 0, y: 20, w: 200, h: 280}
+                        - p:5 | {x: 200, y: 20, w: 200, h: 280}
+                - t:6
+                    - sc.y:7
+                        - p:8 | {x: 0, y: 20, w: 400, h: 140}
+                        - p:9 | {x: 0, y: 160, w: 400, h: 140}
+            """,
+        )
+
     def test_when_recurse_is_false_then_only_the_immediate_children_of_the_node_are_normalized(
         self, tree: Tree
     ):

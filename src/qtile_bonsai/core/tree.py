@@ -349,7 +349,7 @@ class Tree:
         br1.transform(axis, points[0], points[1] - points[0])
         br2.transform(axis, points[1], points[2] - points[1])
 
-    def normalize(self, node: Node, *, recurse: bool = True):
+    def normalize(self, node: Node | None = None, *, recurse: bool = True):
         def _normalize(node: Node, *, recurse: bool):
             if isinstance(node, SplitContainer):
                 per_child_size = round(
@@ -363,6 +363,7 @@ class Tree:
                 for child in node.children:
                     _normalize(child, recurse=recurse)
 
+        node = node or self.root
         _normalize(node, recurse=recurse)
 
     def remove(
