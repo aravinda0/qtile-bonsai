@@ -862,7 +862,9 @@ class Bonsai(Layout):
             node.init_ui(self.group.qtile)
 
     def _handle_removed_tree_nodes(self, nodes: list[BonsaiNodeMixin]):
-        self._removed_nodes_for_delayed_release.extend(nodes)
+        for node in nodes:
+            node.hide()
+            self._removed_nodes_for_delayed_release.append(node)
 
     def _handle_delayed_release_of_removed_nodes(self):
         """Finally release UI resources acquired by nodes that were removed at some
