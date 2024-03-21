@@ -1,0 +1,85 @@
+body {
+  background: var(--bg_s);
+}
+
+.guide {
+  margin: 5% 15%;
+}
+
+h1 {
+  text-align: center;
+}
+
+.section, .section ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+
+.section .title {
+  text-align: center;
+}
+
+.example {
+  display: grid;
+  place-items: center;
+  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-rows: 1fr;
+  margin: 3rem 1rem;
+}
+
+
+.tree {
+
+}
+
+.tree.rhs {
+  grid-column: 3;
+}
+
+.node-tc {
+
+}
+
+.tc-bar {
+  display: flex;
+  flex-direction: row;
+  border: 1px solid black;
+  border-bottom: 0;
+  font-size: 0.6rem;
+}
+.tc-bar-item {
+  width: 10%;
+  padding: 1px 3px;
+  border-right: 1px solid black;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.node-t {
+  margin: 0;
+  padding: 0;
+}
+
+
+.node-sc {
+  display: flex;
+}
+.node-sc.sc-x {
+  flex-direction: row;
+}
+.node-sc.sc-y {
+  flex-direction: column;
+}
+
+.node-p {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border: 1px solid black;
+  font-size: 1.2rem;
+
+  background: var(--bg_h);
+}

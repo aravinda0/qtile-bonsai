@@ -1,0 +1,425 @@
+
+
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Visual Guide for Qtile Bonsai</title>
+    <link href="themes.css" rel="stylesheet">
+    <link href="visual_guide.css" rel="stylesheet">
+  </head>
+  <body>
+    <h1>Qtile Bonsai Commands</h1>
+
+    <ul class="guide">
+      
+        <li class="section">
+          <h2 class="title">Splits</h2>
+            
+              <div class="example" data-command="split(&quot;x&quot;)" >
+                
+<div class="tree lhs" style="width: 300px; height: 200px">
+    
+  
+    
+  <div class="node-tc">
+    
+    
+      
+  
+    
+  <div class="node-t">
+    
+      
+  
+    
+  <ul class="node-sc sc-x">
+    
+      <li>
+  
+    
+  <div class="node-p" style="width:300px; height:200px;">
+    4
+  </div>
+
+  
+</li>
+    
+  </ul>
+
+  
+
+    
+  </div>
+
+  
+
+    
+  </div>
+
+  
+
+  </div>
+
+                
+<div class="tree rhs" style="width: 300px; height: 200px">
+    
+  
+    
+  <div class="node-tc">
+    
+    
+      
+  
+    
+  <div class="node-t">
+    
+      
+  
+    
+  <ul class="node-sc sc-x">
+    
+      <li>
+  
+    
+  <div class="node-p" style="width:150px; height:200px;">
+    4
+  </div>
+
+  
+</li>
+    
+      <li>
+  
+    
+  <div class="node-p" style="width:150px; height:200px;">
+    9
+  </div>
+
+  
+</li>
+    
+  </ul>
+
+  
+
+    
+  </div>
+
+  
+
+    
+  </div>
+
+  
+
+  </div>
+
+              </div>
+            
+          </div>
+        </li>
+      
+        <li class="section">
+          <h2 class="title">Tabs</h2>
+            
+              <div class="example" data-command="tab()" >
+                
+<div class="tree lhs" style="width: 300px; height: 200px">
+    
+  
+    
+  <div class="node-tc">
+    
+    
+      
+  
+    
+  <div class="node-t">
+    
+      
+  
+    
+  <ul class="node-sc sc-x">
+    
+      <li>
+  
+    
+  <div class="node-p" style="width:300px; height:200px;">
+    13
+  </div>
+
+  
+</li>
+    
+  </ul>
+
+  
+
+    
+  </div>
+
+  
+
+    
+  </div>
+
+  
+
+  </div>
+
+                
+<div class="tree rhs" style="width: 300px; height: 200px">
+    
+  
+    
+  <div class="node-tc">
+    
+      <ul class="tc-bar" style="height:15px">
+        
+          <li class="tc-bar-item ">1</li>
+        
+          <li class="tc-bar-item active">2</li>
+        
+      </ul>
+    
+    
+      
+  
+    
+  <div class="node-t">
+    
+      
+  
+    
+  <ul class="node-sc sc-x">
+    
+      <li>
+  
+    
+  <div class="node-p" style="width:300px; height:185px;">
+    20
+  </div>
+
+  
+</li>
+    
+  </ul>
+
+  
+
+    
+  </div>
+
+  
+
+    
+  </div>
+
+  
+
+  </div>
+
+              </div>
+            
+              <div class="example" data-command="tab(new_level=True)" >
+                
+<div class="tree lhs" style="width: 300px; height: 200px">
+    
+  
+    
+  <div class="node-tc">
+    
+    
+      
+  
+    
+  <div class="node-t">
+    
+      
+  
+    
+  <ul class="node-sc sc-x">
+    
+      <li>
+  
+    
+  <div class="node-p" style="width:150px; height:200px;">
+    24
+  </div>
+
+  
+</li>
+    
+      <li>
+  
+    
+  <ul class="node-sc sc-y">
+    
+      <li>
+  
+    
+  <div class="node-p" style="width:150px; height:100px;">
+    25
+  </div>
+
+  
+</li>
+    
+      <li>
+  
+    
+  <div class="node-p" style="width:150px; height:100px;">
+    27
+  </div>
+
+  
+</li>
+    
+  </ul>
+
+  
+</li>
+    
+  </ul>
+
+  
+
+    
+  </div>
+
+  
+
+    
+  </div>
+
+  
+
+  </div>
+
+                
+<div class="tree rhs" style="width: 300px; height: 200px">
+    
+  
+    
+  <div class="node-tc">
+    
+    
+      
+  
+    
+  <div class="node-t">
+    
+      
+  
+    
+  <ul class="node-sc sc-x">
+    
+      <li>
+  
+    
+  <div class="node-p" style="width:150px; height:200px;">
+    24
+  </div>
+
+  
+</li>
+    
+      <li>
+  
+    
+  <ul class="node-sc sc-y">
+    
+      <li>
+  
+    
+  <div class="node-p" style="width:150px; height:100px;">
+    25
+  </div>
+
+  
+</li>
+    
+      <li>
+  
+    
+  <div class="node-tc">
+    
+      <ul class="tc-bar" style="height:15px">
+        
+          <li class="tc-bar-item ">1</li>
+        
+          <li class="tc-bar-item active">2</li>
+        
+      </ul>
+    
+    
+      
+  
+    
+  <div class="node-t">
+    
+      
+  
+    
+  <ul class="node-sc sc-x">
+    
+      <li>
+  
+    
+  <div class="node-p" style="width:150px; height:85px;">
+    40
+  </div>
+
+  
+</li>
+    
+  </ul>
+
+  
+
+    
+  </div>
+
+  
+
+    
+  </div>
+
+  
+</li>
+    
+  </ul>
+
+  
+</li>
+    
+  </ul>
+
+  
+
+    
+  </div>
+
+  
+
+    
+  </div>
+
+  
+
+  </div>
+
+              </div>
+            
+          </div>
+        </li>
+      
+    </ul>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leader-line/1.0.7/leader-line.min.js" integrity="sha512-0dNdzMjpT6pJdFGF1DwybFCfm3K/lzHhxaMXC/92J9/DZujHlqYFqmhTOAoD0o+LkeEsVK2ar/ESs7/Q2B6wJg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="visual_guide.js"></script>
+  </body>
+</html>
