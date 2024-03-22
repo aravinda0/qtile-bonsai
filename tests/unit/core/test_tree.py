@@ -2722,6 +2722,19 @@ class TestReset:
             mock.call(nodes),
         ]
 
+    def test_when_state_dict_is_provided_and_it_has_empty_tree_then_will_restore_to_empty_tree(
+        self, tree: Tree
+    ):
+        old_p1 = tree.tab()
+        old_p2 = tree.split(old_p1, "x")
+        tree.split(old_p2, "y")
+
+        state = {"width": 400, "height": 300, "root": None}
+
+        tree.reset(from_state=state)
+
+        assert tree.is_empty
+
     def test_when_a_state_dict_is_provided_then_reset_will_restore_to_match_that_state(
         self, tree: Tree, complex_tree_as_dict: dict
     ):

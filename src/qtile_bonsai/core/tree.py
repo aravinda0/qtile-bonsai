@@ -1338,12 +1338,15 @@ class Tree:
             n3.transform(Axis.y, bar_rect.y, n3.principal_rect.h + bar_height)
         return []
 
-    def _parse_state(self, state: dict) -> TabContainer:
+    def _parse_state(self, state: dict) -> TabContainer | None:
         # Just basic validation in a few places. We could go all out with a schema
         # validator, but this is ok for now.
 
         if set(state.keys()) != {"width", "height", "root"}:
             raise ValueError("The provided tree state is not in an expected format")
+
+        if state["root"] is None:
+            return None
 
         seen_ids = set()
 
