@@ -5364,6 +5364,86 @@ class TestAsDict:
         assert state == complex_tree_as_dict
 
 
+class TestClone:
+    def test_clone_can_be_operated_on_independently_of_source(self, tree: Tree):
+        p1 = tree.tab()
+        p2 = tree.split(p1, "x")
+        p3 = tree.split(p2, "y")
+        _ = tree.tab(p3, new_level=True)
+
+        clone = tree.clone()
+        pc5 = clone.tab()
+        _ = clone.split(pc5, "x")
+
+        assert tree_matches_repr(
+            clone,
+            """
+            - tc:1
+                - t:2
+                    - sc.x:3
+                        - p:4 | {x: 0, y: 20, w: 200, h: 280}
+                        - sc.y:6
+                            - p:5 | {x: 200, y: 20, w: 200, h: 140}
+                            - tc:8
+                                - t:9
+                                    - sc.x:10
+                                        - p:7 | {x: 200, y: 180, w: 200, h: 120}
+                                - t:11
+                                    - sc.x:12
+                                        - p:13 | {x: 200, y: 180, w: 200, h: 120}
+                - t:27
+                    - sc.x:28
+                        - p:29 | {x: 0, y: 20, w: 200, h: 280}
+                        - p:30 | {x: 200, y: 20, w: 200, h: 280}
+            """,
+        )
+        assert tree_matches_repr(
+            tree,
+            """
+            - tc:1
+                - t:2
+                    - sc.x:3
+                        - p:4 | {x: 0, y: 20, w: 200, h: 280}
+                        - sc.y:6
+                            - p:5 | {x: 200, y: 20, w: 200, h: 140}
+                            - tc:8
+                                - t:9
+                                    - sc.x:10
+                                        - p:7 | {x: 200, y: 180, w: 200, h: 120}
+                                - t:11
+                                    - sc.x:12
+                                        - p:13 | {x: 200, y: 180, w: 200, h: 120}
+            """,
+        )
+
+    def test_when_tree_is_cloned_then_its_config_modes_does_not_impact_source_tree_config(
+        self, tree: Tree
+    ):
+        tree.set_config("tab_bar.height", 100)
+
+        clone = tree.clone()
+        clone.set_config("tab_bar.height", 50)
+
+        assert tree.get_config("tab_bar.height") == 100
+        assert clone.get_config("tab_bar.height") == 50
+
+    def test_when_tree_is_cloned_then_its_operations_does_not_impact_source_tree_subscribers(
+        self, tree: Tree, add_subscribers_to_tree
+    ):
+        cb_add, cb_remove = add_subscribers_to_tree(tree)
+
+        p = tree.tab()
+        sc, t, tc = p.get_ancestors()
+
+        clone = tree.clone()
+        _ = clone.split(clone.node(4), "x")
+
+        tree.remove(p)
+
+        assert cb_add.mock_calls == [mock.call([tc, t, sc, p])]
+        assert cb_remove.mock_calls == [mock.call([p, sc, t, tc])]
+
+
 class TestRepr:
     def test_empty_tree(self, tree: Tree):
         assert repr(tree) == "<empty>"

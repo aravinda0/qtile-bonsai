@@ -811,6 +811,12 @@ class Tree:
                 del subscribers[subscription_id]
                 return
 
+    def clone(self) -> Tree:
+        clone = self.__class__(self.width, self.height, self._config)
+        current_state = self.as_dict()
+        clone.reset(from_state=current_state)
+        return clone
+
     def as_dict(self) -> dict:
         return {
             "width": self.width,
