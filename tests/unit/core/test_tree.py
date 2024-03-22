@@ -1170,6 +1170,21 @@ class TestTabOnArbitraryNode:
         )
 
 
+class TestNodeById:
+    def test_can_get_node_by_id(self, tree: Tree):
+        p1 = tree.tab()
+        p2 = tree.split(p1, "x")
+        p3 = tree.split(p2, "y")
+        p4 = tree.tab(p3, new_level=True)
+
+        assert tree.node(p4.id) is p4
+
+        sc = p3.parent
+        assert tree.node(sc.id) is sc
+
+        assert tree.node(4) is p1
+
+
 class TestResize:
     def test_resize_on_x_axis_by_positive_amount(self, tree: Tree):
         p1 = tree.tab()

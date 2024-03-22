@@ -98,6 +98,15 @@ class Tree:
     def is_empty(self) -> bool:
         return self.root is None
 
+    def node(self, id: int) -> Node | None:
+        """Return the node in the tree with the provided `id` or `None` if no such node
+        exists.
+        """
+        for n in self.iter_walk():
+            if n.id == id:
+                return n
+        return None
+
     def make_default_config(self) -> collections.defaultdict[int, dict[str, Any]]:
         config = collections.defaultdict(dict)
         config[self._default_config_level_key] = {
