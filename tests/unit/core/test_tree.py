@@ -5359,6 +5359,8 @@ class TestAsDict:
         p4 = tree.tab(p3, new_level=True)
         tree.split(p4, "y")
 
+        tree.focus(p3)
+
         state = tree.as_dict()
 
         assert state == complex_tree_as_dict

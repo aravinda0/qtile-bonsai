@@ -9,6 +9,7 @@ def make_complex_tree_state():
         "root": {
             "type": "tc",
             "id": 1,
+            "active_child": 2,
             "tab_bar": {
                 "box": {
                     "principal_rect": {
@@ -103,6 +104,7 @@ def make_complex_tree_state():
                                         {
                                             "type": "tc",
                                             "id": 8,
+                                            "active_child": 9,
                                             "tab_bar": {
                                                 "box": {
                                                     "principal_rect": {
@@ -273,6 +275,7 @@ def make_tree_state_with_subtab():
         "root": {
             "type": "tc",
             "id": 1,
+            "active_child": 2,
             "children": [
                 {
                     "type": "t",
@@ -316,6 +319,7 @@ def make_tree_state_with_subtab():
                                 {
                                     "type": "tc",
                                     "id": 6,
+                                    "active_child": 9,
                                     "children": [
                                         {
                                             "type": "t",

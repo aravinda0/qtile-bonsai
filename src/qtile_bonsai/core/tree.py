@@ -1377,6 +1377,9 @@ class Tree:
                 )
                 tc.parent = parent
                 tc.children = [walk_and_create(c, tc) for c in n["children"]]
+                tc.active_child = next(
+                    (c for c in tc.children if c.id == n["active_child"]), None
+                )
                 return tc
             elif node_type == Tab.abbrv():
                 t = self.create_tab()

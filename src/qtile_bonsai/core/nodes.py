@@ -389,7 +389,11 @@ class TabContainer(Node):
             child.transform(axis, start, size)
 
     def as_dict(self) -> dict:
-        return {**super().as_dict(), "tab_bar": self.tab_bar.as_dict()}
+        return {
+            **super().as_dict(),
+            "active_child": self.active_child.id,
+            "tab_bar": self.tab_bar.as_dict(),
+        }
 
     def __str__(self) -> str:
         return f"{self.abbrv()}:{self.id}"
