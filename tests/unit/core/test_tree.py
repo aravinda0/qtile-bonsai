@@ -5449,3 +5449,36 @@ class TestClone:
 class TestRepr:
     def test_empty_tree(self, tree: Tree):
         assert repr(tree) == "<empty>"
+
+
+class TestTrashPushIn:
+    @pytest.mark.a
+    def test_1_deepest(self, tree: Tree):
+        p1 = tree.tab()
+        p2 = tree.split(p1, "x")
+        p3 = tree.split(p2, "x")
+        p4 = tree.split(p3, "y")
+        _ = tree.split(p4, "y")
+
+        print(tree)
+        tree.push_in(p2, p4)
+        print(tree)
+
+        assert tree_matches_repr(
+            tree,
+            """
+            - tc:1
+                - t:2
+                    - sc.x:3
+                        - p:4 | {x: 0, y: 20, w: 200, h: 280}
+                        - sc.y:7
+                            - p:6 | {x: 200, y: 20, w: 200, h: 140}
+                            - sc.x:10
+                                - p:8 | {x: 200, y: 160, w: 100, h: 70}
+                                - p:5 | {x: 300, y: 160, w: 100, h: 70}
+                            - p:9 | {x: 200, y: 230, w: 200, h: 70}
+            """,
+        )
+
+    # def test_1_largest(self, tree: Tree):
+    #     raise

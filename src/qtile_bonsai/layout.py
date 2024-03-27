@@ -742,6 +742,27 @@ class Bonsai(Layout):
         self._request_relayout()
 
     @expose_command
+    def push_in(
+        self,
+        direction: DirectionParam,
+        *,
+        src_target: SupernodeTarget = SupernodeTarget.mru_deepest,
+        dest_target: SupernodeTarget = SupernodeTarget.mru_largest,
+        normalize: bool = True,
+    ):
+        if self._tree.is_empty:
+            return
+
+        self._tree.push_in_with_neighbor(
+            self.focused_pane,
+            direction,
+            src_target=src_target,
+            dest_target=dest_target,
+            normalize=normalize,
+        )
+        self._request_relayout()
+
+    @expose_command
     def normalize(self, *, recurse: bool = True):
         """
         Starting from the focused window's SplitContainer, make all windows in the

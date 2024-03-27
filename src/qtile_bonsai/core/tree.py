@@ -274,8 +274,23 @@ class Tree:
         If `normalize` is provided, it takes precedence over `ratio`. In this case, the
         new pane and all the sibling nodes will be adjusted to be of equal size.
         """
-        validate_unit_range(ratio, "ratio")
         axis = Axis(axis)
+        new_p, added_nodes = self._split(node, axis, ratio=ratio, normalize=normalize)
+
+        self._notify_subscribers(TreeEvent.node_added, added_nodes)
+
+        return new_p
+
+    def _split(
+        self,
+        node: Node,
+        axis: Axis,
+        *,
+        ratio: float = 0.5,
+        normalize: bool = False,
+        insert_node: Node | None = None,
+    ):
+        validate_unit_range(ratio, "ratio")
 
         added_nodes = []
 
@@ -320,18 +335,23 @@ class Tree:
         n1_rect, n2_rect = node.principal_rect.split(axis, ratio)
         node.transform(axis, n1_rect.coord(axis), n1_rect.size(axis))
 
-        new_p = self.create_pane(principal_rect=n2_rect, tab_level=node.tab_level)
-        new_p.parent = node_container
-        node_container.children.insert(node_index + 1, new_p)
+        if insert_node is not None:
+            ins = insert_node
+            ins.transform(Axis.x, n2_rect.x, n2_rect.w)
+            ins.transform(Axis.y, n2_rect.y, n2_rect.h)
+            # TODO: prune
+        else:
+            ins = self.create_pane(principal_rect=n2_rect, tab_level=node.tab_level)
+
+        ins.parent = node_container
+        node_container.children.insert(node_index + 1, ins)
 
         if normalize:
             self.normalize(node_container)
 
-        added_nodes.append(new_p)
+        added_nodes.append(ins)
 
-        self._notify_subscribers(TreeEvent.node_added, added_nodes)
-
-        return new_p
+        return ins, added_nodes
 
     def resize(self, pane: Pane, axis: AxisParam, amount: int):
         axis = Axis(axis)
@@ -554,6 +574,41 @@ class Tree:
             t1.transform(Axis.y, t2_rect.y, t2_rect.h)
             t2.transform(Axis.x, t1_rect.x, t1_rect.w)
             t2.transform(Axis.y, t1_rect.y, t1_rect.h)
+
+    def push_in(self, src: Node, dest: Node, *, normalize: bool = False):
+        if not isinstance(dest, (Pane, SplitContainer)):
+            dest = dest.get_first_ancestor(SplitContainer)
+
+        orientation = dest.parent.axis.inv if isinstance(dest, Pane) else dest.axis
+
+        # TODO: pos=pre/post?
+
+        br_rm, _, _, _ = self._remove(src, normalize=normalize)
+        self._split(dest, orientation, insert_node=br_rm, normalize=normalize)
+
+    def push_in_with_neighbor(
+        self,
+        src: Node,
+        direction: DirectionParam,
+        *,
+        src_target: SupernodeTarget,
+        dest_target: SupernodeTarget,
+        normalize: bool = False,
+    ):
+        direction = Direction(direction)
+
+        if dest_target == SupernodeTarget.mru_deepest:
+            adjacent_panes = self.adjacent_panes(src, direction)
+            dest = self.find_mru_pane(panes=adjacent_panes)
+        elif dest_target == SupernodeTarget.mru_largest:
+            besp = self.find_border_encompassing_supernode(
+                src, direction, stop_at_tc=False
+            )
+            if besp is None:
+                raise ValueError("Invalid value for `dest`")
+            dest = besp.sibling(direction.axis_unit)
+
+        self.push_in(src, dest, normalize=normalize)
 
     def merge_to_subtab(self, src: Node, dest: Node, *, normalize: bool = False):
         """Merge `src` and `dest` such that they both come under a (possibly new)
