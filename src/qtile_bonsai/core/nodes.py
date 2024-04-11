@@ -183,6 +183,11 @@ class Node(metaclass=abc.ABCMeta):
             node = node.parent
         raise ValueError(f"No node of type {of_type} in ancestor chain")
 
+    def get_self_or_first_ancestor(self, of_type: type[NodeType]) -> NodeType:
+        if isinstance(self, of_type):
+            return self
+        return self.get_first_ancestor(of_type)
+
     def __repr__(self):
         return f"{self.abbrv()}:{self.id}"
 
