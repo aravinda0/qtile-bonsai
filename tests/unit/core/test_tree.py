@@ -3976,7 +3976,7 @@ class TestMergeToSubtab:
             assert tree.is_visible(p4)
 
             assert cb_remove.mock_calls == [mock.call([prune_sc, src_tc])]
-            assert cb_add.mock_calls == [mock.call([])]
+            assert cb_add.mock_calls == []
 
         def test_when_src_and_dest_under_different_containers(
             self, tree: Tree, add_subscribers_to_tree
@@ -4026,7 +4026,7 @@ class TestMergeToSubtab:
             assert tree.is_visible(p6)
 
             assert cb_remove.mock_calls == [mock.call([prune_sc, src_tc])]
-            assert cb_add.mock_calls == [mock.call([])]
+            assert cb_add.mock_calls == []
 
     class TestWhenOnlySrcIsTC:
         def test_when_src_and_dest_under_same_container(
@@ -4364,7 +4364,7 @@ class TestMergeToSubtab:
             assert tree.is_visible(p5)
 
             assert cb_remove.mock_calls == [mock.call([prune_sc, src_tc])]
-            assert cb_add.mock_calls == [mock.call([])]
+            assert cb_add.mock_calls == []
 
         def test_when_dest_is_tab_then_consider_dest_to_be_tc(
             self, tree: Tree, add_subscribers_to_tree
@@ -4420,7 +4420,7 @@ class TestMergeToSubtab:
             assert tree.is_visible(p5)
 
             assert cb_remove.mock_calls == [mock.call([prune_sc, src_tc])]
-            assert cb_add.mock_calls == [mock.call([])]
+            assert cb_add.mock_calls == []
 
 
 class TestMergeWithNeighborToSubtab:

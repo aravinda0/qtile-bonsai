@@ -1543,8 +1543,9 @@ class Tree:
         return self.find_mru_pane(start_node=next_tab)
 
     def _notify_subscribers(self, event: TreeEvent, nodes: list[Node]):
-        for callback in self._event_subscribers[event].values():
-            callback(nodes)
+        if nodes:
+            for callback in self._event_subscribers[event].values():
+                callback(nodes)
 
     def _validate_tab_bar_config(self, level: int):
         bar_height = self.get_config(
