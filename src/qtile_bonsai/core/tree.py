@@ -803,7 +803,7 @@ class Tree:
     ) -> tuple[Node, list[Node], list[Node]]:
         validate_unit_range(ratio, "ratio")
         try:
-            node.get_first_ancestor(SplitContainer)
+            node.get_self_or_first_ancestor(SplitContainer)
         except ValueError as err:
             raise ValueError("Invalid node provided to split") from err
         if isinstance(insert_node, Tab):
