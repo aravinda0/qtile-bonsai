@@ -276,8 +276,11 @@ class Tree:
         """
         axis = Axis(axis)
 
-        new_p, added_nodes = self._split(node, axis, ratio=ratio, normalize=normalize)
+        new_p, added_nodes, removed_nodes = self._split(
+            node, axis, ratio=ratio, normalize=normalize
+        )
         self._notify_subscribers(TreeEvent.node_added, added_nodes)
+        self._notify_subscribers(TreeEvent.node_removed, removed_nodes)
 
         return new_p
 
@@ -797,137 +800,77 @@ class Tree:
         ratio: float = 0.5,
         normalize: bool = False,
         insert_node: Node | None = None,
-    ) -> tuple[Node, list[Node]]:
-        """Internal helper to split the provided `node`
-
-        Args:
-            `node`:
-                The node under which the split should happen.
-            `axis`:
-                The axis along which to split the provided `node`.
-            `ratio`:
-                How much of the space from `node` to give the newly created split.
-            `normalize`:
-                Whether to make all sibling nodes of the same size after splitting.
-            `insert_node`:
-                If provided, add the provided branch under the new split.
-
-        Returns:
-            A 2-tuple with:
-                1. The start node of the new split contents.
-                2. The list of newly created nodes, if any.
-        """
+    ) -> tuple[Node, list[Node], list[Node]]:
         validate_unit_range(ratio, "ratio")
+        try:
+            node.get_first_ancestor(SplitContainer)
+        except ValueError as err:
+            raise ValueError("Invalid node provided to split") from err
         if isinstance(insert_node, Tab):
             raise ValueError(
                 "`insert_node` cannot be a Tab instance. Tabs can only live under"
                 "TabContainers."
             )
 
-        node_to_split, node_container, new_index = self._resolve_split_point(node)
+        self._maybe_invert_top_level_sc(node, axis)
 
-        self._maybe_morph_split_container(node_container, axis)
+        added_nodes = []
+        removed_nodes = []
+        container, node_to_split, new_index = node.get_participants_for_split_op(axis)
+        if container is None:
+            # We need a new intermediate SC
+            sc = self.create_split_container()
+            sc.axis = axis
+            added_nodes.append(sc)
 
-        # Handle dimension transformations.
-        # For `insert_node`, we do this here before the possible rearrangements that may
-        # occur in the upcoming phase, since are edge cases where `node_to_split` is put
-        # under `insert_node`, which makes it tricky to resize them independently
-        # afterwards.
+            anchor = node_to_split.parent
+
+            node_index = anchor.children.index(node_to_split)
+            anchor.children.remove(node_to_split)
+            node_to_split.parent = None
+
+            anchor.children.insert(node_index, sc)
+            sc.parent = anchor
+
+            node_to_split.parent = sc
+            sc.children = [node_to_split]
+
+            container = sc
+            new_index = 1
+
         n1_rect, n2_rect = node_to_split.principal_rect.split(axis, ratio)
-        node_to_split.transform(Axis.x, n1_rect.x, n1_rect.w)
-        node_to_split.transform(Axis.y, n1_rect.y, n1_rect.h)
-        if insert_node is not None:
+        node_to_split.transform(axis, n1_rect.coord(axis), n1_rect.size(axis))
+
+        assert isinstance(container, SplitContainer)
+
+        if insert_node is None:
+            new_content = self.create_pane(n2_rect, tab_level=container.tab_level)
+            added_nodes.append(new_content)
+            new_content.parent = container
+            container.children.insert(new_index, new_content)
+        else:
             insert_node.transform(Axis.x, n2_rect.x, n2_rect.w)
             insert_node.transform(Axis.y, n2_rect.y, n2_rect.h)
 
-        added_nodes = []
-        if node_container.axis != axis:
-            if isinstance(node_to_split, SplitContainer):
-                # `node_to_split` already happens to be a SC of the required cross-axis,
-                # so we can just reuse it instead of creating a new SC.
-                node_container = node_to_split
-                new_index = len(node_to_split.children)
-            elif isinstance(insert_node, SplitContainer) and insert_node.axis == axis:
-                # Here, we find that `insert_node` happens to have a desired SC of the
-                # required cross-axis. So again, we just reuse it instead of creating a
-                # new SC.
-                # Some re-adjustment is required where we must move `node_to_split` to
-                # be under our working SC provided by `insert_node`.
+            if isinstance(insert_node, SplitContainer) and insert_node.axis == axis:
+                for n in insert_node.children:
+                    n.parent = container
+                container.children[new_index:new_index] = insert_node.children
+                removed_nodes.append(insert_node)
 
-                node_container.children.remove(node_to_split)
-
-                node_to_split.parent = insert_node
-                insert_node.children.insert(0, node_to_split)
-
-                # Since later on we're going to put `insert_node` where `node_to_split`
-                # was.
-                new_index -= 1
+                # Bit of an odd scenario here. `insert_node` and `container` are
+                # essentially merged and there is no clear 'new_content' branch. We just
+                # mark the participating container as being the new content.
+                new_content = container
             else:
-                # We need a new SC on the cross-axis. We rearrange things so
-                # `node_to_split` is under this new SC along with the new content we're
-                # going to add.
-
-                new_sc = self.create_split_container()
-                new_sc.axis = axis
-                added_nodes.append(new_sc)
-
-                node_to_split_parent = node_to_split.parent
-                node_to_split_pos = node_to_split_parent.children.index(node_to_split)
-
-                node_to_split_parent.children.remove(node_to_split)
-
-                new_sc.parent = node_to_split_parent
-                node_to_split_parent.children.insert(node_to_split_pos, new_sc)
-
-                node_to_split.parent = new_sc
-                new_sc.children = [node_to_split]
-
-                # Prepare for upcoming new content insertion
-                node_container = new_sc
-                new_index = 1
-
-        if insert_node is not None:
-            new_split_content = insert_node
-        else:
-            new_split_content = self.create_pane(
-                principal_rect=n2_rect,
-                tab_level=node_container.tab_level,
-            )
-            added_nodes.append(new_split_content)
-
-        new_split_content.parent = node_container
-        node_container.children.insert(new_index, new_split_content)
+                new_content = insert_node
+                new_content.parent = container
+                container.children.insert(new_index, new_content)
 
         if normalize:
-            self.normalize(node_container)
+            self.normalize(container)
 
-        return new_split_content, added_nodes
-
-    def _resolve_split_point(
-        self, node: Node
-    ) -> tuple[Pane | SplitContainer | TabContainer, SplitContainer, int]:
-        """Find the nearest SplitContainer under which the split should happen.
-
-        Returns:
-            A 3-tuple:
-                1. The resolved node that is to be actually split.
-                2. The container under which the new split should appear.
-                3. The index under the container where the new split's node should be
-                inserted.
-        """
-        if isinstance(node, SplitContainer) and node.is_nearest_under_tab_container:
-            return (node, node, len(node.children))
-
-        try:
-            node, node_container = next(
-                (n, n.parent)
-                for n in node.get_ancestors(include_self=True)
-                if isinstance(n.parent, SplitContainer)
-            )
-        except StopIteration:
-            raise ValueError("Invalid node provided to split") from None
-
-        return (node, node_container, node_container.children.index(node) + 1)
+        return new_content, added_nodes, removed_nodes
 
     def _remove(
         self, node: Node, *, consume_vacant_space: bool = True, normalize: bool = False
@@ -1245,13 +1188,15 @@ class Tree:
                 Axis.y, bar_rect.y2, first_tab.principal_rect.h - bar_height
             )
 
-    def _maybe_morph_split_container(self, sc: SplitContainer, requested_axis):
+    def _maybe_invert_top_level_sc(self, node: Node, requested_axis: Axis):
+        if not isinstance(node, SplitContainer):
+            node = node.get_first_ancestor(SplitContainer)
         if (
-            sc.axis != requested_axis
-            and sc.is_nearest_under_tab_container
-            and sc.has_single_child
+            node.axis != requested_axis
+            and node.is_nearest_under_tab_container
+            and node.has_single_child
         ):
-            sc.axis = requested_axis
+            node.axis = requested_axis
 
     def _find_removal_branch(self, node: Node) -> tuple[Node, list[Node]]:
         n = node

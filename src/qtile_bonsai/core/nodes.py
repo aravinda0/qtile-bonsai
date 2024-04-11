@@ -33,6 +33,26 @@ class Node(metaclass=abc.ABCMeta):
 
     @abc.abstractmethod
     def transform(self, axis: AxisParam, start: int, size: int):
+        """Return participants that would be invovled in a split operation on this node.
+
+        Returns:
+            A 3-tuple:
+                1. The SplitContainer under which the new split's contents should be
+                    added or `None` if no suitable SC of the desired orientation exists.
+                    In that case, the caller would create a new SC.
+                2. The node that would actually be split (and possibly inserted under a
+                    new SC). The node to use for geometry adjustment calculations.
+                    This is usually `self`.
+                3. The index where the new split would be added. Or the index where the
+                    new SC would be added if tuple.0 is None.
+        """
+        pass
+
+    @abc.abstractmethod
+    def get_participants_for_split_op(
+        self, axis: Axis
+    ) -> tuple[SplitContainer | None, Node, int]:
+        """ """
         pass
 
     @abc.abstractmethod
@@ -223,6 +243,15 @@ class Pane(Node):
         setattr(rect, axis, start)
         setattr(rect, axis.dim, size)
 
+    def get_participants_for_split_op(
+        self, axis: Axis
+    ) -> tuple[SplitContainer | None, Node, int]:
+        parent = self.parent
+        new_index = parent.children.index(self)
+        if parent.axis != axis:
+            return (None, self, new_index)
+        return (parent, self, new_index + 1)
+
     def as_dict(self) -> dict:
         return {
             **super().as_dict(),
@@ -297,6 +326,19 @@ class SplitContainer(Node):
             for child in self.children:
                 child.transform(axis, start, size)
 
+    def get_participants_for_split_op(
+        self, axis: Axis
+    ) -> tuple[SplitContainer | None, Node, int]:
+        parent = self.parent
+
+        if self.axis == axis:
+            return (self, self, len(self.children))
+        if self.is_nearest_under_tab_container:
+            return (None, self, 0)
+
+        assert isinstance(parent, SplitContainer)
+        return (parent, self, parent.children.index(self) + 1)
+
     def as_dict(self) -> dict:
         return {
             **super().as_dict(),
@@ -332,6 +374,11 @@ class Tab(Node):
 
     def transform(self, axis: AxisParam, start: int, size: int):
         self.children[0].transform(axis, start, size)
+
+    def get_participants_for_split_op(
+        self, axis: Axis
+    ) -> tuple[SplitContainer | None, Node, int]:
+        return self.parent.get_participants_for_split_op(axis)
 
     def as_dict(self) -> dict:
         return {
@@ -387,6 +434,18 @@ class TabContainer(Node):
 
         for child in self.children:
             child.transform(axis, start, size)
+
+    def get_participants_for_split_op(
+        self, axis: Axis
+    ) -> tuple[SplitContainer | None, Node, int]:
+        parent = self.parent
+        if parent is None:
+            raise ValueError("Invalid node for split operation")
+
+        new_index = parent.children.index(self)
+        if parent.axis != axis:
+            return (None, self, new_index)
+        return (parent, self, new_index + 1)
 
     def as_dict(self) -> dict:
         return {
