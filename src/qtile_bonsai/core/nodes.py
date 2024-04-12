@@ -33,6 +33,12 @@ class Node(metaclass=abc.ABCMeta):
 
     @abc.abstractmethod
     def transform(self, axis: AxisParam, start: int, size: int):
+        pass
+
+    @abc.abstractmethod
+    def get_participants_for_split_op(
+        self, axis: Axis
+    ) -> tuple[SplitContainer | None, Node, int]:
         """Return participants that would be invovled in a split operation on this node.
 
         Returns:
@@ -46,13 +52,6 @@ class Node(metaclass=abc.ABCMeta):
                 3. The index where the new split would be added. Or the index where the
                     new SC would be added if tuple.0 is None.
         """
-        pass
-
-    @abc.abstractmethod
-    def get_participants_for_split_op(
-        self, axis: Axis
-    ) -> tuple[SplitContainer | None, Node, int]:
-        """ """
         pass
 
     @abc.abstractmethod
