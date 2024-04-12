@@ -9,8 +9,8 @@ import pytest
 import tests.data.tree_state
 from qtile_bonsai.core.geometry import Rect
 from qtile_bonsai.core.tree import (
+    NodeHierarchySelectionMode,
     Pane,
-    SupernodeTarget,
     Tab,
     TabContainer,
     Tree,
@@ -4444,8 +4444,8 @@ class TestMergeWithNeighborToSubtab:
         tree.merge_with_neighbor_to_subtab(
             p7,
             "right",
-            src_target=SupernodeTarget.mru_deepest,
-            dest_target=SupernodeTarget.mru_deepest,
+            src_selection_mode=NodeHierarchySelectionMode.mru_deepest,
+            dest_selection_mode=NodeHierarchySelectionMode.mru_deepest,
         )
 
         assert tree_matches_repr(
@@ -4511,8 +4511,8 @@ class TestMergeWithNeighborToSubtab:
             tree.merge_with_neighbor_to_subtab(
                 p7,
                 "right",
-                src_target=SupernodeTarget.mru_subtab_else_deepest,
-                dest_target=SupernodeTarget.mru_deepest,
+                src_selection_mode=NodeHierarchySelectionMode.mru_subtab_else_deepest,
+                dest_selection_mode=NodeHierarchySelectionMode.mru_deepest,
             )
 
             assert tree_matches_repr(
@@ -4571,8 +4571,8 @@ class TestMergeWithNeighborToSubtab:
             tree.merge_with_neighbor_to_subtab(
                 p5,
                 "right",
-                src_target=SupernodeTarget.mru_subtab_else_deepest,
-                dest_target=SupernodeTarget.mru_deepest,
+                src_selection_mode=NodeHierarchySelectionMode.mru_subtab_else_deepest,
+                dest_selection_mode=NodeHierarchySelectionMode.mru_deepest,
             )
 
             assert tree_matches_repr(
@@ -4627,8 +4627,8 @@ class TestMergeWithNeighborToSubtab:
             tree.merge_with_neighbor_to_subtab(
                 p7,
                 "right",
-                src_target=SupernodeTarget.mru_largest,
-                dest_target=SupernodeTarget.mru_deepest,
+                src_selection_mode=NodeHierarchySelectionMode.mru_largest,
+                dest_selection_mode=NodeHierarchySelectionMode.mru_deepest,
             )
 
             # 💢 The overall tree structure and space occupancy is okay. But the
@@ -4699,8 +4699,8 @@ class TestMergeWithNeighborToSubtab:
             tree.merge_with_neighbor_to_subtab(
                 p7,
                 "right",
-                src_target=SupernodeTarget.mru_subtab_else_largest,
-                dest_target=SupernodeTarget.mru_deepest,
+                src_selection_mode=NodeHierarchySelectionMode.mru_subtab_else_largest,
+                dest_selection_mode=NodeHierarchySelectionMode.mru_deepest,
             )
 
             assert tree_matches_repr(
@@ -4759,8 +4759,8 @@ class TestMergeWithNeighborToSubtab:
             tree.merge_with_neighbor_to_subtab(
                 p5,
                 "right",
-                src_target=SupernodeTarget.mru_subtab_else_largest,
-                dest_target=SupernodeTarget.mru_deepest,
+                src_selection_mode=NodeHierarchySelectionMode.mru_subtab_else_largest,
+                dest_selection_mode=NodeHierarchySelectionMode.mru_deepest,
             )
 
             assert tree_matches_repr(
@@ -4816,8 +4816,8 @@ class TestMergeWithNeighborToSubtab:
             tree.merge_with_neighbor_to_subtab(
                 p7,
                 "right",
-                src_target=SupernodeTarget.mru_deepest,
-                dest_target=SupernodeTarget.mru_subtab_else_deepest,
+                src_selection_mode=NodeHierarchySelectionMode.mru_deepest,
+                dest_selection_mode=NodeHierarchySelectionMode.mru_subtab_else_deepest,
             )
 
             assert tree_matches_repr(
@@ -4877,8 +4877,8 @@ class TestMergeWithNeighborToSubtab:
             tree.merge_with_neighbor_to_subtab(
                 p7,
                 "right",
-                src_target=SupernodeTarget.mru_deepest,
-                dest_target=SupernodeTarget.mru_subtab_else_deepest,
+                src_selection_mode=NodeHierarchySelectionMode.mru_deepest,
+                dest_selection_mode=NodeHierarchySelectionMode.mru_subtab_else_deepest,
             )
 
             assert tree_matches_repr(
@@ -4934,8 +4934,8 @@ class TestMergeWithNeighborToSubtab:
             tree.merge_with_neighbor_to_subtab(
                 p7,
                 "right",
-                src_target=SupernodeTarget.mru_deepest,
-                dest_target=SupernodeTarget.mru_largest,
+                src_selection_mode=NodeHierarchySelectionMode.mru_deepest,
+                dest_selection_mode=NodeHierarchySelectionMode.mru_largest,
             )
 
             # 💢 rounding issue: tc:30 is introduced with its new bar of height 20. The
@@ -5002,8 +5002,8 @@ class TestMergeWithNeighborToSubtab:
             tree.merge_with_neighbor_to_subtab(
                 p7,
                 "right",
-                src_target=SupernodeTarget.mru_deepest,
-                dest_target=SupernodeTarget.mru_subtab_else_largest,
+                src_selection_mode=NodeHierarchySelectionMode.mru_deepest,
+                dest_selection_mode=NodeHierarchySelectionMode.mru_subtab_else_largest,
             )
 
             assert tree_matches_repr(
@@ -5063,8 +5063,8 @@ class TestMergeWithNeighborToSubtab:
             tree.merge_with_neighbor_to_subtab(
                 p7,
                 "right",
-                src_target=SupernodeTarget.mru_deepest,
-                dest_target=SupernodeTarget.mru_subtab_else_largest,
+                src_selection_mode=NodeHierarchySelectionMode.mru_deepest,
+                dest_selection_mode=NodeHierarchySelectionMode.mru_subtab_else_largest,
             )
 
             assert tree_matches_repr(
@@ -5097,6 +5097,258 @@ class TestMergeWithNeighborToSubtab:
                                         - p:19 | {x: 200, y: 40, w: 200, h: 260}
                 """,
             )
+
+
+class TestPushIn:
+    def test_simple(self, tree: Tree, add_subscribers_to_tree):
+        p1 = tree.tab()
+        p2 = tree.split(p1, "x")
+        p3 = tree.split(p2, "x")
+        p4 = tree.split(p3, "y")
+        _ = tree.split(p4, "y")
+
+        cb_add, cb_remove = add_subscribers_to_tree(tree)
+
+        tree.push_in(p2, p4)
+
+        assert tree_matches_repr(
+            tree,
+            """
+            - tc:1
+                - t:2
+                    - sc.x:3
+                        - p:4 | {x: 0, y: 20, w: 200, h: 280}
+                        - sc.y:7
+                            - p:6 | {x: 200, y: 20, w: 200, h: 140}
+                            - sc.x:10
+                                - p:8 | {x: 200, y: 160, w: 100, h: 70}
+                                - p:5 | {x: 300, y: 160, w: 100, h: 70}
+                            - p:9 | {x: 200, y: 230, w: 200, h: 70}
+            """,
+        )
+
+        sc = tree.node(10)
+        assert cb_add.mock_calls == [mock.call([sc])]
+
+        assert cb_remove.mock_calls == []
+
+    @pytest.mark.odd_space_distribution()
+    def test_when_provided_dest_node_reference_is_pruned_out_during_removal_phase(
+        self, tree: Tree, add_subscribers_to_tree
+    ):
+        p1 = tree.tab()
+        p2 = tree.split(p1, "x")
+        p3 = tree.split(p2, "y")
+        p4 = tree.split(p3, "x")
+        _ = tree.split(p3, "y")
+
+        cb_add, cb_remove = add_subscribers_to_tree(tree)
+        sc_y = p3.parent
+        sc_x = sc_y.parent
+
+        tree.push_in(p4, sc_y)
+
+        # Besides the subtleties described in the comments in the implementation of
+        # `push_in()`, the odd space distribution here involves p:5, p:7, p:11 adding
+        # heights to a total of 139 instead of 140.
+        assert tree_matches_repr(
+            tree,
+            """
+            - tc:1
+                - t:2
+                    - sc.x:3
+                        - p:4 | {x: 0, y: 20, w: 200, h: 280}
+                        - sc.y:6
+                            - p:5 | {x: 200, y: 20, w: 200, h: 67}
+                            - p:7 | {x: 200, y: 87, w: 200, h: 36}
+                            - p:11 | {x: 200, y: 123, w: 200, h: 36}
+                            - p:9 | {x: 200, y: 160, w: 200, h: 140}
+            """,
+        )
+
+        assert cb_add.mock_calls == []
+        assert cb_remove.mock_calls == [mock.call([sc_y, sc_x])]
+
+    def test_push_in_when_sc_invert_is_involved(
+        self, tree: Tree, add_subscribers_to_tree
+    ):
+        p1 = tree.tab()
+        p2 = tree.split(p1, "y")
+
+        cb_add, cb_remove = add_subscribers_to_tree(tree)
+
+        tree.push_in(p2, p1)
+
+        assert tree_matches_repr(
+            tree,
+            """
+            - tc:1
+                - t:2
+                    - sc.x:3
+                        - p:4 | {x: 0, y: 20, w: 200, h: 280}
+                        - p:5 | {x: 200, y: 20, w: 200, h: 280}
+            """,
+        )
+
+        assert cb_add.mock_calls == []
+        assert cb_remove.mock_calls == []
+
+    def test_when_dest_is_sc(self, tree: Tree, add_subscribers_to_tree):
+        p1 = tree.tab()
+        p2 = tree.split(p1, "x")
+        p3 = tree.split(p2, "x")
+        p4 = tree.split(p3, "y")
+
+        cb_add, cb_remove = add_subscribers_to_tree(tree)
+        sc = p4.parent
+
+        tree.push_in(p2, sc)
+
+        assert tree_matches_repr(
+            tree,
+            """
+            - tc:1
+                - t:2
+                    - sc.x:3
+                        - p:4 | {x: 0, y: 20, w: 200, h: 280}
+                        - sc.y:7
+                            - p:6 | {x: 200, y: 20, w: 200, h: 70}
+                            - p:8 | {x: 200, y: 90, w: 200, h: 70}
+                            - p:5 | {x: 200, y: 160, w: 200, h: 140}
+            """,
+        )
+
+        assert cb_add.mock_calls == []
+        assert cb_remove.mock_calls == []
+
+    def test_when_dest_is_tc(self, tree: Tree, add_subscribers_to_tree):
+        p1 = tree.tab()
+        p2 = tree.split(p1, "x")
+        p3 = tree.split(p2, "x")
+        p4 = tree.tab(p3, new_level=True)
+
+        cb_add, cb_remove = add_subscribers_to_tree(tree)
+        tc = p4.get_first_ancestor(TabContainer)
+
+        tree.push_in(p2, tc)
+
+        assert tree_matches_repr(
+            tree,
+            """
+            - tc:1
+                - t:2
+                    - sc.x:3
+                        - p:4 | {x: 0, y: 20, w: 200, h: 280}
+                        - sc.y:13
+                            - tc:7
+                                - t:8
+                                    - sc.x:9
+                                        - p:6 | {x: 200, y: 40, w: 200, h: 120}
+                                - t:10
+                                    - sc.x:11
+                                        - p:12 | {x: 200, y: 40, w: 200, h: 120}
+                            - p:5 | {x: 200, y: 160, w: 200, h: 140}
+            """,
+        )
+
+        sc_y = tree.node(13)
+        assert cb_add.mock_calls == [mock.call([sc_y])]
+
+        assert cb_remove.mock_calls == []
+
+    def test_given_deep_tree_when_src_is_sc_with_same_axis_of_dest_push_axis(
+        self, tree: Tree, add_subscribers_to_tree
+    ):
+        p1 = tree.tab()
+        p2 = tree.split(p1, "x")
+        p3 = tree.split(p2, "y")
+        p4 = tree.split(p3, "x")
+        _ = tree.split(p4, "x")
+
+        p6 = tree.split(p1, "y")
+        _ = tree.split(p6, "x")
+        p8 = tree.split(p6, "y")
+
+        cb_add, cb_remove = add_subscribers_to_tree(tree)
+        sc_y = p8.parent
+        sc_x_to_prune = sc_y.parent
+
+        tree.push_in(sc_y, p3)
+
+        assert tree_matches_repr(
+            tree,
+            """
+            - tc:1
+                - t:2
+                    - sc.x:3
+                        - sc.y:11
+                            - p:4 | {x: 0, y: 20, w: 200, h: 140}
+                            - p:14 | {x: 0, y: 160, w: 200, h: 140}
+                        - sc.y:6
+                            - p:5 | {x: 200, y: 20, w: 200, h: 140}
+                            - sc.x:8
+                                - sc.y:17
+                                    - p:7 | {x: 200, y: 160, w: 100, h: 70}
+                                    - p:12 | {x: 200, y: 230, w: 100, h: 35}
+                                    - p:16 | {x: 200, y: 265, w: 100, h: 35}
+                                - p:9 | {x: 300, y: 160, w: 50, h: 140}
+                                - p:10 | {x: 350, y: 160, w: 50, h: 140}
+            """,
+        )
+
+        # The unfortunate case where we add a new node and discard an older of the same
+        # kind. Made the code easier.
+        sc_y_added = tree.node(17)
+
+        assert cb_add.mock_calls == [mock.call([sc_y_added])]
+        assert cb_remove.mock_calls == [mock.call([sc_x_to_prune, sc_y])]
+
+    def test_given_deep_tree_when_src_is_sc_with_inv_axis_of_dest_push_axis(
+        self, tree: Tree, add_subscribers_to_tree
+    ):
+        p1 = tree.tab()
+        p2 = tree.split(p1, "x")
+        p3 = tree.split(p2, "y")
+        p4 = tree.split(p3, "x")
+        _ = tree.split(p4, "x")
+
+        p6 = tree.split(p1, "y")
+        _ = tree.split(p6, "x")
+        p8 = tree.split(p6, "y")
+
+        cb_add, cb_remove = add_subscribers_to_tree(tree)
+        sc_y = p8.parent
+        sc_x = sc_y.parent
+        sc_y_to_prune = sc_x.parent
+
+        tree.push_in(sc_x, p4)
+
+        assert tree_matches_repr(
+            tree,
+            """
+            - tc:1
+                - t:2
+                    - sc.x:3
+                        - p:4 | {x: 0, y: 20, w: 200, h: 280}
+                        - sc.y:6
+                            - p:5 | {x: 200, y: 20, w: 200, h: 140}
+                            - sc.x:8
+                                - p:7 | {x: 200, y: 160, w: 100, h: 140}
+                                - sc.y:17
+                                    - p:9 | {x: 300, y: 160, w: 50, h: 70}
+                                    - sc.x:13
+                                        - sc.y:15
+                                            - p:12 | {x: 300, y: 230, w: 25, h: 35}
+                                            - p:16 | {x: 300, y: 265, w: 25, h: 35}
+                                        - p:14 | {x: 325, y: 230, w: 25, h: 70}
+                                - p:10 | {x: 350, y: 160, w: 50, h: 140}
+            """,
+        )
+
+        sc_y_added = tree.node(17)
+        assert cb_add.mock_calls == [mock.call([sc_y_added])]
+
+        assert cb_remove.mock_calls == [mock.call([sc_y_to_prune])]
 
 
 class TestConfig:

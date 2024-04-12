@@ -39,7 +39,7 @@ class TreeEvent(StrEnum):
     node_removed = "node_removed"
 
 
-class SupernodeTarget(StrEnum):
+class NodeHierarchySelectionMode(StrEnum):
     mru_deepest = "mru_deepest"
     mru_largest = "mru_largest"
     mru_subtab_else_deepest = "mru_subtab_else_deepest"
@@ -47,6 +47,10 @@ class SupernodeTarget(StrEnum):
 
 
 class InvalidTreeStructureError(Exception):
+    pass
+
+
+class InvalidNodeSelectionError(Exception):
     pass
 
 
@@ -591,8 +595,8 @@ class Tree:
         node: Node,
         direction: DirectionParam,
         *,
-        src_target: SupernodeTarget = SupernodeTarget.mru_subtab_else_deepest,
-        dest_target: SupernodeTarget = SupernodeTarget.mru_subtab_else_deepest,
+        src_selection_mode: NodeHierarchySelectionMode = NodeHierarchySelectionMode.mru_subtab_else_deepest,
+        dest_selection_mode: NodeHierarchySelectionMode = NodeHierarchySelectionMode.mru_subtab_else_deepest,
         normalize: bool = False,
     ):
         """Merge the provided `node` (or a resolved ancestor) with a geometrically
@@ -604,9 +608,9 @@ class Tree:
             `direction`:
                 The geometric direction in which to find a neighboring node to merge
                 with.
-            `src_target`:
+            `src_selection_mode`:
                 Determines how `node` should be resolved.
-            `dest_target`:
+            `dest_selection_mode`:
                 Determines how the neighboring node should be resolved.
             `normalize`:
                 Passed on to internal invocations of `remove()` to determine if siblings
@@ -614,55 +618,73 @@ class Tree:
         """
         direction = Direction(direction)
 
-        if src_target == SupernodeTarget.mru_deepest:
-            src = self.find_mru_pane(start_node=node)
-        elif src_target == SupernodeTarget.mru_largest:
-            src = self.find_border_encompassing_supernode(
-                node, direction, stop_at_tc=False
-            )
-        elif src_target == SupernodeTarget.mru_subtab_else_deepest:
-            deepest = self.find_mru_pane(start_node=node)
-            tc = deepest.get_first_ancestor(TabContainer)
-            src = tc if tc.tab_level > 1 else deepest
-        elif src_target == SupernodeTarget.mru_subtab_else_largest:
-            src = self.find_border_encompassing_supernode(
-                node, direction, stop_at_tc=True
-            )
-        else:
-            raise ValueError("Invalid value for `src_target`")
-
-        if dest_target == SupernodeTarget.mru_deepest:
-            adjacent_panes = self.adjacent_panes(node, direction)
-            dest = self.find_mru_pane(panes=adjacent_panes)
-        elif dest_target == SupernodeTarget.mru_largest:
-            besp = self.find_border_encompassing_supernode(
-                src, direction, stop_at_tc=False
-            )
-            if besp is None:
-                raise ValueError("Invalid value for `dest`")
-            dest = besp.sibling(direction.axis_unit)
-        elif dest_target == SupernodeTarget.mru_subtab_else_deepest:
-            adjacent_panes = self.adjacent_panes(node, direction)
-            deepest = self.find_mru_pane(panes=adjacent_panes)
-            tc = deepest.get_first_ancestor(TabContainer)
-            dest = tc if tc.tab_level > 1 else deepest
-        elif dest_target == SupernodeTarget.mru_subtab_else_largest:
-            adjacent_panes = self.adjacent_panes(node, direction)
-            deepest = self.find_mru_pane(panes=adjacent_panes)
-            tc = deepest.get_first_ancestor(TabContainer)
-            if tc.tab_level > 1:
-                dest = tc
-            else:
-                besp = self.find_border_encompassing_supernode(
-                    src, direction, stop_at_tc=False
-                )
-                if besp is None:
-                    raise ValueError("Invalid value for `dest`")
-                dest = besp.sibling(direction.axis_unit)
-        else:
-            raise ValueError("Invalid value for `dest_target`")
+        src = self.resolve_node_selection(node, src_selection_mode, direction)
+        dest = self.resolve_node_neighbor_selection(
+            node, dest_selection_mode, direction
+        )
 
         self.merge_to_subtab(src, dest, normalize=normalize)
+
+    def push_in(self, src: Node, dest: Node, *, normalize: bool = False):
+        """Take `src` and insert it as a child under `dest`"""
+
+        # Grab ancestors just in case needed for pruning edge case.
+        dest_ancestors = dest.get_ancestors(SplitContainer)
+
+        # Determine target axis. Important to do this before any possible pruning from
+        # the upcoming `_remove()` which may leave dest with a new parent.
+        dest_container = dest.get_self_or_first_ancestor(SplitContainer)
+        axis = (
+            dest_container.axis.inv
+            if isinstance(dest, (Pane, TabContainer))
+            else dest_container.axis
+        )
+
+        removed_nodes = []
+        br_rm, _, br_sib, _ = self._remove(src, normalize=normalize)
+        if br_sib is not None:
+            removed_nodes.extend(self._do_post_removal_pruning(br_sib))
+
+        # If we end up plucking out a T, just use the underlying SC
+        if isinstance(br_rm, Tab):
+            removed_nodes.append(br_rm)
+            br_rm = br_rm.children[0]
+
+        # After the `_remove()` and the pruning operation, check if `dest` happens to be
+        # one of the pruned nodes. If so, reassign `dest` to be the closest valid
+        # (non-pruned) SC ancestor.
+        # NOTE: When `normalize == False`, this has a seemingly unnatural effect on
+        # space distribution as we end up using a larger ancestor node's space for
+        # reference to determine how much space our pushed in node gets.
+        if dest in removed_nodes:
+            dest = next(n for n in dest_ancestors if n not in removed_nodes)
+
+        _, added_nodes, _removed_nodes = self._split(
+            dest, axis, insert_node=br_rm, normalize=normalize
+        )
+        removed_nodes.extend(_removed_nodes)
+
+        self._notify_subscribers(TreeEvent.node_removed, removed_nodes)
+        self._notify_subscribers(TreeEvent.node_added, added_nodes)
+
+    def push_in_with_neighbor(
+        self,
+        node: Node,
+        direction: DirectionParam,
+        *,
+        src_selection_mode: NodeHierarchySelectionMode,
+        dest_selection_mode: NodeHierarchySelectionMode,
+        normalize: bool = False,
+        wrap: bool = False,
+    ):
+        direction = Direction(direction)
+
+        src = self.resolve_node_selection(node, src_selection_mode, direction)
+        dest = self.resolve_node_neighbor_selection(
+            node, dest_selection_mode, direction, wrap=wrap
+        )
+
+        self.push_in(src, dest, normalize=normalize)
 
     def is_visible(self, node: Node) -> bool:
         """Whether a node is visible or not. A node is visible if all its ancestor
@@ -709,6 +731,80 @@ class Tree:
                 break
             n, p = p, p.parent
         return supernode
+
+    def resolve_node_selection(
+        self,
+        node: Node,
+        selection_mode: NodeHierarchySelectionMode,
+        border_direction: DirectionParam,
+    ):
+        mode = NodeHierarchySelectionMode(selection_mode)
+        border_direction = Direction(border_direction)
+
+        if mode == NodeHierarchySelectionMode.mru_deepest:
+            resolved_node = self.find_mru_pane(start_node=node)
+        elif mode == NodeHierarchySelectionMode.mru_largest:
+            resolved_node = self.find_border_encompassing_supernode(
+                node, border_direction, stop_at_tc=False
+            )
+        elif mode == NodeHierarchySelectionMode.mru_subtab_else_deepest:
+            deepest = self.find_mru_pane(start_node=node)
+            tc = deepest.get_first_ancestor(TabContainer)
+            resolved_node = tc if tc.tab_level > 1 else deepest
+        elif mode == NodeHierarchySelectionMode.mru_subtab_else_largest:
+            resolved_node = self.find_border_encompassing_supernode(
+                node, border_direction, stop_at_tc=True
+            )
+        else:
+            raise ValueError(f"Invalid `selection_mode`: {selection_mode}")
+
+        return resolved_node
+
+    def resolve_node_neighbor_selection(
+        self,
+        node: Node,
+        selection_mode: NodeHierarchySelectionMode,
+        border_direction: DirectionParam,
+        *,
+        wrap: bool = False,
+    ):
+        mode = NodeHierarchySelectionMode(selection_mode)
+        border_direction = Direction(border_direction)
+
+        if mode == NodeHierarchySelectionMode.mru_deepest:
+            adjacent_panes = self.adjacent_panes(node, border_direction, wrap=wrap)
+            resolved_node = self.find_mru_pane(panes=adjacent_panes)
+        elif mode == NodeHierarchySelectionMode.mru_largest:
+            besp = self.find_border_encompassing_supernode(
+                node, border_direction, stop_at_tc=False
+            )
+            if besp is None:
+                raise InvalidNodeSelectionError("There is no suitable node to select.")
+            resolved_node = besp.sibling(border_direction.axis_unit, wrap=wrap)
+        elif mode == NodeHierarchySelectionMode.mru_subtab_else_deepest:
+            adjacent_panes = self.adjacent_panes(node, border_direction, wrap=wrap)
+            deepest = self.find_mru_pane(panes=adjacent_panes)
+            tc = deepest.get_first_ancestor(TabContainer)
+            resolved_node = tc if tc.tab_level > 1 else deepest
+        elif mode == NodeHierarchySelectionMode.mru_subtab_else_largest:
+            adjacent_panes = self.adjacent_panes(node, border_direction, wrap=wrap)
+            deepest = self.find_mru_pane(panes=adjacent_panes)
+            tc = deepest.get_first_ancestor(TabContainer)
+            if tc.tab_level > 1:
+                resolved_node = tc
+            else:
+                besp = self.find_border_encompassing_supernode(
+                    node, border_direction, stop_at_tc=False
+                )
+                if besp is None:
+                    raise InvalidNodeSelectionError(
+                        "There is no suitable node to select."
+                    )
+                resolved_node = besp.sibling(border_direction.axis_unit, wrap=wrap)
+        else:
+            raise ValueError(f"Invalid `selection_mode`: {selection_mode}")
+
+        return resolved_node
 
     def iter_walk(
         self, start: Node | None = None, *, only_visible: bool = False

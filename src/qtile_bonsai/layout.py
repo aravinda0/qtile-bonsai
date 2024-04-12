@@ -24,9 +24,10 @@ import qtile_bonsai.validation as validation
 from qtile_bonsai.core.geometry import Direction, DirectionParam
 from qtile_bonsai.core.tree import (
     Axis,
+    InvalidNodeSelectionError,
+    NodeHierarchySelectionMode,
     Pane,
     SplitContainer,
-    SupernodeTarget,
     Tab,
     Tree,
     TreeEvent,
@@ -691,31 +692,32 @@ class Bonsai(Layout):
         self,
         direction: DirectionParam,
         *,
-        src_target: SupernodeTarget = SupernodeTarget.mru_subtab_else_deepest,
-        dest_target: SupernodeTarget = SupernodeTarget.mru_subtab_else_deepest,
+        src_selection_mode: NodeHierarchySelectionMode = NodeHierarchySelectionMode.mru_subtab_else_deepest,
+        dest_selection_mode: NodeHierarchySelectionMode = NodeHierarchySelectionMode.mru_subtab_else_deepest,
         normalize: bool = True,
     ):
-        """Merge the currently focused window (or an ancestor node) with a neighboring
+        """
+        Merge the currently focused window (or an ancestor node) with a neighboring
         node in the specified `direction`, so that they both come under a (possibly new)
         subtab.
 
         Args:
             `direction`:
                 The direction in which to find a neighbor to merge with.
-            `src_target`:
+            `src_selection_mode`:
                 Determines how the source window/node should be resolved. ie. do we pick
                 just the current window, or all windows under an appropriate ancestor
                 container.
-                Valid values are defined in `SupernodeTarget`. See below.
-            `dest_target`:
+                Valid values are defined in `NodeHierarchySelectionMode`. See below.
+            `dest_selection_mode`:
                 Determines how the neighboring node should be resolved, similar to how
-                `src_target` is resolved.
-                Valid values are defined in `SupernodeTarget`. See below.
+                `src_selection_mode` is resolved.
+                Valid values are defined in `NodeHierarchySelectionMode`. See below.
             `normalize`:
                 If `True`, any removals during the merge process will ensure all sibling
                 nodes are resized to be of equal dimensions.
 
-        Valid values for `SupernodeTarget` are:
+        Valid values for `NodeHierarchySelectionMode` are:
             `"mru_deepest"`:
                 Pick a single innermost window. If there are multiple such neighboring
                 windows, pick the most recently used (MRU) one.
@@ -735,10 +737,55 @@ class Bonsai(Layout):
         self._tree.merge_with_neighbor_to_subtab(
             self.focused_pane,
             direction,
-            src_target=src_target,
-            dest_target=dest_target,
+            src_selection_mode=src_selection_mode,
+            dest_selection_mode=dest_selection_mode,
             normalize=normalize,
         )
+        self._request_relayout()
+
+    @expose_command
+    def push_in(
+        self,
+        direction: DirectionParam,
+        *,
+        src_selection_mode: NodeHierarchySelectionMode = NodeHierarchySelectionMode.mru_deepest,
+        dest_selection_mode: NodeHierarchySelectionMode = NodeHierarchySelectionMode.mru_largest,
+        normalize: bool = True,
+        wrap: bool = True,
+    ):
+        """
+        Move the currently focused window (or a related node in its hierarchy) into a
+        neighboring window's container.
+
+        Args:
+            `direction`:
+                The direction in which to find a neighbor whose container we push into.
+            `src_selection_mode`:
+                (See docs in `merge_to_subtab()`)
+            `dest_selection_mode`:
+                (See docs in `merge_to_subtab()`)
+            `normalize`:
+                If `True`, any removals during the process will ensure all sibling nodes
+                are resized to be of equal dimensions.
+            `wrap`:
+                If `True`, will wrap around the edge of the screen and push into the
+                container on the other end.
+        """
+        if self._tree.is_empty:
+            return
+
+        try:
+            self._tree.push_in_with_neighbor(
+                self.focused_pane,
+                direction,
+                src_selection_mode=src_selection_mode,
+                dest_selection_mode=dest_selection_mode,
+                normalize=normalize,
+                wrap=wrap,
+            )
+        except InvalidNodeSelectionError:
+            return
+
         self._request_relayout()
 
     @expose_command
