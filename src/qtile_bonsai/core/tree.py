@@ -976,7 +976,8 @@ class Tree:
                 `node` or an ancestor.
                 2. The position index of the removed node under its parent.
                 3. The sibling of the removed node.
-                4. List of nodes under the removed node.
+                4. List of additional nodes to be removed between the provided `node`
+                and the resolved ancestor node in tuple.0.
         """
         br_rm, br_rm_nodes = self._find_removal_branch(node)
         if br_rm is self._root:
