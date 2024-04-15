@@ -510,6 +510,25 @@ class Tree:
             t2.transform(Axis.x, t1_rect.x, t1_rect.w)
             t2.transform(Axis.y, t1_rect.y, t1_rect.h)
 
+    def merge_tabs(self, src: Tab, dest: Tab, axis: AxisParam):
+        if not isinstance(src, Tab) or not isinstance(dest, Tab):
+            raise ValueError("Both `src` and `dest` must be `Tab` instances")
+        axis = Axis(axis)
+
+        removed_nodes = []
+        br_rm, _, _, _removed_nodes = self._remove(src)
+        removed_nodes.extend(_removed_nodes)
+
+        br_rm_sc = br_rm.children[0]
+        dest_sc = dest.children[0]
+        _, added_nodes, _removed_nodes = self._split(
+            dest_sc, axis, insert_node=br_rm_sc
+        )
+        removed_nodes.extend(_removed_nodes)
+
+        self._notify_subscribers(TreeEvent.node_added, added_nodes)
+        self._notify_subscribers(TreeEvent.node_removed, removed_nodes)
+
     def merge_to_subtab(self, src: Node, dest: Node, *, normalize: bool = False):
         """Merge `src` and `dest` such that they both come under a (possibly new)
         TabContainer.

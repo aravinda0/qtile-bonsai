@@ -21,7 +21,13 @@ from libqtile.layout.base import Layout
 from libqtile.log_utils import logger
 
 import qtile_bonsai.validation as validation
-from qtile_bonsai.core.geometry import Direction, DirectionParam
+from qtile_bonsai.core.geometry import (
+    AxisParam,
+    Direction,
+    Direction1D,
+    Direction1DParam,
+    DirectionParam,
+)
 from qtile_bonsai.core.tree import (
     Axis,
     InvalidNodeSelectionError,
@@ -393,7 +399,7 @@ class Bonsai(Layout):
     def spawn_split(
         self,
         program: str,
-        axis: Axis,
+        axis: AxisParam,
         *,
         ratio: float = 0.5,
         normalize: bool = True,
@@ -686,6 +692,28 @@ class Bonsai(Layout):
             return
 
         prompt_widget.start_input("Rename tab: ", self._handle_rename_tab)
+
+    @expose_command
+    def merge_tabs(self, direction: Direction1DParam, axis: AxisParam = Axis.x):
+        """
+        Merge the currently active tab with another tab, such that both tabs' contents
+        now appear in 2 splits.
+
+        Args:
+            `axis`:
+                The axis along which the merged content should appear as splits.
+        """
+        if self._tree.is_empty:
+            return
+
+        direction = Direction1D(direction)
+
+        src = self.focused_pane.get_first_ancestor(Tab)
+        dest = src.sibling(direction.axis_unit)
+
+        if src is not dest and dest is not None:
+            self._tree.merge_tabs(src, dest, axis)
+            self._request_relayout()
 
     @expose_command
     def merge_to_subtab(
