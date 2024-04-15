@@ -14,6 +14,7 @@ from qtile_bonsai.core.utils import all_or_none
 
 AxisLiteral = Literal["x", "y"]
 DirectionLiteral = Literal["up", "down", "left", "right"]
+Direction1DLiteral = Literal["previous", "next"]
 
 
 class Axis(StrEnum):
@@ -58,12 +59,26 @@ class Direction(StrEnum):
         return 1
 
 
+class Direction1D(StrEnum):
+    previous = "previous"
+    next = "next"
+
+    @property
+    def axis_unit(self) -> int:
+        cls = self.__class__
+        if self == cls.previous:
+            return -1
+        return 1
+
+
 AxisParam = AxisLiteral | Axis
 DirectionParam = DirectionLiteral | Direction
+Direction1DParam = Direction1DLiteral | Direction1D
 
 
 assert typing.get_args(AxisLiteral) == tuple(m.value for m in Axis)
 assert typing.get_args(DirectionLiteral) == tuple(m.value for m in Direction)
+assert typing.get_args(Direction1DLiteral) == tuple(m.value for m in Direction1D)
 
 
 class Rect:
