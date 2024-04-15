@@ -3882,6 +3882,69 @@ class TestSwapTabs:
             tree.swap_tabs(t1, t4)
 
 
+class TestMergeTabs:
+    def test_merge_to_x_axis(self, tree: Tree, add_subscribers_to_tree):
+        p1 = tree.tab()
+        _ = tree.split(p1, "x")
+        p3 = tree.tab()
+        _ = tree.split(p3, "y")
+
+        cb_add, cb_remove = add_subscribers_to_tree(tree)
+        t1 = p1.get_first_ancestor(Tab)
+        t2 = p3.get_first_ancestor(Tab)
+        sc_x_to_prune = p1.parent
+
+        tree.merge_tabs(t1, t2, "x")
+
+        assert tree_matches_repr(
+            tree,
+            """
+            - tc:1
+                - t:6
+                    - sc.x:10
+                        - sc.y:7
+                            - p:8 | {x: 0, y: 20, w: 200, h: 140}
+                            - p:9 | {x: 0, y: 160, w: 200, h: 140}
+                        - p:4 | {x: 200, y: 20, w: 100, h: 280}
+                        - p:5 | {x: 300, y: 20, w: 100, h: 280}
+            """,
+        )
+
+        sc_x_added = tree.node(10)
+        assert cb_add.mock_calls == [mock.call([sc_x_added])]
+
+        assert cb_remove.mock_calls == [mock.call([t1, sc_x_to_prune])]
+
+    def test_merge_to_y_axis(self, tree: Tree, add_subscribers_to_tree):
+        p1 = tree.tab()
+        _ = tree.split(p1, "x")
+        p3 = tree.tab()
+        _ = tree.split(p3, "y")
+
+        cb_add, cb_remove = add_subscribers_to_tree(tree)
+        t1 = p1.get_first_ancestor(Tab)
+        t2 = p3.get_first_ancestor(Tab)
+
+        tree.merge_tabs(t1, t2, "y")
+
+        assert tree_matches_repr(
+            tree,
+            """
+            - tc:1
+                - t:6
+                    - sc.y:7
+                        - p:8 | {x: 0, y: 20, w: 400, h: 70}
+                        - p:9 | {x: 0, y: 90, w: 400, h: 70}
+                        - sc.x:3
+                            - p:4 | {x: 0, y: 160, w: 200, h: 140}
+                            - p:5 | {x: 200, y: 160, w: 200, h: 140}
+            """,
+        )
+
+        assert cb_add.mock_calls == []
+        assert cb_remove.mock_calls == [mock.call([t1])]
+
+
 class TestMergeToSubtab:
     def test_when_src_and_dest_resolve_to_same_node_then_error_is_raised(
         self, tree: Tree
