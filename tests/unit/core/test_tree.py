@@ -7,8 +7,9 @@ from unittest import mock
 import pytest
 
 import tests.data.tree_state
-from qtile_bonsai.core.geometry import Rect
+from qtile_bonsai.core.geometry import Direction, Rect
 from qtile_bonsai.core.tree import (
+    InvalidNodeSelectionError,
     NodeHierarchySelectionMode,
     Pane,
     Tab,
@@ -5349,6 +5350,22 @@ class TestPushIn:
         assert cb_add.mock_calls == [mock.call([sc_y_added])]
 
         assert cb_remove.mock_calls == [mock.call([sc_y_to_prune])]
+
+
+class TestResolveNodeNeighborSelection:
+    @pytest.mark.parametrize("selection_mode", list(NodeHierarchySelectionMode))
+    def test_when_there_are_no_adjacent_nodes_then_error_is_raised(
+        self, tree: Tree, selection_mode: NodeHierarchySelectionMode
+    ):
+        p1 = tree.tab()
+
+        err_msg = "There is no neighbor node to select"
+        with pytest.raises(InvalidNodeSelectionError, match=err_msg):
+            tree.resolve_node_neighbor_selection(
+                p1,
+                selection_mode,
+                Direction.right,
+            )
 
 
 class TestConfig:

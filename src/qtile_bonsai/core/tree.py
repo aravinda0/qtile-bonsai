@@ -771,23 +771,23 @@ class Tree:
         mode = NodeHierarchySelectionMode(selection_mode)
         border_direction = Direction(border_direction)
 
+        adjacent_panes = self.adjacent_panes(node, border_direction, wrap=wrap)
+        if not adjacent_panes:
+            raise InvalidNodeSelectionError("There is no neighbor node to select.")
+
         if mode == NodeHierarchySelectionMode.mru_deepest:
-            adjacent_panes = self.adjacent_panes(node, border_direction, wrap=wrap)
             resolved_node = self.find_mru_pane(panes=adjacent_panes)
         elif mode == NodeHierarchySelectionMode.mru_largest:
             besp = self.find_border_encompassing_supernode(
                 node, border_direction, stop_at_tc=False
             )
-            if besp is None:
-                raise InvalidNodeSelectionError("There is no suitable node to select.")
+            assert besp is not None
             resolved_node = besp.sibling(border_direction.axis_unit, wrap=wrap)
         elif mode == NodeHierarchySelectionMode.mru_subtab_else_deepest:
-            adjacent_panes = self.adjacent_panes(node, border_direction, wrap=wrap)
             deepest = self.find_mru_pane(panes=adjacent_panes)
             tc = deepest.get_first_ancestor(TabContainer)
             resolved_node = tc if tc.tab_level > 1 else deepest
         elif mode == NodeHierarchySelectionMode.mru_subtab_else_largest:
-            adjacent_panes = self.adjacent_panes(node, border_direction, wrap=wrap)
             deepest = self.find_mru_pane(panes=adjacent_panes)
             tc = deepest.get_first_ancestor(TabContainer)
             if tc.tab_level > 1:
@@ -796,10 +796,7 @@ class Tree:
                 besp = self.find_border_encompassing_supernode(
                     node, border_direction, stop_at_tc=False
                 )
-                if besp is None:
-                    raise InvalidNodeSelectionError(
-                        "There is no suitable node to select."
-                    )
+                assert besp is not None
                 resolved_node = besp.sibling(border_direction.axis_unit, wrap=wrap)
         else:
             raise ValueError(f"Invalid `selection_mode`: {selection_mode}")
