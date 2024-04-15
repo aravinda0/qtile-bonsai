@@ -734,13 +734,17 @@ class Bonsai(Layout):
         if self._tree.is_empty:
             return
 
-        self._tree.merge_with_neighbor_to_subtab(
-            self.focused_pane,
-            direction,
-            src_selection_mode=src_selection_mode,
-            dest_selection_mode=dest_selection_mode,
-            normalize=normalize,
-        )
+        try:
+            self._tree.merge_with_neighbor_to_subtab(
+                self.focused_pane,
+                direction,
+                src_selection_mode=src_selection_mode,
+                dest_selection_mode=dest_selection_mode,
+                normalize=normalize,
+            )
+        except InvalidNodeSelectionError:
+            return
+
         self._request_relayout()
 
     @expose_command
@@ -749,7 +753,7 @@ class Bonsai(Layout):
         direction: DirectionParam,
         *,
         src_selection_mode: NodeHierarchySelectionMode = NodeHierarchySelectionMode.mru_deepest,
-        dest_selection_mode: NodeHierarchySelectionMode = NodeHierarchySelectionMode.mru_largest,
+        dest_selection_mode: NodeHierarchySelectionMode = NodeHierarchySelectionMode.mru_deepest,
         normalize: bool = True,
         wrap: bool = True,
     ):
