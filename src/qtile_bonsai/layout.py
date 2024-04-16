@@ -689,6 +689,10 @@ class Bonsai(Layout):
         Args:
             `axis`:
                 The axis along which the merged content should appear as splits.
+
+        Examples:
+            - layout.merge_tabs("previous")
+            - layout.merge_tabs("next")
         """
         if self._tree.is_empty:
             return
@@ -745,6 +749,10 @@ class Bonsai(Layout):
             `"mru_subtab_else_largest"`
                 If the target is under a subtab, pick the subtab. If there is no subtab
                 in play, behaves like `mru_largest`.
+
+        Examples:
+            - layout.merge_to_subtab("right", dest_selection_mode="mru_subtab_else_deepest")
+            - layout.merge_to_subtab("up", src_selection_mo="mru_deepest", dest_selection_mode="mru_deepest")
         """
         if self._tree.is_empty:
             return
@@ -789,6 +797,10 @@ class Bonsai(Layout):
             `wrap`:
                 If `True`, will wrap around the edge of the screen and push into the
                 container on the other end.
+
+        Examples:
+            - layout.push_in("right", dest_selection_mode="mru_deepest")
+            - layout.push_in("down", dest_selection_mode="mru_largest", wrap=False)
         """
         if self._tree.is_empty:
             return
