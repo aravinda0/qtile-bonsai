@@ -641,7 +641,7 @@ class Bonsai(Layout):
         self._request_relayout()
 
     @expose_command
-    def swap_tab_prev(self, *, wrap: bool = True):
+    def swap_tabs(self, direction: Direction1DParam, *, wrap: bool = True):
         """
         Swaps the currently active tab with the previous tab.
 
@@ -654,26 +654,13 @@ class Bonsai(Layout):
         if self._tree.is_empty:
             return
 
-        current_tab = self.focused_pane.get_first_ancestor(Tab)
-        other_tab = current_tab.sibling(-1, wrap=wrap)
+        direction = Direction1D(direction)
 
-        if current_tab is not other_tab and other_tab is not None:
-            self._tree.swap_tabs(current_tab, other_tab)
-            self._request_relayout()
+        t1 = self.focused_pane.get_first_ancestor(Tab)
+        t2 = t1.sibling(direction.axis_unit, wrap=wrap)
 
-    @expose_command
-    def swap_tab_next(self, *, wrap: bool = True):
-        """
-        Same as `swap_prev_tab()` but swap with the next tab.
-        """
-        if self._tree.is_empty:
-            return
-
-        current_tab = self.focused_pane.get_first_ancestor(Tab)
-        other_tab = current_tab.sibling(1, wrap=wrap)
-
-        if current_tab is not other_tab and other_tab is not None:
-            self._tree.swap_tabs(current_tab, other_tab)
+        if t1 is not t2 and t2 is not None:
+            self._tree.swap_tabs(t1, t2)
             self._request_relayout()
 
     @expose_command
