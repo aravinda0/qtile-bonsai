@@ -10,6 +10,7 @@ import tests.data.tree_state
 from qtile_bonsai.core.geometry import Direction, Rect
 from qtile_bonsai.core.tree import (
     InvalidNodeSelectionError,
+    NodeHierarchyPullOutSelectionMode,
     NodeHierarchySelectionMode,
     Pane,
     Tab,
@@ -440,16 +441,16 @@ class TestSplitOnArbitraryNodes:
 
     def test_when_invalid_node_is_provided_then_raises_value_error(self, tree: Tree):
         p1 = tree.tab()
-        p2 = tree.split(p1, "y")
+        _ = tree.split(p1, "y")
 
         err_msg = "Invalid node provided to split"
 
         t = p1.get_first_ancestor(Tab)
-        with pytest.raises(ValueError, match=err_msg):
+        with pytest.raises(InvalidNodeSelectionError, match=err_msg):
             tree.split(t, "x")
 
         tc = p1.get_first_ancestor(TabContainer)
-        with pytest.raises(ValueError, match=err_msg):
+        with pytest.raises(InvalidNodeSelectionError, match=err_msg):
             tree.split(tc, "x")
 
 
@@ -5429,6 +5430,117 @@ class TestResolveNodeNeighborSelection:
                 selection_mode,
                 Direction.right,
             )
+
+
+class TestPullOut:
+    def test_simple(self, tree: Tree, add_subscribers_to_tree):
+        p1 = tree.tab()
+        p2 = tree.split(p1, "x")
+        p3 = tree.split(p2, "y")
+
+        sc = p3.parent
+        cb_add, cb_remove = add_subscribers_to_tree(tree)
+
+        tree.pull_out(p3)
+
+        assert tree_matches_repr(
+            tree,
+            """
+            - tc:1
+                - t:2
+                    - sc.x:3
+                        - p:4 | {x: 0, y: 20, w: 100, h: 280}
+                        - p:5 | {x: 100, y: 20, w: 100, h: 280}
+                        - p:7 | {x: 200, y: 20, w: 200, h: 280}
+            """,
+        )
+
+        assert cb_add.mock_calls == []
+        assert cb_remove.mock_calls == [mock.call([sc])]
+
+    def test_when_node_is_top_level(self, tree: Tree):
+        p1 = tree.tab()
+        p2 = tree.split(p1, "x")
+
+        err_msg = "Invalid node provided to pull out"
+        with pytest.raises(InvalidNodeSelectionError, match=err_msg):
+            tree.pull_out(p2)
+
+    @pytest.mark.odd_space_distribution()
+    def test_when_node_is_sole_top_level_pane_under_subtab(
+        self, tree: Tree, add_subscribers_to_tree
+    ):
+        p1 = tree.tab()
+        p2 = tree.split(p1, "x")
+        p3 = tree.split(p2, "y")
+        p4 = tree.tab(p3, new_level=True)
+        p5 = tree.tab(p4)
+
+        sc, t = p5.parent, p5.parent.parent
+        cb_add, cb_remove = add_subscribers_to_tree(tree)
+
+        tree.pull_out(p5)
+
+        assert tree_matches_repr(
+            tree,
+            """
+            - tc:1
+                - t:2
+                    - sc.x:3
+                        - p:4 | {x: 0, y: 20, w: 200, h: 280}
+                        - sc.y:6
+                            - p:5 | {x: 200, y: 20, w: 200, h: 64}
+                            - tc:8
+                                - t:9
+                                    - sc.x:10
+                                        - p:7 | {x: 200, y: 104, w: 200, h: 56}
+                                - t:11
+                                    - sc.x:12
+                                        - p:13 | {x: 200, y: 104, w: 200, h: 56}
+                            - p:16 | {x: 200, y: 160, w: 200, h: 140}
+            """,
+        )
+
+        assert cb_add.mock_calls == []
+        assert cb_remove.mock_calls == [mock.call([sc, t])]
+
+    def test_when_src_selection_is_mru_subtab_else_deepest(
+        self, tree: Tree, add_subscribers_to_tree
+    ):
+        p1 = tree.tab()
+        p2 = tree.split(p1, "x")
+        p3 = tree.split(p2, "y")
+        p4 = tree.tab(p3, new_level=True)
+        p5 = tree.split(p4, "x")
+
+        sc = p2.parent
+        cb_add, cb_remove = add_subscribers_to_tree(tree)
+
+        tree.pull_out(
+            p5, src_selection=NodeHierarchyPullOutSelectionMode.mru_subtab_else_deepest
+        )
+
+        assert tree_matches_repr(
+            tree,
+            """
+            - tc:1
+                - t:2
+                    - sc.x:3
+                        - p:4 | {x: 0, y: 20, w: 100, h: 280}
+                        - p:5 | {x: 100, y: 20, w: 100, h: 280}
+                        - tc:8
+                            - t:9
+                                - sc.x:10
+                                    - p:7 | {x: 200, y: 40, w: 200, h: 260}
+                            - t:11
+                                - sc.x:12
+                                    - p:13 | {x: 200, y: 40, w: 100, h: 260}
+                                    - p:14 | {x: 300, y: 40, w: 100, h: 260}
+            """,
+        )
+
+        assert cb_add.mock_calls == []
+        assert cb_remove.mock_calls == [mock.call([sc])]
 
 
 class TestPullOutToTab:

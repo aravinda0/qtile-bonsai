@@ -16,6 +16,8 @@ from qtile_bonsai.core.geometry import (
     AxisParam,
     Box,
     Direction,
+    Direction1D,
+    Direction1DParam,
     DirectionParam,
     PerimieterParams,
     Rect,
@@ -39,11 +41,20 @@ class TreeEvent(StrEnum):
     node_removed = "node_removed"
 
 
+_enum_type_mru_deepest = "mru_deepest"
+_enum_type_mru_subtab_else_deepest = "mru_subtab_else_deepest"
+
+
 class NodeHierarchySelectionMode(StrEnum):
-    mru_deepest = "mru_deepest"
+    mru_deepest = _enum_type_mru_deepest
     mru_largest = "mru_largest"
-    mru_subtab_else_deepest = "mru_subtab_else_deepest"
+    mru_subtab_else_deepest = _enum_type_mru_subtab_else_deepest
     mru_subtab_else_largest = "mru_subtab_else_largest"
+
+
+class NodeHierarchyPullOutSelectionMode(StrEnum):
+    mru_deepest = _enum_type_mru_deepest
+    mru_subtab_else_deepest = _enum_type_mru_subtab_else_deepest
 
 
 class InvalidTreeStructureError(Exception):
@@ -703,6 +714,44 @@ class Tree:
 
         self.push_in(src, dest, normalize=normalize)
 
+    def pull_out(
+        self,
+        node: Node,
+        *,
+        src_selection: NodeHierarchyPullOutSelectionMode = NodeHierarchyPullOutSelectionMode.mru_deepest,
+        normalize: bool = False,
+    ):
+        dummy_direction = Direction.right
+        node = self.resolve_node_selection(node, src_selection, dummy_direction)
+
+        try:
+            sc = node.get_first_ancestor(SplitContainer)
+            if isinstance(node, (Pane, TabContainer)):
+                sc = sc.get_first_ancestor(SplitContainer)
+        except ValueError as ex:
+            raise InvalidNodeSelectionError("Invalid node provided to pull out") from ex
+
+        removed_nodes = []
+        br_rm, _, br_sib, extra_removed_nodes = self._remove(node, normalize=normalize)
+        if br_sib is not None:
+            removed_nodes.extend(self._do_post_removal_pruning(br_sib))
+
+        # When br_rm resolves to an ancestor node, we can skip passing these additional
+        # nodes to `_split(..., insert_node=xxx)` to keep things simple. This
+        # effectively means we're doing `_split(..., insert_node=node)`.
+        # Important in cases where eg. `br_rm` resolves to a T node.
+        if extra_removed_nodes:
+            removed_nodes.extend(extra_removed_nodes[1:])
+            br_rm = extra_removed_nodes[0]
+
+        _, added_nodes, _removed_nodes = self._split(
+            sc, sc.axis, insert_node=br_rm, normalize=normalize
+        )
+        removed_nodes.extend(_removed_nodes)
+
+        self._notify_subscribers(TreeEvent.node_removed, removed_nodes)
+        self._notify_subscribers(TreeEvent.node_added, added_nodes)
+
     def pull_out_to_tab(self, node: Node, *, normalize: bool = False):
         tc = node.get_first_ancestor(TabContainer)
 
@@ -932,8 +981,8 @@ class Tree:
         validate_unit_range(ratio, "ratio")
         try:
             node.get_self_or_first_ancestor(SplitContainer)
-        except ValueError as err:
-            raise ValueError("Invalid node provided to split") from err
+        except ValueError as ex:
+            raise InvalidNodeSelectionError("Invalid node provided to split") from ex
         if isinstance(insert_node, Tab):
             raise ValueError(
                 "`insert_node` cannot be a Tab instance. Tabs can only live under"

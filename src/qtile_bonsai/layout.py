@@ -31,6 +31,7 @@ from qtile_bonsai.core.geometry import (
 from qtile_bonsai.core.tree import (
     Axis,
     InvalidNodeSelectionError,
+    NodeHierarchyPullOutSelectionMode,
     NodeHierarchySelectionMode,
     Pane,
     SplitContainer,
@@ -813,6 +814,43 @@ class Bonsai(Layout):
                 dest_selection=dest_selection,
                 normalize=normalize,
                 wrap=wrap,
+            )
+        except InvalidNodeSelectionError:
+            return
+        else:
+            self._request_relayout()
+
+    @expose_command
+    def pull_out(
+        self,
+        *,
+        src_selection: NodeHierarchyPullOutSelectionMode = NodeHierarchyPullOutSelectionMode.mru_deepest,
+        normalize: bool = True,
+    ):
+        """
+        Move the currently focused window out from its SplitContainer into an ancestor
+        SplitContainer at a higher level. It effectively moves a window 'outwards'.
+
+        Args:
+            `src_selection`:
+                Can either be `"mru_deepest"` (default) or `"mru_subtab_else_deepest"`.
+                (See docs in `merge_to_subtab()`)
+            `normalize`:
+                If `True`, all sibling nodes involved in the rearrangement are resized
+                to be of equal dimensions.
+
+        Examples:
+            - `layout.pull_out()`
+            - `layout.pull_out(src_selection="mru_subtab_else_deepest")`
+        """
+        if self._tree.is_empty:
+            return
+
+        try:
+            self._tree.pull_out(
+                self.focused_pane,
+                src_selection="mru_deepest",
+                normalize=normalize,
             )
         except InvalidNodeSelectionError:
             return
