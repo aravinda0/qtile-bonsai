@@ -93,3 +93,12 @@ def rewrap(
 
 def _replace_with_hard_space(match):
     return len(match.group(0)) * "&nbsp;"
+
+
+def to_snake_case(name: str) -> str:
+    """Convert the provided string to snake case.
+
+    Stolen from https://stackoverflow.com/a/46493824
+    """
+    words = re.findall(r"[A-Z]?[a-z]+|[A-Z]{2,}(?=[A-Z][a-z]|\d|\W|$)|\d+", name)
+    return "_".join(map(str.lower, words))
