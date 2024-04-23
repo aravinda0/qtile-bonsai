@@ -4508,8 +4508,8 @@ class TestMergeWithNeighborToSubtab:
         tree.merge_with_neighbor_to_subtab(
             p7,
             "right",
-            src_selection_mode=NodeHierarchySelectionMode.mru_deepest,
-            dest_selection_mode=NodeHierarchySelectionMode.mru_deepest,
+            src_selection=NodeHierarchySelectionMode.mru_deepest,
+            dest_selection=NodeHierarchySelectionMode.mru_deepest,
         )
 
         assert tree_matches_repr(
@@ -4575,8 +4575,8 @@ class TestMergeWithNeighborToSubtab:
             tree.merge_with_neighbor_to_subtab(
                 p7,
                 "right",
-                src_selection_mode=NodeHierarchySelectionMode.mru_subtab_else_deepest,
-                dest_selection_mode=NodeHierarchySelectionMode.mru_deepest,
+                src_selection=NodeHierarchySelectionMode.mru_subtab_else_deepest,
+                dest_selection=NodeHierarchySelectionMode.mru_deepest,
             )
 
             assert tree_matches_repr(
@@ -4635,8 +4635,8 @@ class TestMergeWithNeighborToSubtab:
             tree.merge_with_neighbor_to_subtab(
                 p5,
                 "right",
-                src_selection_mode=NodeHierarchySelectionMode.mru_subtab_else_deepest,
-                dest_selection_mode=NodeHierarchySelectionMode.mru_deepest,
+                src_selection=NodeHierarchySelectionMode.mru_subtab_else_deepest,
+                dest_selection=NodeHierarchySelectionMode.mru_deepest,
             )
 
             assert tree_matches_repr(
@@ -4691,8 +4691,8 @@ class TestMergeWithNeighborToSubtab:
             tree.merge_with_neighbor_to_subtab(
                 p7,
                 "right",
-                src_selection_mode=NodeHierarchySelectionMode.mru_largest,
-                dest_selection_mode=NodeHierarchySelectionMode.mru_deepest,
+                src_selection=NodeHierarchySelectionMode.mru_largest,
+                dest_selection=NodeHierarchySelectionMode.mru_deepest,
             )
 
             # 💢 The overall tree structure and space occupancy is okay. But the
@@ -4763,8 +4763,8 @@ class TestMergeWithNeighborToSubtab:
             tree.merge_with_neighbor_to_subtab(
                 p7,
                 "right",
-                src_selection_mode=NodeHierarchySelectionMode.mru_subtab_else_largest,
-                dest_selection_mode=NodeHierarchySelectionMode.mru_deepest,
+                src_selection=NodeHierarchySelectionMode.mru_subtab_else_largest,
+                dest_selection=NodeHierarchySelectionMode.mru_deepest,
             )
 
             assert tree_matches_repr(
@@ -4823,8 +4823,8 @@ class TestMergeWithNeighborToSubtab:
             tree.merge_with_neighbor_to_subtab(
                 p5,
                 "right",
-                src_selection_mode=NodeHierarchySelectionMode.mru_subtab_else_largest,
-                dest_selection_mode=NodeHierarchySelectionMode.mru_deepest,
+                src_selection=NodeHierarchySelectionMode.mru_subtab_else_largest,
+                dest_selection=NodeHierarchySelectionMode.mru_deepest,
             )
 
             assert tree_matches_repr(
@@ -4880,8 +4880,8 @@ class TestMergeWithNeighborToSubtab:
             tree.merge_with_neighbor_to_subtab(
                 p7,
                 "right",
-                src_selection_mode=NodeHierarchySelectionMode.mru_deepest,
-                dest_selection_mode=NodeHierarchySelectionMode.mru_subtab_else_deepest,
+                src_selection=NodeHierarchySelectionMode.mru_deepest,
+                dest_selection=NodeHierarchySelectionMode.mru_subtab_else_deepest,
             )
 
             assert tree_matches_repr(
@@ -4941,8 +4941,8 @@ class TestMergeWithNeighborToSubtab:
             tree.merge_with_neighbor_to_subtab(
                 p7,
                 "right",
-                src_selection_mode=NodeHierarchySelectionMode.mru_deepest,
-                dest_selection_mode=NodeHierarchySelectionMode.mru_subtab_else_deepest,
+                src_selection=NodeHierarchySelectionMode.mru_deepest,
+                dest_selection=NodeHierarchySelectionMode.mru_subtab_else_deepest,
             )
 
             assert tree_matches_repr(
@@ -4998,8 +4998,8 @@ class TestMergeWithNeighborToSubtab:
             tree.merge_with_neighbor_to_subtab(
                 p7,
                 "right",
-                src_selection_mode=NodeHierarchySelectionMode.mru_deepest,
-                dest_selection_mode=NodeHierarchySelectionMode.mru_largest,
+                src_selection=NodeHierarchySelectionMode.mru_deepest,
+                dest_selection=NodeHierarchySelectionMode.mru_largest,
             )
 
             # 💢 rounding issue: tc:30 is introduced with its new bar of height 20. The
@@ -5066,8 +5066,8 @@ class TestMergeWithNeighborToSubtab:
             tree.merge_with_neighbor_to_subtab(
                 p7,
                 "right",
-                src_selection_mode=NodeHierarchySelectionMode.mru_deepest,
-                dest_selection_mode=NodeHierarchySelectionMode.mru_subtab_else_largest,
+                src_selection=NodeHierarchySelectionMode.mru_deepest,
+                dest_selection=NodeHierarchySelectionMode.mru_subtab_else_largest,
             )
 
             assert tree_matches_repr(
@@ -5127,8 +5127,8 @@ class TestMergeWithNeighborToSubtab:
             tree.merge_with_neighbor_to_subtab(
                 p7,
                 "right",
-                src_selection_mode=NodeHierarchySelectionMode.mru_deepest,
-                dest_selection_mode=NodeHierarchySelectionMode.mru_subtab_else_largest,
+                src_selection=NodeHierarchySelectionMode.mru_deepest,
+                dest_selection=NodeHierarchySelectionMode.mru_subtab_else_largest,
             )
 
             assert tree_matches_repr(
