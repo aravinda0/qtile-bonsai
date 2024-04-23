@@ -614,8 +614,8 @@ class Tree:
         node: Node,
         direction: DirectionParam,
         *,
-        src_selection_mode: NodeHierarchySelectionMode = NodeHierarchySelectionMode.mru_subtab_else_deepest,
-        dest_selection_mode: NodeHierarchySelectionMode = NodeHierarchySelectionMode.mru_subtab_else_deepest,
+        src_selection: NodeHierarchySelectionMode = NodeHierarchySelectionMode.mru_subtab_else_deepest,
+        dest_selection: NodeHierarchySelectionMode = NodeHierarchySelectionMode.mru_subtab_else_deepest,
         normalize: bool = False,
     ):
         """Merge the provided `node` (or a resolved ancestor) with a geometrically
@@ -627,9 +627,9 @@ class Tree:
             `direction`:
                 The geometric direction in which to find a neighboring node to merge
                 with.
-            `src_selection_mode`:
+            `src_selection`:
                 Determines how `node` should be resolved.
-            `dest_selection_mode`:
+            `dest_selection`:
                 Determines how the neighboring node should be resolved.
             `normalize`:
                 Passed on to internal invocations of `remove()` to determine if siblings
@@ -637,10 +637,8 @@ class Tree:
         """
         direction = Direction(direction)
 
-        src = self.resolve_node_selection(node, src_selection_mode, direction)
-        dest = self.resolve_node_neighbor_selection(
-            node, dest_selection_mode, direction
-        )
+        src = self.resolve_node_selection(node, src_selection, direction)
+        dest = self.resolve_node_neighbor_selection(node, dest_selection, direction)
 
         self.merge_to_subtab(src, dest, normalize=normalize)
 
@@ -691,16 +689,16 @@ class Tree:
         node: Node,
         direction: DirectionParam,
         *,
-        src_selection_mode: NodeHierarchySelectionMode,
-        dest_selection_mode: NodeHierarchySelectionMode,
+        src_selection: NodeHierarchySelectionMode,
+        dest_selection: NodeHierarchySelectionMode,
         normalize: bool = False,
         wrap: bool = False,
     ):
         direction = Direction(direction)
 
-        src = self.resolve_node_selection(node, src_selection_mode, direction)
+        src = self.resolve_node_selection(node, src_selection, direction)
         dest = self.resolve_node_neighbor_selection(
-            node, dest_selection_mode, direction, wrap=wrap
+            node, dest_selection, direction, wrap=wrap
         )
 
         self.push_in(src, dest, normalize=normalize)

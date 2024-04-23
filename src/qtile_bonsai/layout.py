@@ -711,8 +711,8 @@ class Bonsai(Layout):
         self,
         direction: DirectionParam,
         *,
-        src_selection_mode: NodeHierarchySelectionMode = NodeHierarchySelectionMode.mru_subtab_else_deepest,
-        dest_selection_mode: NodeHierarchySelectionMode = NodeHierarchySelectionMode.mru_subtab_else_deepest,
+        src_selection: NodeHierarchySelectionMode = NodeHierarchySelectionMode.mru_subtab_else_deepest,
+        dest_selection: NodeHierarchySelectionMode = NodeHierarchySelectionMode.mru_subtab_else_deepest,
         normalize: bool = True,
     ):
         """
@@ -723,14 +723,14 @@ class Bonsai(Layout):
         Args:
             `direction`:
                 The direction in which to find a neighbor to merge with.
-            `src_selection_mode`:
+            `src_selection`:
                 Determines how the source window/node should be resolved. ie. do we pick
                 just the current window, or all windows under an appropriate ancestor
                 container.
                 Valid values are defined in `NodeHierarchySelectionMode`. See below.
-            `dest_selection_mode`:
+            `dest_selection`:
                 Determines how the neighboring node should be resolved, similar to how
-                `src_selection_mode` is resolved.
+                `src_selection` is resolved.
                 Valid values are defined in `NodeHierarchySelectionMode`. See below.
             `normalize`:
                 If `True`, any removals during the merge process will ensure all sibling
@@ -751,8 +751,8 @@ class Bonsai(Layout):
                 in play, behaves like `mru_largest`.
 
         Examples:
-            - layout.merge_to_subtab("right", dest_selection_mode="mru_subtab_else_deepest")
-            - layout.merge_to_subtab("up", src_selection_mo="mru_deepest", dest_selection_mode="mru_deepest")
+            - layout.merge_to_subtab("right", dest_selection="mru_subtab_else_deepest")
+            - layout.merge_to_subtab("up", src_selection_mo="mru_deepest", dest_selection="mru_deepest")
         """
         if self._tree.is_empty:
             return
@@ -761,8 +761,8 @@ class Bonsai(Layout):
             self._tree.merge_with_neighbor_to_subtab(
                 self.focused_pane,
                 direction,
-                src_selection_mode=src_selection_mode,
-                dest_selection_mode=dest_selection_mode,
+                src_selection=src_selection,
+                dest_selection=dest_selection,
                 normalize=normalize,
             )
         except InvalidNodeSelectionError:
@@ -775,8 +775,8 @@ class Bonsai(Layout):
         self,
         direction: DirectionParam,
         *,
-        src_selection_mode: NodeHierarchySelectionMode = NodeHierarchySelectionMode.mru_deepest,
-        dest_selection_mode: NodeHierarchySelectionMode = NodeHierarchySelectionMode.mru_deepest,
+        src_selection: NodeHierarchySelectionMode = NodeHierarchySelectionMode.mru_deepest,
+        dest_selection: NodeHierarchySelectionMode = NodeHierarchySelectionMode.mru_deepest,
         normalize: bool = True,
         wrap: bool = True,
     ):
@@ -787,9 +787,9 @@ class Bonsai(Layout):
         Args:
             `direction`:
                 The direction in which to find a neighbor whose container we push into.
-            `src_selection_mode`:
+            `src_selection`:
                 (See docs in `merge_to_subtab()`)
-            `dest_selection_mode`:
+            `dest_selection`:
                 (See docs in `merge_to_subtab()`)
             `normalize`:
                 If `True`, any removals during the process will ensure all sibling nodes
@@ -799,8 +799,8 @@ class Bonsai(Layout):
                 container on the other end.
 
         Examples:
-            - layout.push_in("right", dest_selection_mode="mru_deepest")
-            - layout.push_in("down", dest_selection_mode="mru_largest", wrap=False)
+            - layout.push_in("right", dest_selection="mru_deepest")
+            - layout.push_in("down", dest_selection="mru_largest", wrap=False)
         """
         if self._tree.is_empty:
             return
@@ -809,8 +809,8 @@ class Bonsai(Layout):
             self._tree.push_in_with_neighbor(
                 self.focused_pane,
                 direction,
-                src_selection_mode=src_selection_mode,
-                dest_selection_mode=dest_selection_mode,
+                src_selection=src_selection,
+                dest_selection=dest_selection,
                 normalize=normalize,
                 wrap=wrap,
             )
