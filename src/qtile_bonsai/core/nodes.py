@@ -27,6 +27,11 @@ class Node(metaclass=abc.ABCMeta):
     def principal_rect(self) -> Rect:
         pass
 
+    @property
+    @abc.abstractmethod
+    def is_nearest_under_tab_container(self) -> bool:
+        pass
+
     @abc.abstractmethod
     def shrinkability(self, axis: AxisParam) -> int:
         pass
@@ -223,7 +228,7 @@ class Pane(Node):
         self.recency: int = 0
 
     @property
-    def is_nearest_under_tab_container(self):
+    def is_nearest_under_tab_container(self) -> bool:
         return isinstance(self.parent.parent.parent, TabContainer)
 
     @property
@@ -280,7 +285,7 @@ class SplitContainer(Node):
         self.axis: Axis = Axis.x
 
     @property
-    def is_nearest_under_tab_container(self):
+    def is_nearest_under_tab_container(self) -> bool:
         return isinstance(self.parent.parent, TabContainer)
 
     @property
@@ -373,6 +378,10 @@ class Tab(Node):
     def principal_rect(self) -> Rect:
         return Rect.from_rect(self.children[0].principal_rect)
 
+    @property
+    def is_nearest_under_tab_container(self) -> bool:
+        return True
+
     def shrinkability(self, axis: AxisParam) -> int:
         return self.children[0].shrinkability(axis)
 
@@ -410,6 +419,12 @@ class TabContainer(Node):
     @property
     def principal_rect(self) -> Rect:
         return self.get_inner_rect().union(self.tab_bar.box.principal_rect)
+
+    @property
+    def is_nearest_under_tab_container(self) -> bool:
+        if self.parent is not None:
+            return self.parent.is_nearest_under_tab_container
+        raise ValueError("This is either the root TC or an orphan TC")
 
     def get_inner_rect(self) -> Rect:
         """Returns the space used by this TabContainer excluding its tab bar.
