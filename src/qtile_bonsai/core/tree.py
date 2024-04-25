@@ -1304,7 +1304,7 @@ class Tree:
             node = node.get_first_ancestor(SplitContainer)
         if (
             node.axis != requested_axis
-            and node.is_nearest_under_tab_container
+            and node.is_nearest_under_tc
             and node.has_single_child
         ):
             node.axis = requested_axis
@@ -1560,9 +1560,7 @@ class Tree:
             if isinstance(p, SplitContainer):
                 # A sole pane under a nested TC is a special case. During resize, it
                 # behaves as if it were directly under said TC's container.
-                n_is_sole_top_level_node = (
-                    p.is_nearest_under_tab_container and p.has_single_child
-                )
+                n_is_sole_top_level_node = p.is_nearest_under_tc and p.has_single_child
                 if not n_is_sole_top_level_node and p.axis == axis:
                     super_node = n
                     break
