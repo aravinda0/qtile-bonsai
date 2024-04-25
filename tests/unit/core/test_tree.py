@@ -5431,6 +5431,187 @@ class TestResolveNodeNeighborSelection:
             )
 
 
+class TestPullOutToTab:
+    def test_pane_is_pulled_out_to_nearest_tab(
+        self, tree: Tree, add_subscribers_to_tree
+    ):
+        p1 = tree.tab()
+        _ = tree.split(p1, "x")
+
+        cb_add, cb_remove = add_subscribers_to_tree(tree)
+
+        tree.pull_out_to_tab(p1)
+
+        assert tree_matches_repr(
+            tree,
+            """
+            - tc:1
+                - t:2
+                    - sc.x:3
+                        - p:5 | {x: 0, y: 20, w: 400, h: 280}
+                - t:6
+                    - sc.x:7
+                        - p:4 | {x: 0, y: 20, w: 400, h: 280}
+            """,
+        )
+
+        t_added = tree.node(6)
+        sc_added = tree.node(7)
+        assert cb_add.mock_calls == [mock.call([t_added, sc_added])]
+        assert cb_remove.mock_calls == []
+
+    def test_when_sole_top_level_pane_is_provided_then_it_is_pulled_out_to_next_upper_tc(
+        self, tree: Tree, add_subscribers_to_tree
+    ):
+        p1 = tree.tab()
+        p2 = tree.split(p1, "x")
+        p3 = tree.split(p2, "y")
+        p4 = tree.tab(p3, new_level=True)
+        _ = tree.tab(p4)
+
+        cb_add, cb_remove = add_subscribers_to_tree(tree)
+
+        tree.pull_out_to_tab(p4)
+
+        assert tree_matches_repr(
+            tree,
+            """
+            - tc:1
+                - t:2
+                    - sc.x:3
+                        - p:4 | {x: 0, y: 20, w: 200, h: 280}
+                        - sc.y:6
+                            - p:5 | {x: 200, y: 20, w: 200, h: 140}
+                            - tc:8
+                                - t:9
+                                    - sc.x:10
+                                        - p:7 | {x: 200, y: 180, w: 200, h: 120}
+                                - t:14
+                                    - sc.x:15
+                                        - p:16 | {x: 200, y: 180, w: 200, h: 120}
+                - t:11
+                    - sc.x:12
+                        - p:13 | {x: 0, y: 20, w: 400, h: 280}
+            """,
+        )
+
+        assert cb_add.mock_calls == []
+        assert cb_remove.mock_calls == []
+
+    def test_when_node_is_sc(self, tree: Tree, add_subscribers_to_tree):
+        p1 = tree.tab()
+        p2 = tree.split(p1, "x")
+        p3 = tree.split(p2, "y")
+
+        sc = p3.parent
+        cb_add, cb_remove = add_subscribers_to_tree(tree)
+
+        tree.pull_out_to_tab(sc)
+
+        assert tree_matches_repr(
+            tree,
+            """
+            - tc:1
+                - t:2
+                    - sc.x:3
+                        - p:4 | {x: 0, y: 20, w: 400, h: 280}
+                - t:8
+                    - sc.y:6
+                        - p:5 | {x: 0, y: 20, w: 400, h: 140}
+                        - p:7 | {x: 0, y: 160, w: 400, h: 140}
+            """,
+        )
+
+        t_added = tree.node(8)
+        assert cb_add.mock_calls == [mock.call([t_added])]
+        assert cb_remove.mock_calls == []
+
+    def test_when_node_is_t(self, tree: Tree, add_subscribers_to_tree):
+        p1 = tree.tab()
+        p2 = tree.split(p1, "x")
+        p3 = tree.split(p2, "y")
+        p4 = tree.tab(p3, new_level=True)
+        _ = tree.tab(p4)
+
+        t = p4.get_first_ancestor(Tab)
+        cb_add, cb_remove = add_subscribers_to_tree(tree)
+
+        tree.pull_out_to_tab(t)
+
+        assert tree_matches_repr(
+            tree,
+            """
+            - tc:1
+                - t:2
+                    - sc.x:3
+                        - p:4 | {x: 0, y: 20, w: 200, h: 280}
+                        - sc.y:6
+                            - p:5 | {x: 200, y: 20, w: 200, h: 140}
+                            - tc:8
+                                - t:9
+                                    - sc.x:10
+                                        - p:7 | {x: 200, y: 180, w: 200, h: 120}
+                                - t:14
+                                    - sc.x:15
+                                        - p:16 | {x: 200, y: 180, w: 200, h: 120}
+                - t:11
+                    - sc.x:12
+                        - p:13 | {x: 0, y: 20, w: 400, h: 280}
+            """,
+        )
+
+        assert cb_add.mock_calls == []
+        assert cb_remove.mock_calls == []
+
+    @pytest.mark.refine_product_spec(
+        """
+        This works. But do we want to do something to merge the passed in TC into the
+        target TC? Instead of having a direct TC under a T.
+        """
+    )
+    def test_when_node_is_tc(self, tree: Tree, add_subscribers_to_tree):
+        p1 = tree.tab()
+        p2 = tree.split(p1, "x")
+        p3 = tree.split(p2, "y")
+        p4 = tree.tab(p3, new_level=True)
+        _ = tree.tab(p4)
+
+        tc = p4.get_first_ancestor(TabContainer)
+        sc = tc.parent
+        cb_add, cb_remove = add_subscribers_to_tree(tree)
+
+        tree.pull_out_to_tab(tc)
+
+        assert tree_matches_repr(
+            tree,
+            """
+        - tc:1
+            - t:2
+                - sc.x:3
+                    - p:4 | {x: 0, y: 20, w: 200, h: 280}
+                    - p:5 | {x: 200, y: 20, w: 200, h: 280}
+            - t:17
+                - sc.x:18
+                    - tc:8
+                        - t:9
+                            - sc.x:10
+                                - p:7 | {x: 0, y: 40, w: 400, h: 260}
+                        - t:11
+                            - sc.x:12
+                                - p:13 | {x: 0, y: 40, w: 400, h: 260}
+                        - t:14
+                            - sc.x:15
+                                - p:16 | {x: 0, y: 40, w: 400, h: 260}
+            """,
+        )
+
+        t_added = tree.node(17)
+        sc_added = tree.node(18)
+        assert cb_add.mock_calls == [mock.call([t_added, sc_added])]
+
+        assert cb_remove.mock_calls == [mock.call([sc])]
+
+
 class TestConfig:
     def test_when_config_is_passed_on_init_then_it_overrides_default_config(self):
         # Default window.margin is 0

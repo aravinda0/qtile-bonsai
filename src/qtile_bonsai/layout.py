@@ -816,8 +816,28 @@ class Bonsai(Layout):
             )
         except InvalidNodeSelectionError:
             return
+        else:
+            self._request_relayout()
 
-        self._request_relayout()
+    @expose_command
+    def pull_out_to_tab(self, *, normalize: bool = True):
+        """
+        Extract the currently focused window into a new tab at the nearest TabContainer.
+
+        Args:
+            `normalize`:
+                If `True`, any removals during the process will ensure all sibling nodes
+                are resized to be of equal dimensions.
+        """
+        if self._tree.is_empty:
+            return
+
+        try:
+            self._tree.pull_out_to_tab(self.focused_pane, normalize=normalize)
+        except ValueError:
+            return
+        else:
+            self._request_relayout()
 
     @expose_command
     def normalize(self, *, recurse: bool = True):

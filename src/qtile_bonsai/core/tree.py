@@ -703,6 +703,24 @@ class Tree:
 
         self.push_in(src, dest, normalize=normalize)
 
+    def pull_out_to_tab(self, node: Node, *, normalize: bool = False):
+        tc = node.get_first_ancestor(TabContainer)
+
+        # When `node` is the sole top level node under our TC (or is simply a Tab),
+        # instead of an effective no-op, pull out to the next higher level TC.
+        if (node.is_sole_child and node.is_nearest_under_tc) or isinstance(node, Tab):
+            tc = tc.get_first_ancestor(TabContainer)
+
+        removed_nodes = []
+        br_rm, _, br_sib, _ = self._remove(node, normalize=normalize)
+        if br_sib is not None:
+            removed_nodes.extend(self._do_post_removal_pruning(br_sib))
+
+        _, added_nodes = self._add_tab(tc, insert_node=br_rm)
+
+        self._notify_subscribers(TreeEvent.node_removed, removed_nodes)
+        self._notify_subscribers(TreeEvent.node_added, added_nodes)
+
     def is_visible(self, node: Node) -> bool:
         """Whether a node is visible or not. A node is visible if all its ancestor
         tabs are active.
