@@ -16,8 +16,6 @@ from qtile_bonsai.core.geometry import (
     AxisParam,
     Box,
     Direction,
-    Direction1D,
-    Direction1DParam,
     DirectionParam,
     PerimieterParams,
     Rect,
