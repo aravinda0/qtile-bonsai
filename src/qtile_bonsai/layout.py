@@ -429,8 +429,8 @@ class Bonsai(Layout):
                 Defaults to `True`.
 
         Examples:
-            - layout.spawn_split(my_terminal, "x")
-            - layout.spawn_split(my_terminal, "y", ratio=0.2, normalize=False)
+            - `layout.spawn_split(my_terminal, "x")`
+            - `layout.spawn_split(my_terminal, "y", ratio=0.2, normalize=False)`
         """
         if self._tree.is_empty:
             logger.warn("There are no windows yet to split")
@@ -468,9 +468,9 @@ class Bonsai(Layout):
                 Level 1 is the topmost level.
 
         Examples:
-            - layout.spawn_tab(my_terminal)
-            - layout.spawn_tab(my_terminal, new_level=True)
-            - layout.spawn_tab("qutebrowser", level=1)
+            - `layout.spawn_tab(my_terminal)`
+            - `layout.spawn_tab(my_terminal, new_level=True)`
+            - `layout.spawn_tab("qutebrowser", level=1)`
         """
         # We use this closed-over flag to ensure that after the explicit user-invoked
         # spawning of a tab based on the provided variables, any subsequent 'implicit'
@@ -606,8 +606,8 @@ class Bonsai(Layout):
                 The amount by which to resize.
 
         Examples:
-            - layout.resize("left", 100)
-            - layout.resize("right", 100)
+            - `layout.resize("left", 100)`
+            - `layout.resize("right", 100)`
         """
         if self._tree.is_empty:
             return
@@ -692,8 +692,8 @@ class Bonsai(Layout):
                 The axis along which the merged content should appear as splits.
 
         Examples:
-            - layout.merge_tabs("previous")
-            - layout.merge_tabs("next")
+            - `layout.merge_tabs("previous")`
+            - `layout.merge_tabs("next")`
         """
         if self._tree.is_empty:
             return
@@ -752,8 +752,8 @@ class Bonsai(Layout):
                 in play, behaves like `mru_largest`.
 
         Examples:
-            - layout.merge_to_subtab("right", dest_selection="mru_subtab_else_deepest")
-            - layout.merge_to_subtab("up", src_selection_mo="mru_deepest", dest_selection="mru_deepest")
+            - `layout.merge_to_subtab("right", dest_selection="mru_subtab_else_deepest")`
+            - `layout.merge_to_subtab("up", src_selection_mo="mru_deepest", dest_selection="mru_deepest")`
         """
         if self._tree.is_empty:
             return
@@ -800,8 +800,8 @@ class Bonsai(Layout):
                 container on the other end.
 
         Examples:
-            - layout.push_in("right", dest_selection="mru_deepest")
-            - layout.push_in("down", dest_selection="mru_largest", wrap=False)
+            - `layout.push_in("right", dest_selection="mru_deepest")`
+            - `layout.push_in("down", dest_selection="mru_largest", wrap=False)`
         """
         if self._tree.is_empty:
             return
