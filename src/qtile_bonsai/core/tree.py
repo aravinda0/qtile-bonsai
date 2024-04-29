@@ -16,6 +16,8 @@ from qtile_bonsai.core.geometry import (
     AxisParam,
     Box,
     Direction,
+    Direction1D,
+    Direction1DParam,
     DirectionParam,
     PerimieterParams,
     Rect,
@@ -281,6 +283,7 @@ class Tree:
         *,
         ratio: float = 0.5,
         normalize: bool = False,
+        position: Direction1DParam = Direction1D.next,
     ) -> Pane:
         """Create a new pane by splitting the provided `node` on the provided `axis`.
 
@@ -288,9 +291,10 @@ class Tree:
         new pane and all the sibling nodes will be adjusted to be of equal size.
         """
         axis = Axis(axis)
+        position = Direction1D(position)
 
         new_p, added_nodes, removed_nodes = self._split(
-            node, axis, ratio=ratio, normalize=normalize
+            node, axis, ratio=ratio, normalize=normalize, position=position
         )
         self._notify_subscribers(TreeEvent.node_added, added_nodes)
         self._notify_subscribers(TreeEvent.node_removed, removed_nodes)
@@ -975,6 +979,7 @@ class Tree:
         ratio: float = 0.5,
         normalize: bool = False,
         insert_node: Node | None = None,
+        position: Direction1D = Direction1D.next,
     ) -> tuple[Node, list[Node], list[Node]]:
         validate_unit_range(ratio, "ratio")
         try:
@@ -991,7 +996,9 @@ class Tree:
 
         added_nodes = []
         removed_nodes = []
-        container, node_to_split, new_index = node.get_participants_for_split_op(axis)
+        container, node_to_split, new_index = node.get_participants_for_split_op(
+            axis, position
+        )
         if container is None:
             # We need a new intermediate SC
             sc = self.create_split_container()
@@ -1013,6 +1020,9 @@ class Tree:
             container = sc
 
         n1_rect, n2_rect = node_to_split.principal_rect.split(axis, ratio)
+        if position == Direction1D.previous:
+            n1_rect, n2_rect = n2_rect, n1_rect
+
         node_to_split.transform(axis, n1_rect.coord(axis), n1_rect.size(axis))
 
         assert isinstance(container, SplitContainer)

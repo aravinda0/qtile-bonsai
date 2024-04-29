@@ -197,6 +197,22 @@ class TestSplit:
             """,
         )
 
+    def test_when_position_is_previous(self, tree: Tree):
+        p1 = tree.tab()
+
+        tree.split(p1, "x", position="previous")
+
+        assert tree_matches_repr(
+            tree,
+            """
+            - tc:1
+                - t:2
+                    - sc.x:3
+                        - p:5 | {x: 0, y: 20, w: 200, h: 280}
+                        - p:4 | {x: 200, y: 20, w: 200, h: 280}
+            """,
+        )
+
     def test_subscribers_are_notified_of_added_nodes(self, tree: Tree):
         callback = mock.Mock()
         tree.subscribe(TreeEvent.node_added, callback)
@@ -382,6 +398,50 @@ class TestSplitOnArbitraryNodes:
                             - p:5 | {x: 0, y: 160, w: 200, h: 70}
                             - p:7 | {x: 200, y: 160, w: 200, h: 70}
                         - p:8 | {x: 0, y: 230, w: 400, h: 70}
+            """,
+        )
+
+    def test_when_split_on_sc_along_axis_with_position_previous(self, tree: Tree):
+        p1 = tree.tab()
+        p2 = tree.split(p1, "x")
+        p3 = tree.split(p2, "y")
+
+        sc = p3.parent
+        tree.split(sc, "y", position="previous")
+
+        assert tree_matches_repr(
+            tree,
+            """
+            - tc:1
+                - t:2
+                    - sc.x:3
+                        - p:4 | {x: 0, y: 20, w: 200, h: 280}
+                        - sc.y:6
+                            - p:8 | {x: 200, y: 20, w: 200, h: 140}
+                            - p:5 | {x: 200, y: 160, w: 200, h: 70}
+                            - p:7 | {x: 200, y: 230, w: 200, h: 70}
+            """,
+        )
+
+    def test_when_split_on_sc_against_axis_with_position_previous(self, tree: Tree):
+        p1 = tree.tab()
+        p2 = tree.split(p1, "x")
+        p3 = tree.split(p2, "y")
+
+        sc = p3.parent
+        tree.split(sc, "x", position="previous")
+
+        assert tree_matches_repr(
+            tree,
+            """
+            - tc:1
+                - t:2
+                    - sc.x:3
+                        - p:4 | {x: 0, y: 20, w: 200, h: 280}
+                        - p:8 | {x: 200, y: 20, w: 100, h: 280}
+                        - sc.y:6
+                            - p:5 | {x: 300, y: 20, w: 100, h: 140}
+                            - p:7 | {x: 300, y: 160, w: 100, h: 140}
             """,
         )
 

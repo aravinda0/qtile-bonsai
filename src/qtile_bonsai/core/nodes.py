@@ -7,7 +7,14 @@ from __future__ import annotations
 import abc
 from typing import TypeVar
 
-from qtile_bonsai.core.geometry import Axis, AxisParam, Box, PerimieterParams, Rect
+from qtile_bonsai.core.geometry import (
+    Axis,
+    AxisParam,
+    Box,
+    Direction1D,
+    PerimieterParams,
+    Rect,
+)
 
 
 class Node(metaclass=abc.ABCMeta):
@@ -42,7 +49,7 @@ class Node(metaclass=abc.ABCMeta):
 
     @abc.abstractmethod
     def get_participants_for_split_op(
-        self, axis: Axis
+        self, axis: Axis, position: Direction1D
     ) -> tuple[SplitContainer | None, Node, int]:
         """Return participants that would be invovled in a split operation on this node.
 
@@ -254,14 +261,14 @@ class Pane(Node):
         setattr(rect, axis.dim, size)
 
     def get_participants_for_split_op(
-        self, axis: Axis
+        self, axis: Axis, position: Direction1D
     ) -> tuple[SplitContainer | None, Node, int]:
         parent = self.parent
         if parent.axis != axis:
-            return (None, self, 1)
+            return (None, self, 1 if position == Direction1D.next else 0)
 
         index = parent.children.index(self)
-        return (parent, self, index + 1)
+        return (parent, self, index + 1 if position == Direction1D.next else index)
 
     def as_dict(self) -> dict:
         return {
@@ -338,17 +345,23 @@ class SplitContainer(Node):
                 child.transform(axis, start, size)
 
     def get_participants_for_split_op(
-        self, axis: Axis
+        self, axis: Axis, position: Direction1D
     ) -> tuple[SplitContainer | None, Node, int]:
         parent = self.parent
 
         if self.axis == axis:
-            return (self, self, len(self.children))
+            return (
+                self,
+                self,
+                len(self.children) if position == Direction1D.next else 0,
+            )
         if self.is_nearest_under_tc and self.is_sole_child:
-            return (None, self, 1)
+            return (None, self, 1 if position == Direction1D.next else 0)
 
         assert isinstance(parent, SplitContainer)
-        return (parent, self, parent.children.index(self) + 1)
+
+        index = parent.children.index(self)
+        return (parent, self, index + 1 if position == Direction1D.next else index)
 
     def as_dict(self) -> dict:
         return {
@@ -391,9 +404,9 @@ class Tab(Node):
         self.children[0].transform(axis, start, size)
 
     def get_participants_for_split_op(
-        self, axis: Axis
+        self, axis: Axis, position: Direction1D
     ) -> tuple[SplitContainer | None, Node, int]:
-        return self.parent.get_participants_for_split_op(axis)
+        return self.parent.get_participants_for_split_op(axis, position)
 
     def as_dict(self) -> dict:
         return {
@@ -457,17 +470,17 @@ class TabContainer(Node):
             child.transform(axis, start, size)
 
     def get_participants_for_split_op(
-        self, axis: Axis
+        self, axis: Axis, position: Direction1D
     ) -> tuple[SplitContainer | None, Node, int]:
         parent = self.parent
         if parent is None:
             raise ValueError("Invalid node for split operation")
 
         if parent.axis != axis:
-            return (None, self, 1)
+            return (None, self, 1 if position == Direction1D.next else 0)
 
         index = parent.children.index(self)
-        return (parent, self, index + 1)
+        return (parent, self, index + 1 if position == Direction1D.next else index)
 
     def as_dict(self) -> dict:
         return {

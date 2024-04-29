@@ -404,6 +404,7 @@ class Bonsai(Layout):
         *,
         ratio: float = 0.5,
         normalize: bool = True,
+        position: Direction1DParam = Direction1D.next,
     ):
         """
         Launch the provided `program` into a new window that splits the currently
@@ -427,10 +428,15 @@ class Bonsai(Layout):
                 If `True`, overrides `ratio` and leads to the new window and all sibling
                 windows becoming of equal size along the corresponding split axis.
                 Defaults to `True`.
+            `position`:
+                Whether the new split content appears after or before the currently
+                focused window.
+                Can be `"next"` or `"previous"`. Defaults to `"next"`.
 
         Examples:
             - `layout.spawn_split(my_terminal, "x")`
             - `layout.spawn_split(my_terminal, "y", ratio=0.2, normalize=False)`
+            - `layout.spawn_split(my_terminal, "x", position="previous")`
         """
         if self._tree.is_empty:
             logger.warn("There are no windows yet to split")
@@ -438,7 +444,9 @@ class Bonsai(Layout):
 
         def _handle_next_window():
             target = self.focused_pane or self._tree.find_mru_pane()
-            return self._tree.split(target, axis, ratio=ratio, normalize=normalize)
+            return self._tree.split(
+                target, axis, ratio=ratio, normalize=normalize, position=position
+            )
 
         self._on_next_window = _handle_next_window
 
