@@ -1011,7 +1011,6 @@ class Tree:
             sc.children = [node_to_split]
 
             container = sc
-            new_index = 1
 
         n1_rect, n2_rect = node_to_split.principal_rect.split(axis, ratio)
         node_to_split.transform(axis, n1_rect.coord(axis), n1_rect.size(axis))

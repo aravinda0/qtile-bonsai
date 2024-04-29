@@ -54,8 +54,9 @@ class Node(metaclass=abc.ABCMeta):
                 2. The node that would actually be split (and possibly inserted under a
                     new SC). The node to use for geometry adjustment calculations.
                     This is usually `self`.
-                3. The index where the new split would be added. Or the index where the
-                    new SC would be added if tuple.0 is None.
+                3. The index where the new split content would be added. Also valid when
+                    tuple.0 is None - in which case it is the index under the new SC
+                    that would later be created.
         """
         pass
 
@@ -256,10 +257,11 @@ class Pane(Node):
         self, axis: Axis
     ) -> tuple[SplitContainer | None, Node, int]:
         parent = self.parent
-        new_index = parent.children.index(self)
         if parent.axis != axis:
-            return (None, self, new_index)
-        return (parent, self, new_index + 1)
+            return (None, self, 1)
+
+        index = parent.children.index(self)
+        return (parent, self, index + 1)
 
     def as_dict(self) -> dict:
         return {
@@ -342,8 +344,8 @@ class SplitContainer(Node):
 
         if self.axis == axis:
             return (self, self, len(self.children))
-        if self.is_nearest_under_tc:
-            return (None, self, 0)
+        if self.is_nearest_under_tc and self.is_sole_child:
+            return (None, self, 1)
 
         assert isinstance(parent, SplitContainer)
         return (parent, self, parent.children.index(self) + 1)
@@ -461,10 +463,11 @@ class TabContainer(Node):
         if parent is None:
             raise ValueError("Invalid node for split operation")
 
-        new_index = parent.children.index(self)
         if parent.axis != axis:
-            return (None, self, new_index)
-        return (parent, self, new_index + 1)
+            return (None, self, 1)
+
+        index = parent.children.index(self)
+        return (parent, self, index + 1)
 
     def as_dict(self) -> dict:
         return {
