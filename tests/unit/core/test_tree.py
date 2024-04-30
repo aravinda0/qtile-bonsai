@@ -4731,7 +4731,7 @@ class TestMergeWithNeighborToSubtab:
                 """,
             )
 
-        @pytest.mark.odd_space_distribution()
+        @pytest.mark.non_ideal_space_distribution()
         def test_when_src_is_mru_largest(self, tree: Tree):
             p1 = tree.tab()
             p2 = tree.split(p1, "x")
@@ -5257,7 +5257,7 @@ class TestPushIn:
 
         assert cb_remove.mock_calls == []
 
-    @pytest.mark.odd_space_distribution()
+    @pytest.mark.non_ideal_space_distribution()
     def test_when_provided_dest_node_reference_is_pruned_out_during_removal_phase(
         self, tree: Tree, add_subscribers_to_tree
     ):
