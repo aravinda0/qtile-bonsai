@@ -720,18 +720,37 @@ class Tree:
         self,
         node: Node,
         *,
+        position: Direction1DParam = Direction1D.previous,
         src_selection: NodeHierarchyPullOutSelectionMode = NodeHierarchyPullOutSelectionMode.mru_deepest,
         normalize: bool = False,
     ):
+        position = Direction1D(position)
+
         dummy_direction = Direction.right
         node = self.resolve_node_selection(node, src_selection, dummy_direction)
 
         try:
-            sc = node.get_first_ancestor(SplitContainer)
-            if isinstance(node, (Pane, TabContainer)):
-                sc = sc.get_first_ancestor(SplitContainer)
+            node_to_split = node.get_first_ancestor(SplitContainer)
+            split_axis = node_to_split.axis.inv
         except ValueError as ex:
             raise InvalidNodeSelectionError("Invalid node provided to pull out") from ex
+
+        # There are times when we have to pull something out from inside a TC
+        if node_to_split.is_nearest_under_tc:
+            node_to_split = node_to_split.get_first_ancestor(TabContainer)
+            if node_to_split is self.root:
+                raise InvalidNodeSelectionError("Invalid node provided to pull out")
+            split_axis = node_to_split.parent.axis
+
+        # We capture some info beforehand to be able to deal with one particular edge
+        # case: when a pull_out() leads to a TC being discarded and its remnant tab's
+        # contents get merged upward.
+        # If the remnant tab had multiple children along the split axis, we need to be
+        # able to position the pulled out node at the correct pre/post index relative to
+        # the merged children.
+        node_to_split_container = node_to_split.parent
+        node_to_split_index = node_to_split_container.children.index(node_to_split)
+        node_to_split_container_orig_child_count = len(node_to_split_container.children)
 
         removed_nodes = []
         br_rm, _, br_sib, extra_removed_nodes = self._remove(node, normalize=normalize)
@@ -746,8 +765,27 @@ class Tree:
             removed_nodes.extend(extra_removed_nodes[1:])
             br_rm = extra_removed_nodes[0]
 
+        # This is again to deal with the one edge case mentioned above.
+        # Not happy with this, but it works. All this stems from pruning happening
+        # and us losing references to nodes we'd otherwise be working with.
+        # Note that one quirk here is that we split the first/last of the remnant child
+        # nodes instead of the whole TC's space.
+        if node_to_split in removed_nodes:
+            if position == Direction1D.next:
+                node_to_split_index = node_to_split_index + (
+                    len(node_to_split_container.children)
+                    - node_to_split_container_orig_child_count
+                )
+
+            node_to_split = node_to_split_container.children[node_to_split_index]
+            split_axis = node_to_split_container.axis
+
         _, added_nodes, _removed_nodes = self._split(
-            sc, sc.axis, insert_node=br_rm, normalize=normalize
+            node_to_split,
+            split_axis,
+            insert_node=br_rm,
+            normalize=normalize,
+            position=position,
         )
         removed_nodes.extend(_removed_nodes)
 

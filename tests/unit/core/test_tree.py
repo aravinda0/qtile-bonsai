@@ -5493,7 +5493,7 @@ class TestResolveNodeNeighborSelection:
 
 
 class TestPullOut:
-    def test_simple(self, tree: Tree, add_subscribers_to_tree):
+    def test_when_position_is_previous(self, tree: Tree, add_subscribers_to_tree):
         p1 = tree.tab()
         p2 = tree.split(p1, "x")
         p3 = tree.split(p2, "y")
@@ -5509,16 +5509,41 @@ class TestPullOut:
             - tc:1
                 - t:2
                     - sc.x:3
-                        - p:4 | {x: 0, y: 20, w: 100, h: 280}
-                        - p:5 | {x: 100, y: 20, w: 100, h: 280}
-                        - p:7 | {x: 200, y: 20, w: 200, h: 280}
+                        - p:4 | {x: 0, y: 20, w: 200, h: 280}
+                        - p:7 | {x: 200, y: 20, w: 100, h: 280}
+                        - p:5 | {x: 300, y: 20, w: 100, h: 280}
             """,
         )
 
         assert cb_add.mock_calls == []
         assert cb_remove.mock_calls == [mock.call([sc])]
 
-    def test_when_node_is_top_level(self, tree: Tree):
+    def test_when_position_is_next(self, tree: Tree, add_subscribers_to_tree):
+        p1 = tree.tab()
+        p2 = tree.split(p1, "x")
+        p3 = tree.split(p2, "y")
+
+        sc = p3.parent
+        cb_add, cb_remove = add_subscribers_to_tree(tree)
+
+        tree.pull_out(p3, position="next")
+
+        assert tree_matches_repr(
+            tree,
+            """
+            - tc:1
+                - t:2
+                    - sc.x:3
+                        - p:4 | {x: 0, y: 20, w: 200, h: 280}
+                        - p:5 | {x: 200, y: 20, w: 100, h: 280}
+                        - p:7 | {x: 300, y: 20, w: 100, h: 280}
+            """,
+        )
+
+        assert cb_add.mock_calls == []
+        assert cb_remove.mock_calls == [mock.call([sc])]
+
+    def test_when_node_is_top_level_under_root_tc(self, tree: Tree):
         p1 = tree.tab()
         p2 = tree.split(p1, "x")
 
@@ -5526,7 +5551,6 @@ class TestPullOut:
         with pytest.raises(InvalidNodeSelectionError, match=err_msg):
             tree.pull_out(p2)
 
-    @pytest.mark.odd_space_distribution()
     def test_when_node_is_sole_top_level_pane_under_subtab(
         self, tree: Tree, add_subscribers_to_tree
     ):
@@ -5549,20 +5573,133 @@ class TestPullOut:
                     - sc.x:3
                         - p:4 | {x: 0, y: 20, w: 200, h: 280}
                         - sc.y:6
-                            - p:5 | {x: 200, y: 20, w: 200, h: 64}
+                            - p:5 | {x: 200, y: 20, w: 200, h: 140}
+                            - p:16 | {x: 200, y: 160, w: 200, h: 70}
                             - tc:8
                                 - t:9
                                     - sc.x:10
-                                        - p:7 | {x: 200, y: 104, w: 200, h: 56}
+                                        - p:7 | {x: 200, y: 250, w: 200, h: 50}
                                 - t:11
                                     - sc.x:12
-                                        - p:13 | {x: 200, y: 104, w: 200, h: 56}
-                            - p:16 | {x: 200, y: 160, w: 200, h: 140}
+                                        - p:13 | {x: 200, y: 250, w: 200, h: 50}
             """,
         )
 
         assert cb_add.mock_calls == []
         assert cb_remove.mock_calls == [mock.call([sc, t])]
+
+    @pytest.mark.a
+    class TestWhenTCGetsPrunedAndRemnantsExistAlongSplitAxis:
+        def test_when_position_is_previous(self, tree: Tree, add_subscribers_to_tree):
+            tree.set_config("tab_bar.hide_when", "single_tab")
+
+            p1 = tree.tab()
+            p2 = tree.split(p1, "x")
+            p3 = tree.split(p2, "y")
+            _ = tree.split(p3, "y")
+
+            p5 = tree.tab(p3, new_level=True)
+            p6 = tree.split(p3, "y")
+
+            sc_13, t_12, *_ = p5.get_ancestors()
+            sc_11, t_10, tc_9, *_ = p6.get_ancestors()
+            cb_add, cb_remove = add_subscribers_to_tree(tree)
+
+            tree.pull_out(p5, position="previous")
+
+            assert tree_matches_repr(
+                tree,
+                """
+                - tc:1
+                    - t:2
+                        - sc.x:3
+                            - p:4 | {x: 0, y: 0, w: 200, h: 300}
+                            - sc.y:6
+                                - p:5 | {x: 200, y: 0, w: 200, h: 150}
+                                - p:14 | {x: 200, y: 150, w: 200, h: 19}
+                                - p:7 | {x: 200, y: 169, w: 200, h: 19}
+                                - p:15 | {x: 200, y: 188, w: 200, h: 37}
+                                - p:8 | {x: 200, y: 225, w: 200, h: 75}
+                """,
+            )
+
+            assert cb_add.mock_calls == []
+            assert cb_remove.mock_calls == [mock.call([sc_11, t_10, tc_9, sc_13, t_12])]
+
+        def test_when_position_is_next(self, tree: Tree, add_subscribers_to_tree):
+            tree.set_config("tab_bar.hide_when", "single_tab")
+
+            p1 = tree.tab()
+            p2 = tree.split(p1, "x")
+            p3 = tree.split(p2, "y")
+            _ = tree.split(p3, "y")
+
+            p5 = tree.tab(p3, new_level=True)
+            p6 = tree.split(p3, "y")
+
+            sc_13, t_12, *_ = p5.get_ancestors()
+            sc_11, t_10, tc_9, *_ = p6.get_ancestors()
+            cb_add, cb_remove = add_subscribers_to_tree(tree)
+
+            tree.pull_out(p5, position="next")
+
+            assert tree_matches_repr(
+                tree,
+                """
+                - tc:1
+                    - t:2
+                        - sc.x:3
+                            - p:4 | {x: 0, y: 0, w: 200, h: 300}
+                            - sc.y:6
+                                - p:5 | {x: 200, y: 0, w: 200, h: 150}
+                                - p:7 | {x: 200, y: 150, w: 200, h: 38}
+                                - p:15 | {x: 200, y: 188, w: 200, h: 18}
+                                - p:14 | {x: 200, y: 206, w: 200, h: 19}
+                                - p:8 | {x: 200, y: 225, w: 200, h: 75}
+                """,
+            )
+
+            assert cb_add.mock_calls == []
+            assert cb_remove.mock_calls == [mock.call([sc_11, t_10, tc_9, sc_13, t_12])]
+
+    def test_when_tc_gets_pruned_and_remnants_exist_against_split_axis(
+        self, tree: Tree, add_subscribers_to_tree
+    ):
+        tree.set_config("tab_bar.hide_when", "single_tab")
+
+        p1 = tree.tab()
+        p2 = tree.split(p1, "x")
+        p3 = tree.split(p2, "y")
+        _ = tree.split(p3, "y")
+
+        p5 = tree.tab(p3, new_level=True)
+        p6 = tree.split(p3, "x")
+
+        sc_13, t_12, *_ = p5.get_ancestors()
+        _, t_10, tc_9, *_ = p6.get_ancestors()
+        cb_add, cb_remove = add_subscribers_to_tree(tree)
+
+        tree.pull_out(p5)
+
+        assert tree_matches_repr(
+            tree,
+            """
+            - tc:1
+                - t:2
+                    - sc.x:3
+                        - p:4 | {x: 0, y: 0, w: 200, h: 300}
+                        - sc.y:6
+                            - p:5 | {x: 200, y: 0, w: 200, h: 150}
+                            - p:14 | {x: 200, y: 150, w: 200, h: 38}
+                            - sc.x:11
+                                - p:7 | {x: 200, y: 188, w: 100, h: 37}
+                                - p:15 | {x: 300, y: 188, w: 100, h: 37}
+                            - p:8 | {x: 200, y: 225, w: 200, h: 75}
+                """,
+        )
+
+        assert cb_add.mock_calls == []
+        assert cb_remove.mock_calls == [mock.call([t_10, tc_9, sc_13, t_12])]
 
     def test_when_src_selection_is_mru_subtab_else_deepest(
         self, tree: Tree, add_subscribers_to_tree
@@ -5586,16 +5723,16 @@ class TestPullOut:
             - tc:1
                 - t:2
                     - sc.x:3
-                        - p:4 | {x: 0, y: 20, w: 100, h: 280}
-                        - p:5 | {x: 100, y: 20, w: 100, h: 280}
+                        - p:4 | {x: 0, y: 20, w: 200, h: 280}
                         - tc:8
                             - t:9
                                 - sc.x:10
-                                    - p:7 | {x: 200, y: 40, w: 200, h: 260}
+                                    - p:7 | {x: 200, y: 40, w: 100, h: 260}
                             - t:11
                                 - sc.x:12
-                                    - p:13 | {x: 200, y: 40, w: 100, h: 260}
-                                    - p:14 | {x: 300, y: 40, w: 100, h: 260}
+                                    - p:13 | {x: 200, y: 40, w: 50, h: 260}
+                                    - p:14 | {x: 250, y: 40, w: 50, h: 260}
+                        - p:5 | {x: 300, y: 20, w: 100, h: 280}
             """,
         )
 

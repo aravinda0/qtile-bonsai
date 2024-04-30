@@ -832,6 +832,7 @@ class Bonsai(Layout):
     def pull_out(
         self,
         *,
+        position: Direction1DParam = Direction1D.previous,
         src_selection: NodeHierarchyPullOutSelectionMode = NodeHierarchyPullOutSelectionMode.mru_deepest,
         normalize: bool = True,
     ):
@@ -840,6 +841,10 @@ class Bonsai(Layout):
         SplitContainer at a higher level. It effectively moves a window 'outwards'.
 
         Args:
+            `position`:
+                Whether the pulled out node appears before or after its original
+                container node.
+                Can be `"next"` or `"previous"`. Defaults to `"previous"`.
             `src_selection`:
                 Can either be `"mru_deepest"` (default) or `"mru_subtab_else_deepest"`.
                 (See docs in `merge_to_subtab()`)
@@ -850,6 +855,7 @@ class Bonsai(Layout):
         Examples:
             - `layout.pull_out()`
             - `layout.pull_out(src_selection="mru_subtab_else_deepest")`
+            - `layout.pull_out(position="next")`
         """
         if self._tree.is_empty:
             return
@@ -857,7 +863,8 @@ class Bonsai(Layout):
         try:
             self._tree.pull_out(
                 self.focused_pane,
-                src_selection="mru_deepest",
+                position=position,
+                src_selection=src_selection,
                 normalize=normalize,
             )
         except InvalidNodeSelectionError:
