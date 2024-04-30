@@ -106,13 +106,17 @@ class Bonsai(Layout):
         ),
         LayoutOption(
             "window.implicit_tabs",
-            True,
+            False,
             """
-            If `True`, new windows are created as tabs if not explicitly opened via a
-            `spawn_split()` command. Else the new window is opened in the same manner as
-            the previously spawned window, which could be a split.
+            (Experimental)
 
-            Particularly handy to have GUI apps open as tabs by default.
+            If `True`, new windows are opened as tabs when not explicitly opened as a
+            split. 
+            Handy for when we want any spawned GUI apps to open up as tabs, which may
+            otherwise open as a split if the previous window was opened as a split.
+
+            Presently this can sometimes cause quickly opened split windows to open as
+            tabs instead.
             """,
         ),
         LayoutOption(
