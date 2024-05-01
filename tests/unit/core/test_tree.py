@@ -2091,13 +2091,29 @@ class TestRemove:
 
         assert tree.is_empty
 
-    def test_returns_mru_pane_as_next_focus_node(self, tree: Tree):
+    def test_when_non_tab_node_is_removed_then_pane_under_sibling_node_is_returned_as_next_focus_node(
+        self, tree: Tree
+    ):
+        p1 = tree.tab()
+        p2 = tree.split(p1, "x")
+        p3 = tree.split(p2, "y")
+        p4 = tree.tab(p2, new_level=True)
+
+        tree.focus(p4)
+        tree.focus(p3)
+
+        _, _, p = tree.remove(p3)
+
+        assert p is p4
+
+    def test_when_tab_is_closed_then_returns_mru_pane_under_tc_as_next_focus_node(
+        self, tree: Tree
+    ):
         p1 = tree.tab()
         p2 = tree.split(p1, "x")
         _ = tree.tab()
         p4 = tree.tab()
 
-        # focus from p2 to p4, skipping p3 sibling of p4
         tree.focus(p2)
         tree.focus(p4)
 
@@ -5588,7 +5604,6 @@ class TestPullOut:
         assert cb_add.mock_calls == []
         assert cb_remove.mock_calls == [mock.call([sc, t])]
 
-    @pytest.mark.a
     class TestWhenTCGetsPrunedAndRemnantsExistAlongSplitAxis:
         def test_when_position_is_previous(self, tree: Tree, add_subscribers_to_tree):
             tree.set_config("tab_bar.hide_when", "single_tab")

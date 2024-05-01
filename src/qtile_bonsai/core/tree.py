@@ -363,7 +363,9 @@ class Tree:
                 1. The `node` or an ancestor node that was the point of removal. This
                 branch is now unlinked from the main tree.
                 2. The sibling node of the removed node. Or `None` if no sibling exists.
-                3. The next pane under the sibling that ought to get focus.
+                3. The next pane that ought to get focus. Usually the sibling of the
+                removed node. But if the sibling is a Tab, then it is the MRU pane under
+                the nearest TC.
         """
         rm_nodes = []
         next_focus_pane = None
@@ -376,8 +378,17 @@ class Tree:
 
         rm_nodes.extend(br_rm_nodes)
         if br_sib is not None:
+            # Find an appropriate pane to focus next. When a tab is closed, it's nicer
+            # to pick the MRU pane under the whole TC. eg. when we open some GUI
+            # application as a far-away tab from the 'current' window, it's nicer UX to
+            # return focus to the original window on closing it.
+            # Otherwise, it's generally nicest to give focus to the sibling node.
+            if isinstance(br_sib, Tab):
+                active_tc = br_sib.get_first_ancestor(TabContainer)
+                next_focus_pane = self.find_mru_pane(start_node=active_tc)
+            else:
+                next_focus_pane = self.find_mru_pane(start_node=br_sib)
             rm_nodes.extend(self._do_post_removal_pruning(br_sib))
-            next_focus_pane = self.find_mru_pane()
 
         self._notify_subscribers(TreeEvent.node_removed, rm_nodes)
 
