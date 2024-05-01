@@ -1,0 +1,140 @@
+body {
+  background: var(--bg_s);
+}
+
+.guide {
+  margin: 5% 15%;
+  padding: 0;
+}
+
+.main-header {
+  text-align: center;
+}
+.main-header h1 {
+  margin: 0.1rem;
+}
+.main-header .subtitle {
+  font-size: 1.4rem;
+  margin: 0;
+}
+
+footer {
+  text-align: center;
+  font-size: 0.85rem;
+}
+
+
+.section, .section ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+
+.section .title {
+  text-align: center;
+}
+.section h2 {
+  margin: 0;
+}
+.section .subtitle {
+  text-align: center;
+  font-size: 0.8rem;
+  margin: 0.2rem;
+  margin-bottom: 2rem;
+}
+
+.example {
+  display: grid;
+  place-items: center;
+  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-rows: 1fr;
+  grid-row-gap: 3rem;
+  margin: 3rem 1rem;
+}
+
+
+.tree {
+
+}
+
+.tree.rhs {
+  grid-column: 3;
+}
+
+.command-label {
+  margin-bottom: 2rem;
+  font-size: 0.75rem;
+}
+
+.example-advanced_1 .command-label {
+  font-size: 0.7rem;
+  margin-bottom: 1rem;
+  align-self: start;
+}
+.example-advanced_2 .command-label {
+  font-size: 0.7rem;
+  margin-top: 1rem;
+  align-self: start;
+}
+.example-advanced_3 .command-label {
+  font-size: 0.7rem;
+  margin-top: 1rem;
+  align-self: start;
+}
+
+.node-tc {
+
+}
+
+.tc-bar {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: row;
+  border: 1px solid black;
+  border-bottom: 0;
+  font-size: 0.6rem;
+  background: var(--bg2);
+}
+.tc-bar-item {
+  box-sizing: border-box;
+  width: 1.7rem;
+  padding: 1px 3px;
+  border-right: 1px solid black;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.tc-bar-item.active {
+  color: var(--red-dim);
+}
+
+.node-t {
+  margin: 0;
+  padding: 0;
+}
+
+
+.node-sc {
+  display: flex;
+}
+.node-sc.sc-x {
+  flex-direction: row;
+}
+.node-sc.sc-y {
+  flex-direction: column;
+}
+
+.node-p {
+  box-sizing: border-box;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border: 1px solid black;
+  font-size: 1.2rem;
+
+  background: var(--bg_h);
+}
+.node-p.focused {
+  color: var(--red-dim);
+}

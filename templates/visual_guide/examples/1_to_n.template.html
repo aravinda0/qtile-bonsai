@@ -1,0 +1,41 @@
+<style>
+  .example-{{ example.id }} .lhs {
+    grid-row: 1 / {{ example.rhs_items | length + 1 }};
+  }
+</style>
+  
+<pre class="subtitle">{{ example.subtitle }}</pre>
+<div class="example example-{{ example.id }}">
+  {{ render_tree(example.lhs, "lhs") }}
+  {% for rhs in example.rhs_items %}
+    <div class="command-label"><pre>{{ rhs.command }}</pre></div>
+    {{ render_tree(rhs, "rhs") }}
+  {% endfor %}
+</div>
+
+<script>
+;(function () {
+  function annotateExample() {
+    const example = document.querySelector(".example-{{ example.id }}");
+
+    const lhs = example.getElementsByClassName("lhs");
+    const rhsItems = example.getElementsByClassName("rhs");
+
+    for (const rhs of rhsItems) {
+      const line = new LeaderLine({
+        start: lhs[0],
+        end: rhs,
+        size: 1,
+        endPlugSize: 3,
+        color: "#000",
+        path: "grid",
+        endSocketGravity: [-400, 0],
+      });
+    }
+  }
+
+  document.addEventListener("DOMContentLoaded", () => {
+    annotateExample();
+  });
+})()
+</script>

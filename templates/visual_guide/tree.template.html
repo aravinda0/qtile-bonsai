@@ -1,0 +1,56 @@
+{% macro render_tc(node) %}
+  <div class="node-tc">
+    {% if not node.tab_bar.is_hidden %}
+      <ul class="tc-bar" style="height:{{ node.tab_bar.box.principal_rect.h}}px">
+        {% for t in node.children %}
+          <li class="tc-bar-item {%- if t is sameas node.active_child %} active{% else %} {% endif %}">{{ loop.index }}</li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+    {% if node.active_child %}
+      {{ render_node(node.active_child) }}
+    {% endif %}
+  </div>
+{% endmacro %}
+
+{% macro render_t(node) %}
+  <div class="node-t">
+    {% for n in node.children %}
+      {{ render_node(n) }}
+    {% endfor %}
+  </div>
+{% endmacro %}
+
+{% macro render_sc(node) %}
+  <ul class="node-sc sc-{{ node.axis}}">
+    {% for n in node.children %}
+      <li>{{ render_node(n) }}</li>
+    {% endfor %}
+  </ul>
+{% endmacro %}
+
+{% macro render_p(node) %}
+  <div class="node-p {% if node.focused %}focused{% endif %}" style="width:{{ node.box.principal_rect.w}}px; height:{{ node.box.principal_rect.h}}px;">
+    {{ node.label }}
+  </div>
+{% endmacro %}
+
+
+{% macro render_node(node) %}
+  {% if node.abbrv() == "tc" %}
+    {{ render_tc(node) }}
+  {% elif node.abbrv() == "t" %}
+    {{ render_t(node) }}
+  {% elif node.abbrv() == "sc" %}
+    {{ render_sc(node) }}
+  {% elif node.abbrv() == "p" %}
+    {{ render_p(node) }}
+  {% endif %}
+{% endmacro %}
+
+
+{% macro render_tree(tree, extra_classes="") %}
+  <div class="tree {{ extra_classes }}" style="width: {{ tree.width }}px; height: {{ tree.height }}px" data-command={{ tree.command }}>
+    {{ render_node(tree.root) }}
+  </div>
+{% endmacro %}

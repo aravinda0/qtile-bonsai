@@ -1,0 +1,5194 @@
+
+
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Visual Guide for Qtile Bonsai</title>
+    <link href="themes.css" rel="stylesheet">
+    <link href="index.css" rel="stylesheet">
+  </head>
+  <body>
+    <header class="main-header">
+      <h1>Qtile Bonsai</h1>
+      <p class="subtitle">Visual Guide</p>
+    </header>
+
+    <ul class="guide">
+      
+        <li class="section">
+          <h2 class="title">Splits</h2>
+          
+            <style>
+  .example-splits_1 .lhs {
+    grid-row: 1 / 3;
+  }
+</style>
+  
+<pre class="subtitle"></pre>
+<div class="example example-splits_1">
+  
+  <div class="tree lhs" style="width: 300px; height: 200px" data-command=None>
+    
+  
+    
+  <div class="node-tc">
+    
+    
+      
+  
+    
+  <div class="node-t">
+    
+      
+  
+    
+  <ul class="node-sc sc-x">
+    
+      <li>
+  
+    
+  <div class="node-p focused" style="width:300px; height:200px;">
+    A
+  </div>
+
+  
+</li>
+    
+  </ul>
+
+  
+
+    
+  </div>
+
+  
+
+    
+  </div>
+
+  
+
+  </div>
+
+  
+    <div class="command-label"><pre>spawn_split(program, &#34;x&#34;)</pre></div>
+    
+  <div class="tree rhs" style="width: 300px; height: 200px" data-command=spawn_split(program, &#34;x&#34;)>
+    
+  
+    
+  <div class="node-tc">
+    
+    
+      
+  
+    
+  <div class="node-t">
+    
+      
+  
+    
+  <ul class="node-sc sc-x">
+    
+      <li>
+  
+    
+  <div class="node-p " style="width:150px; height:200px;">
+    A
+  </div>
+
+  
+</li>
+    
+      <li>
+  
+    
+  <div class="node-p focused" style="width:150px; height:200px;">
+    B
+  </div>
+
+  
+</li>
+    
+  </ul>
+
+  
+
+    
+  </div>
+
+  
+
+    
+  </div>
+
+  
+
+  </div>
+
+  
+    <div class="command-label"><pre>spawn_split(program, &#34;y&#34;)</pre></div>
+    
+  <div class="tree rhs" style="width: 300px; height: 200px" data-command=spawn_split(program, &#34;y&#34;)>
+    
+  
+    
+  <div class="node-tc">
+    
+    
+      
+  
+    
+  <div class="node-t">
+    
+      
+  
+    
+  <ul class="node-sc sc-y">
+    
+      <li>
+  
+    
+  <div class="node-p " style="width:300px; height:100px;">
+    A
+  </div>
+
+  
+</li>
+    
+      <li>
+  
+    
+  <div class="node-p focused" style="width:300px; height:100px;">
+    B
+  </div>
+
+  
+</li>
+    
+  </ul>
+
+  
+
+    
+  </div>
+
+  
+
+    
+  </div>
+
+  
+
+  </div>
+
+  
+</div>
+
+<script>
+;(function () {
+  function annotateExample() {
+    const example = document.querySelector(".example-splits_1");
+
+    const lhs = example.getElementsByClassName("lhs");
+    const rhsItems = example.getElementsByClassName("rhs");
+
+    for (const rhs of rhsItems) {
+      const line = new LeaderLine({
+        start: lhs[0],
+        end: rhs,
+        size: 1,
+        endPlugSize: 3,
+        color: "#000",
+        path: "grid",
+        endSocketGravity: [-400, 0],
+      });
+    }
+  }
+
+  document.addEventListener("DOMContentLoaded", () => {
+    annotateExample();
+  });
+})()
+</script>
+          
+        </li>
+      
+        <li class="section">
+          <h2 class="title">Tabs</h2>
+          
+            <style>
+  .example-tabs_1 .lhs {
+    grid-row: 1 / 2;
+  }
+</style>
+  
+<pre class="subtitle"></pre>
+<div class="example example-tabs_1">
+  
+  <div class="tree lhs" style="width: 300px; height: 200px" data-command=None>
+    
+  
+    
+  <div class="node-tc">
+    
+    
+      
+  
+    
+  <div class="node-t">
+    
+      
+  
+    
+  <ul class="node-sc sc-x">
+    
+      <li>
+  
+    
+  <div class="node-p focused" style="width:300px; height:200px;">
+    A
+  </div>
+
+  
+</li>
+    
+  </ul>
+
+  
+
+    
+  </div>
+
+  
+
+    
+  </div>
+
+  
+
+  </div>
+
+  
+    <div class="command-label"><pre>spawn_tab(program)</pre></div>
+    
+  <div class="tree rhs" style="width: 300px; height: 200px" data-command=spawn_tab(program)>
+    
+  
+    
+  <div class="node-tc">
+    
+      <ul class="tc-bar" style="height:15px">
+        
+          <li class="tc-bar-item ">1</li>
+        
+          <li class="tc-bar-item active">2</li>
+        
+      </ul>
+    
+    
+      
+  
+    
+  <div class="node-t">
+    
+      
+  
+    
+  <ul class="node-sc sc-x">
+    
+      <li>
+  
+    
+  <div class="node-p focused" style="width:300px; height:185px;">
+    B
+  </div>
+
+  
+</li>
+    
+  </ul>
+
+  
+
+    
+  </div>
+
+  
+
+    
+  </div>
+
+  
+
+  </div>
+
+  
+</div>
+
+<script>
+;(function () {
+  function annotateExample() {
+    const example = document.querySelector(".example-tabs_1");
+
+    const lhs = example.getElementsByClassName("lhs");
+    const rhsItems = example.getElementsByClassName("rhs");
+
+    for (const rhs of rhsItems) {
+      const line = new LeaderLine({
+        start: lhs[0],
+        end: rhs,
+        size: 1,
+        endPlugSize: 3,
+        color: "#000",
+        path: "grid",
+        endSocketGravity: [-400, 0],
+      });
+    }
+  }
+
+  document.addEventListener("DOMContentLoaded", () => {
+    annotateExample();
+  });
+})()
+</script>
+          
+            <style>
+  .example-tabs_2 .lhs {
+    grid-row: 1 / 2;
+  }
+</style>
+  
+<pre class="subtitle"></pre>
+<div class="example example-tabs_2">
+  
+  <div class="tree lhs" style="width: 300px; height: 200px" data-command=None>
+    
+  
+    
+  <div class="node-tc">
+    
+    
+      
+  
+    
+  <div class="node-t">
+    
+      
+  
+    
+  <ul class="node-sc sc-x">
+    
+      <li>
+  
+    
+  <div class="node-p " style="width:150px; height:200px;">
+    A
+  </div>
+
+  
+</li>
+    
+      <li>
+  
+    
+  <ul class="node-sc sc-y">
+    
+      <li>
+  
+    
+  <div class="node-p " style="width:150px; height:100px;">
+    B
+  </div>
+
+  
+</li>
+    
+      <li>
+  
+    
+  <div class="node-p focused" style="width:150px; height:100px;">
+    C
+  </div>
+
+  
+</li>
+    
+  </ul>
+
+  
+</li>
+    
+  </ul>
+
+  
+
+    
+  </div>
+
+  
+
+    
+  </div>
+
+  
+
+  </div>
+
+  
+    <div class="command-label"><pre>spawn_tab(program, new_level=True)</pre></div>
+    
+  <div class="tree rhs" style="width: 300px; height: 200px" data-command=spawn_tab(program, new_level=True)>
+    
+  
+    
+  <div class="node-tc">
+    
+    
+      
+  
+    
+  <div class="node-t">
+    
+      
+  
+    
+  <ul class="node-sc sc-x">
+    
+      <li>
+  
+    
+  <div class="node-p " style="width:150px; height:200px;">
+    A
+  </div>
+
+  
+</li>
+    
+      <li>
+  
+    
+  <ul class="node-sc sc-y">
+    
+      <li>
+  
+    
+  <div class="node-p " style="width:150px; height:100px;">
+    B
+  </div>
+
+  
+</li>
+    
+      <li>
+  
+    
+  <div class="node-tc">
+    
+      <ul class="tc-bar" style="height:15px">
+        
+          <li class="tc-bar-item ">1</li>
+        
+          <li class="tc-bar-item active">2</li>
+        
+      </ul>
+    
+    
+      
+  
+    
+  <div class="node-t">
+    
+      
+  
+    
+  <ul class="node-sc sc-x">
+    
+      <li>
+  
+    
+  <div class="node-p focused" style="width:150px; height:85px;">
+    D
+  </div>
+
+  
+</li>
+    
+  </ul>
+
+  
+
+    
+  </div>
+
+  
+
+    
+  </div>
+
+  
+</li>
+    
+  </ul>
+
+  
+</li>
+    
+  </ul>
+
+  
+
+    
+  </div>
+
+  
+
+    
+  </div>
+
+  
+
+  </div>
+
+  
+</div>
+
+<script>
+;(function () {
+  function annotateExample() {
+    const example = document.querySelector(".example-tabs_2");
+
+    const lhs = example.getElementsByClassName("lhs");
+    const rhsItems = example.getElementsByClassName("rhs");
+
+    for (const rhs of rhsItems) {
+      const line = new LeaderLine({
+        start: lhs[0],
+        end: rhs,
+        size: 1,
+        endPlugSize: 3,
+        color: "#000",
+        path: "grid",
+        endSocketGravity: [-400, 0],
+      });
+    }
+  }
+
+  document.addEventListener("DOMContentLoaded", () => {
+    annotateExample();
+  });
+})()
+</script>
+          
+            <style>
+  .example-tabs_3 .lhs {
+    grid-row: 1 / 3;
+  }
+</style>
+  
+<pre class="subtitle"></pre>
+<div class="example example-tabs_3">
+  
+  <div class="tree lhs" style="width: 300px; height: 200px" data-command=None>
+    
+  
+    
+  <div class="node-tc">
+    
+    
+      
+  
+    
+  <div class="node-t">
+    
+      
+  
+    
+  <ul class="node-sc sc-x">
+    
+      <li>
+  
+    
+  <div class="node-p " style="width:150px; height:200px;">
+    A
+  </div>
+
+  
+</li>
+    
+      <li>
+  
+    
+  <ul class="node-sc sc-y">
+    
+      <li>
+  
+    
+  <div class="node-p " style="width:150px; height:100px;">
+    B
+  </div>
+
+  
+</li>
+    
+      <li>
+  
+    
+  <div class="node-tc">
+    
+      <ul class="tc-bar" style="height:15px">
+        
+          <li class="tc-bar-item ">1</li>
+        
+          <li class="tc-bar-item active">2</li>
+        
+      </ul>
+    
+    
+      
+  
+    
+  <div class="node-t">
+    
+      
+  
+    
+  <ul class="node-sc sc-x">
+    
+      <li>
+  
+    
+  <div class="node-p focused" style="width:150px; height:85px;">
+    D
+  </div>
+
+  
+</li>
+    
+  </ul>
+
+  
+
+    
+  </div>
+
+  
+
+    
+  </div>
+
+  
+</li>
+    
+  </ul>
+
+  
+</li>
+    
+  </ul>
+
+  
+
+    
+  </div>
+
+  
+
+    
+  </div>
+
+  
+
+  </div>
+
+  
+    <div class="command-label"><pre>spawn_tab(program)</pre></div>
+    
+  <div class="tree rhs" style="width: 300px; height: 200px" data-command=spawn_tab(program)>
+    
+  
+    
+  <div class="node-tc">
+    
+    
+      
+  
+    
+  <div class="node-t">
+    
+      
+  
+    
+  <ul class="node-sc sc-x">
+    
+      <li>
+  
+    
+  <div class="node-p " style="width:150px; height:200px;">
+    A
+  </div>
+
+  
+</li>
+    
+      <li>
+  
+    
+  <ul class="node-sc sc-y">
+    
+      <li>
+  
+    
+  <div class="node-p " style="width:150px; height:100px;">
+    B
+  </div>
+
+  
+</li>
+    
+      <li>
+  
+    
+  <div class="node-tc">
+    
+      <ul class="tc-bar" style="height:15px">
+        
+          <li class="tc-bar-item ">1</li>
+        
+          <li class="tc-bar-item ">2</li>
+        
+          <li class="tc-bar-item active">3</li>
+        
+      </ul>
+    
+    
+      
+  
+    
+  <div class="node-t">
+    
+      
+  
+    
+  <ul class="node-sc sc-x">
+    
+      <li>
+  
+    
+  <div class="node-p focused" style="width:150px; height:85px;">
+    E
+  </div>
+
+  
+</li>
+    
+  </ul>
+
+  
+
+    
+  </div>
+
+  
+
+    
+  </div>
+
+  
+</li>
+    
+  </ul>
+
+  
+</li>
+    
+  </ul>
+
+  
+
+    
+  </div>
+
+  
+
+    
+  </div>
+
+  
+
+  </div>
+
+  
+    <div class="command-label"><pre>spawn_tab(program, level=1)</pre></div>
+    
+  <div class="tree rhs" style="width: 300px; height: 200px" data-command=spawn_tab(program, level=1)>
+    
+  
+    
+  <div class="node-tc">
+    
+      <ul class="tc-bar" style="height:15px">
+        
+          <li class="tc-bar-item ">1</li>
+        
+          <li class="tc-bar-item active">2</li>
+        
+      </ul>
+    
+    
+      
+  
+    
+  <div class="node-t">
+    
+      
+  
+    
+  <ul class="node-sc sc-x">
+    
+      <li>
+  
+    
+  <div class="node-p focused" style="width:300px; height:185px;">
+    E
+  </div>
+
+  
+</li>
+    
+  </ul>
+
+  
+
+    
+  </div>
+
+  
+
+    
+  </div>
+
+  
+
+  </div>
+
+  
+</div>
+
+<script>
+;(function () {
+  function annotateExample() {
+    const example = document.querySelector(".example-tabs_3");
+
+    const lhs = example.getElementsByClassName("lhs");
+    const rhsItems = example.getElementsByClassName("rhs");
+
+    for (const rhs of rhsItems) {
+      const line = new LeaderLine({
+        start: lhs[0],
+        end: rhs,
+        size: 1,
+        endPlugSize: 3,
+        color: "#000",
+        path: "grid",
+        endSocketGravity: [-400, 0],
+      });
+    }
+  }
+
+  document.addEventListener("DOMContentLoaded", () => {
+    annotateExample();
+  });
+})()
+</script>
+          
+        </li>
+      
+        <li class="section">
+          <h2 class="title">Merge to Subtab</h2>
+          
+            <style>
+  .example-merge_to_subtab_1 .lhs {
+    grid-row: 1 / 4;
+  }
+</style>
+  
+<pre class="subtitle"></pre>
+<div class="example example-merge_to_subtab_1">
+  
+  <div class="tree lhs" style="width: 300px; height: 200px" data-command=None>
+    
+  
+    
+  <div class="node-tc">
+    
+    
+      
+  
+    
+  <div class="node-t">
+    
+      
+  
+    
+  <ul class="node-sc sc-y">
+    
+      <li>
+  
+    
+  <div class="node-p " style="width:300px; height:100px;">
+    A
+  </div>
+
+  
+</li>
+    
+      <li>
+  
+    
+  <ul class="node-sc sc-x">
+    
+      <li>
+  
+    
+  <div class="node-p " style="width:100px; height:100px;">
+    B
+  </div>
+
+  
+</li>
+    
+      <li>
+  
+    
+  <div class="node-p focused" style="width:100px; height:100px;">
+    C
+  </div>
+
+  
+</li>
+    
+      <li>
+  
+    
+  <div class="node-p " style="width:100px; height:100px;">
+    D
+  </div>
+
+  
+</li>
+    
+  </ul>
+
+  
+</li>
+    
+  </ul>
+
+  
+
+    
+  </div>
+
+  
+
+    
+  </div>
+
+  
+
+  </div>
+
+  
+    <div class="command-label"><pre>merge_to_subtab(&#34;right&#34;)</pre></div>
+    
+  <div class="tree rhs" style="width: 300px; height: 200px" data-command=merge_to_subtab(&#34;right&#34;)>
+    
+  
+    
+  <div class="node-tc">
+    
+    
+      
+  
+    
+  <div class="node-t">
+    
+      
+  
+    
+  <ul class="node-sc sc-y">
+    
+      <li>
+  
+    
+  <div class="node-p " style="width:300px; height:100px;">
+    A
+  </div>
+
+  
+</li>
+    
+      <li>
+  
+    
+  <ul class="node-sc sc-x">
+    
+      <li>
+  
+    
+  <div class="node-p " style="width:150px; height:100px;">
+    B
+  </div>
+
+  
+</li>
+    
+      <li>
+  
+    
+  <div class="node-tc">
+    
+      <ul class="tc-bar" style="height:15px">
+        
+          <li class="tc-bar-item ">1</li>
+        
+          <li class="tc-bar-item active">2</li>
+        
+      </ul>
+    
+    
+      
+  
+    
+  <div class="node-t">
+    
+      
+  
+    
+  <ul class="node-sc sc-x">
+    
+      <li>
+  
+    
+  <div class="node-p focused" style="width:150px; height:85px;">
+    C
+  </div>
+
+  
+</li>
+    
+  </ul>
+
+  
+
+    
+  </div>
+
+  
+
+    
+  </div>
+
+  
+</li>
+    
+  </ul>
+
+  
+</li>
+    
+  </ul>
+
+  
+
+    
+  </div>
+
+  
+
+    
+  </div>
+
+  
+
+  </div>
+
+  
+    <div class="command-label"><pre>merge_to_subtab(&#34;left&#34;)</pre></div>
+    
+  <div class="tree rhs" style="width: 300px; height: 200px" data-command=merge_to_subtab(&#34;left&#34;)>
+    
+  
+    
+  <div class="node-tc">
+    
+    
+      
+  
+    
+  <div class="node-t">
+    
+      
+  
+    
+  <ul class="node-sc sc-y">
+    
+      <li>
+  
+    
+  <div class="node-p " style="width:300px; height:100px;">
+    A
+  </div>
+
+  
+</li>
+    
+      <li>
+  
+    
+  <ul class="node-sc sc-x">
+    
+      <li>
+  
+    
+  <div class="node-tc">
+    
+      <ul class="tc-bar" style="height:15px">
+        
+          <li class="tc-bar-item ">1</li>
+        
+          <li class="tc-bar-item active">2</li>
+        
+      </ul>
+    
+    
+      
+  
+    
+  <div class="node-t">
+    
+      
+  
+    
+  <ul class="node-sc sc-x">
+    
+      <li>
+  
+    
+  <div class="node-p focused" style="width:150px; height:85px;">
+    C
+  </div>
+
+  
+</li>
+    
+  </ul>
+
+  
+
+    
+  </div>
+
+  
+
+    
+  </div>
+
+  
+</li>
+    
+      <li>
+  
+    
+  <div class="node-p " style="width:150px; height:100px;">
+    D
+  </div>
+
+  
+</li>
+    
+  </ul>
+
+  
+</li>
+    
+  </ul>
+
+  
+
+    
+  </div>
+
+  
+
+    
+  </div>
+
+  
+
+  </div>
+
+  
+    <div class="command-label"><pre>merge_to_subtab(&#34;up&#34;)</pre></div>
+    
+  <div class="tree rhs" style="width: 300px; height: 200px" data-command=merge_to_subtab(&#34;up&#34;)>
+    
+  
+    
+  <div class="node-tc">
+    
+    
+      
+  
+    
+  <div class="node-t">
+    
+      
+  
+    
+  <ul class="node-sc sc-y">
+    
+      <li>
+  
+    
+  <div class="node-tc">
+    
+      <ul class="tc-bar" style="height:15px">
+        
+          <li class="tc-bar-item ">1</li>
+        
+          <li class="tc-bar-item active">2</li>
+        
+      </ul>
+    
+    
+      
+  
+    
+  <div class="node-t">
+    
+      
+  
+    
+  <ul class="node-sc sc-x">
+    
+      <li>
+  
+    
+  <div class="node-p focused" style="width:300px; height:85px;">
+    C
+  </div>
+
+  
+</li>
+    
+  </ul>
+
+  
+
+    
+  </div>
+
+  
+
+    
+  </div>
+
+  
+</li>
+    
+      <li>
+  
+    
+  <ul class="node-sc sc-x">
+    
+      <li>
+  
+    
+  <div class="node-p " style="width:150px; height:100px;">
+    B
+  </div>
+
+  
+</li>
+    
+      <li>
+  
+    
+  <div class="node-p " style="width:150px; height:100px;">
+    D
+  </div>
+
+  
+</li>
+    
+  </ul>
+
+  
+</li>
+    
+  </ul>
+
+  
+
+    
+  </div>
+
+  
+
+    
+  </div>
+
+  
+
+  </div>
+
+  
+</div>
+
+<script>
+;(function () {
+  function annotateExample() {
+    const example = document.querySelector(".example-merge_to_subtab_1");
+
+    const lhs = example.getElementsByClassName("lhs");
+    const rhsItems = example.getElementsByClassName("rhs");
+
+    for (const rhs of rhsItems) {
+      const line = new LeaderLine({
+        start: lhs[0],
+        end: rhs,
+        size: 1,
+        endPlugSize: 3,
+        color: "#000",
+        path: "grid",
+        endSocketGravity: [-400, 0],
+      });
+    }
+  }
+
+  document.addEventListener("DOMContentLoaded", () => {
+    annotateExample();
+  });
+})()
+</script>
+          
+            <style>
+  .example-merge_to_subtab_2 .lhs {
+    grid-row: 1 / 2;
+  }
+</style>
+  
+<pre class="subtitle"></pre>
+<div class="example example-merge_to_subtab_2">
+  
+  <div class="tree lhs" style="width: 300px; height: 200px" data-command=None>
+    
+  
+    
+  <div class="node-tc">
+    
+    
+      
+  
+    
+  <div class="node-t">
+    
+      
+  
+    
+  <ul class="node-sc sc-y">
+    
+      <li>
+  
+    
+  <div class="node-p " style="width:300px; height:100px;">
+    A
+  </div>
+
+  
+</li>
+    
+      <li>
+  
+    
+  <ul class="node-sc sc-x">
+    
+      <li>
+  
+    
+  <div class="node-p " style="width:100px; height:100px;">
+    B
+  </div>
+
+  
+</li>
+    
+      <li>
+  
+    
+  <div class="node-p focused" style="width:100px; height:100px;">
+    C
+  </div>
+
+  
+</li>
+    
+      <li>
+  
+    
+  <div class="node-tc">
+    
+      <ul class="tc-bar" style="height:15px">
+        
+          <li class="tc-bar-item ">1</li>
+        
+          <li class="tc-bar-item active">2</li>
+        
+      </ul>
+    
+    
+      
+  
+    
+  <div class="node-t">
+    
+      
+  
+    
+  <ul class="node-sc sc-x">
+    
+      <li>
+  
+    
+  <div class="node-p " style="width:100px; height:85px;">
+    E
+  </div>
+
+  
+</li>
+    
+  </ul>
+
+  
+
+    
+  </div>
+
+  
+
+    
+  </div>
+
+  
+</li>
+    
+  </ul>
+
+  
+</li>
+    
+  </ul>
+
+  
+
+    
+  </div>
+
+  
+
+    
+  </div>
+
+  
+
+  </div>
+
+  
+    <div class="command-label"><pre>merge_to_subtab(&#34;right&#34;)</pre></div>
+    
+  <div class="tree rhs" style="width: 300px; height: 200px" data-command=merge_to_subtab(&#34;right&#34;)>
+    
+  
+    
+  <div class="node-tc">
+    
+    
+      
+  
+    
+  <div class="node-t">
+    
+      
+  
+    
+  <ul class="node-sc sc-y">
+    
+      <li>
+  
+    
+  <div class="node-p " style="width:300px; height:100px;">
+    A
+  </div>
+
+  
+</li>
+    
+      <li>
+  
+    
+  <ul class="node-sc sc-x">
+    
+      <li>
+  
+    
+  <div class="node-p " style="width:150px; height:100px;">
+    B
+  </div>
+
+  
+</li>
+    
+      <li>
+  
+    
+  <div class="node-tc">
+    
+      <ul class="tc-bar" style="height:15px">
+        
+          <li class="tc-bar-item ">1</li>
+        
+          <li class="tc-bar-item ">2</li>
+        
+          <li class="tc-bar-item active">3</li>
+        
+      </ul>
+    
+    
+      
+  
+    
+  <div class="node-t">
+    
+      
+  
+    
+  <ul class="node-sc sc-x">
+    
+      <li>
+  
+    
+  <div class="node-p focused" style="width:150px; height:85px;">
+    C
+  </div>
+
+  
+</li>
+    
+  </ul>
+
+  
+
+    
+  </div>
+
+  
+
+    
+  </div>
+
+  
+</li>
+    
+  </ul>
+
+  
+</li>
+    
+  </ul>
+
+  
+
+    
+  </div>
+
+  
+
+    
+  </div>
+
+  
+
+  </div>
+
+  
+</div>
+
+<script>
+;(function () {
+  function annotateExample() {
+    const example = document.querySelector(".example-merge_to_subtab_2");
+
+    const lhs = example.getElementsByClassName("lhs");
+    const rhsItems = example.getElementsByClassName("rhs");
+
+    for (const rhs of rhsItems) {
+      const line = new LeaderLine({
+        start: lhs[0],
+        end: rhs,
+        size: 1,
+        endPlugSize: 3,
+        color: "#000",
+        path: "grid",
+        endSocketGravity: [-400, 0],
+      });
+    }
+  }
+
+  document.addEventListener("DOMContentLoaded", () => {
+    annotateExample();
+  });
+})()
+</script>
+          
+        </li>
+      
+        <li class="section">
+          <h2 class="title">Push In</h2>
+          
+            <style>
+  .example-push_in_1 .lhs {
+    grid-row: 1 / 3;
+  }
+</style>
+  
+<pre class="subtitle"></pre>
+<div class="example example-push_in_1">
+  
+  <div class="tree lhs" style="width: 300px; height: 200px" data-command=None>
+    
+  
+    
+  <div class="node-tc">
+    
+    
+      
+  
+    
+  <div class="node-t">
+    
+      
+  
+    
+  <ul class="node-sc sc-x">
+    
+      <li>
+  
+    
+  <div class="node-p " style="width:99px; height:200px;">
+    A
+  </div>
+
+  
+</li>
+    
+      <li>
+  
+    
+  <ul class="node-sc sc-y">
+    
+      <li>
+  
+    
+  <div class="node-p " style="width:100px; height:100px;">
+    B
+  </div>
+
+  
+</li>
+    
+      <li>
+  
+    
+  <div class="node-p focused" style="width:100px; height:100px;">
+    C
+  </div>
+
+  
+</li>
+    
+  </ul>
+
+  
+</li>
+    
+      <li>
+  
+    
+  <ul class="node-sc sc-y">
+    
+      <li>
+  
+    
+  <div class="node-p " style="width:101px; height:100px;">
+    D
+  </div>
+
+  
+</li>
+    
+      <li>
+  
+    
+  <div class="node-p " style="width:101px; height:100px;">
+    E
+  </div>
+
+  
+</li>
+    
+  </ul>
+
+  
+</li>
+    
+  </ul>
+
+  
+
+    
+  </div>
+
+  
+
+    
+  </div>
+
+  
+
+  </div>
+
+  
+    <div class="command-label"><pre>push_in(&#34;right&#34;)</pre></div>
+    
+  <div class="tree rhs" style="width: 300px; height: 200px" data-command=push_in(&#34;right&#34;)>
+    
+  
+    
+  <div class="node-tc">
+    
+    
+      
+  
+    
+  <div class="node-t">
+    
+      
+  
+    
+  <ul class="node-sc sc-x">
+    
+      <li>
+  
+    
+  <div class="node-p " style="width:99px; height:200px;">
+    A
+  </div>
+
+  
+</li>
+    
+      <li>
+  
+    
+  <div class="node-p " style="width:100px; height:200px;">
+    B
+  </div>
+
+  
+</li>
+    
+      <li>
+  
+    
+  <ul class="node-sc sc-y">
+    
+      <li>
+  
+    
+  <div class="node-p " style="width:101px; height:67px;">
+    D
+  </div>
+
+  
+</li>
+    
+      <li>
+  
+    
+  <div class="node-p " style="width:101px; height:67px;">
+    E
+  </div>
+
+  
+</li>
+    
+      <li>
+  
+    
+  <div class="node-p focused" style="width:101px; height:67px;">
+    C
+  </div>
+
+  
+</li>
+    
+  </ul>
+
+  
+</li>
+    
+  </ul>
+
+  
+
+    
+  </div>
+
+  
+
+    
+  </div>
+
+  
+
+  </div>
+
+  
+    <div class="command-label"><pre>push_in(&#34;left&#34;)</pre></div>
+    
+  <div class="tree rhs" style="width: 300px; height: 200px" data-command=push_in(&#34;left&#34;)>
+    
+  
+    
+  <div class="node-tc">
+    
+    
+      
+  
+    
+  <div class="node-t">
+    
+      
+  
+    
+  <ul class="node-sc sc-x">
+    
+      <li>
+  
+    
+  <ul class="node-sc sc-y">
+    
+      <li>
+  
+    
+  <div class="node-p " style="width:99px; height:100px;">
+    A
+  </div>
+
+  
+</li>
+    
+      <li>
+  
+    
+  <div class="node-p focused" style="width:99px; height:100px;">
+    C
+  </div>
+
+  
+</li>
+    
+  </ul>
+
+  
+</li>
+    
+      <li>
+  
+    
+  <div class="node-p " style="width:100px; height:200px;">
+    B
+  </div>
+
+  
+</li>
+    
+      <li>
+  
+    
+  <ul class="node-sc sc-y">
+    
+      <li>
+  
+    
+  <div class="node-p " style="width:101px; height:100px;">
+    D
+  </div>
+
+  
+</li>
+    
+      <li>
+  
+    
+  <div class="node-p " style="width:101px; height:100px;">
+    E
+  </div>
+
+  
+</li>
+    
+  </ul>
+
+  
+</li>
+    
+  </ul>
+
+  
+
+    
+  </div>
+
+  
+
+    
+  </div>
+
+  
+
+  </div>
+
+  
+</div>
+
+<script>
+;(function () {
+  function annotateExample() {
+    const example = document.querySelector(".example-push_in_1");
+
+    const lhs = example.getElementsByClassName("lhs");
+    const rhsItems = example.getElementsByClassName("rhs");
+
+    for (const rhs of rhsItems) {
+      const line = new LeaderLine({
+        start: lhs[0],
+        end: rhs,
+        size: 1,
+        endPlugSize: 3,
+        color: "#000",
+        path: "grid",
+        endSocketGravity: [-400, 0],
+      });
+    }
+  }
+
+  document.addEventListener("DOMContentLoaded", () => {
+    annotateExample();
+  });
+})()
+</script>
+          
+        </li>
+      
+        <li class="section">
+          <h2 class="title">Pull Out</h2>
+          
+            <style>
+  .example-pull_out_1 .lhs {
+    grid-row: 1 / 3;
+  }
+</style>
+  
+<pre class="subtitle"></pre>
+<div class="example example-pull_out_1">
+  
+  <div class="tree lhs" style="width: 300px; height: 200px" data-command=None>
+    
+  
+    
+  <div class="node-tc">
+    
+    
+      
+  
+    
+  <div class="node-t">
+    
+      
+  
+    
+  <ul class="node-sc sc-x">
+    
+      <li>
+  
+    
+  <div class="node-p " style="width:150px; height:200px;">
+    A
+  </div>
+
+  
+</li>
+    
+      <li>
+  
+    
+  <ul class="node-sc sc-y">
+    
+      <li>
+  
+    
+  <div class="node-p " style="width:150px; height:100px;">
+    B
+  </div>
+
+  
+</li>
+    
+      <li>
+  
+    
+  <ul class="node-sc sc-x">
+    
+      <li>
+  
+    
+  <div class="node-p " style="width:75px; height:100px;">
+    C
+  </div>
+
+  
+</li>
+    
+      <li>
+  
+    
+  <ul class="node-sc sc-y">
+    
+      <li>
+  
+    
+  <div class="node-p " style="width:75px; height:50px;">
+    D
+  </div>
+
+  
+</li>
+    
+      <li>
+  
+    
+  <div class="node-p focused" style="width:75px; height:50px;">
+    E
+  </div>
+
+  
+</li>
+    
+  </ul>
+
+  
+</li>
+    
+  </ul>
+
+  
+</li>
+    
+  </ul>
+
+  
+</li>
+    
+  </ul>
+
+  
+
+    
+  </div>
+
+  
+
+    
+  </div>
+
+  
+
+  </div>
+
+  
+    <div class="command-label"><pre>pull_out()</pre></div>
+    
+  <div class="tree rhs" style="width: 300px; height: 200px" data-command=pull_out()>
+    
+  
+    
+  <div class="node-tc">
+    
+    
+      
+  
+    
+  <div class="node-t">
+    
+      
+  
+    
+  <ul class="node-sc sc-x">
+    
+      <li>
+  
+    
+  <div class="node-p " style="width:150px; height:200px;">
+    A
+  </div>
+
+  
+</li>
+    
+      <li>
+  
+    
+  <ul class="node-sc sc-y">
+    
+      <li>
+  
+    
+  <div class="node-p " style="width:150px; height:100px;">
+    B
+  </div>
+
+  
+</li>
+    
+      <li>
+  
+    
+  <ul class="node-sc sc-x">
+    
+      <li>
+  
+    
+  <div class="node-p " style="width:50px; height:100px;">
+    C
+  </div>
+
+  
+</li>
+    
+      <li>
+  
+    
+  <div class="node-p focused" style="width:50px; height:100px;">
+    E
+  </div>
+
+  
+</li>
+    
+      <li>
+  
+    
+  <div class="node-p " style="width:50px; height:100px;">
+    D
+  </div>
+
+  
+</li>
+    
+  </ul>
+
+  
+</li>
+    
+  </ul>
+
+  
+</li>
+    
+  </ul>
+
+  
+
+    
+  </div>
+
+  
+
+    
+  </div>
+
+  
+
+  </div>
+
+  
+    <div class="command-label"><pre>pull_out(position=&#34;next&#34;)</pre></div>
+    
+  <div class="tree rhs" style="width: 300px; height: 200px" data-command=pull_out(position=&#34;next&#34;)>
+    
+  
+    
+  <div class="node-tc">
+    
+    
+      
+  
+    
+  <div class="node-t">
+    
+      
+  
+    
+  <ul class="node-sc sc-x">
+    
+      <li>
+  
+    
+  <div class="node-p " style="width:150px; height:200px;">
+    A
+  </div>
+
+  
+</li>
+    
+      <li>
+  
+    
+  <ul class="node-sc sc-y">
+    
+      <li>
+  
+    
+  <div class="node-p " style="width:150px; height:100px;">
+    B
+  </div>
+
+  
+</li>
+    
+      <li>
+  
+    
+  <ul class="node-sc sc-x">
+    
+      <li>
+  
+    
+  <div class="node-p " style="width:50px; height:100px;">
+    C
+  </div>
+
+  
+</li>
+    
+      <li>
+  
+    
+  <div class="node-p " style="width:50px; height:100px;">
+    D
+  </div>
+
+  
+</li>
+    
+      <li>
+  
+    
+  <div class="node-p focused" style="width:50px; height:100px;">
+    E
+  </div>
+
+  
+</li>
+    
+  </ul>
+
+  
+</li>
+    
+  </ul>
+
+  
+</li>
+    
+  </ul>
+
+  
+
+    
+  </div>
+
+  
+
+    
+  </div>
+
+  
+
+  </div>
+
+  
+</div>
+
+<script>
+;(function () {
+  function annotateExample() {
+    const example = document.querySelector(".example-pull_out_1");
+
+    const lhs = example.getElementsByClassName("lhs");
+    const rhsItems = example.getElementsByClassName("rhs");
+
+    for (const rhs of rhsItems) {
+      const line = new LeaderLine({
+        start: lhs[0],
+        end: rhs,
+        size: 1,
+        endPlugSize: 3,
+        color: "#000",
+        path: "grid",
+        endSocketGravity: [-400, 0],
+      });
+    }
+  }
+
+  document.addEventListener("DOMContentLoaded", () => {
+    annotateExample();
+  });
+})()
+</script>
+          
+            <style>
+  .example-pull_out_2 .lhs {
+    grid-row: 1 / 2;
+  }
+</style>
+  
+<pre class="subtitle"></pre>
+<div class="example example-pull_out_2">
+  
+  <div class="tree lhs" style="width: 300px; height: 200px" data-command=None>
+    
+  
+    
+  <div class="node-tc">
+    
+    
+      
+  
+    
+  <div class="node-t">
+    
+      
+  
+    
+  <ul class="node-sc sc-x">
+    
+      <li>
+  
+    
+  <div class="node-p " style="width:150px; height:200px;">
+    A
+  </div>
+
+  
+</li>
+    
+      <li>
+  
+    
+  <ul class="node-sc sc-y">
+    
+      <li>
+  
+    
+  <div class="node-p " style="width:150px; height:100px;">
+    B
+  </div>
+
+  
+</li>
+    
+      <li>
+  
+    
+  <ul class="node-sc sc-x">
+    
+      <li>
+  
+    
+  <div class="node-p " style="width:50px; height:100px;">
+    C
+  </div>
+
+  
+</li>
+    
+      <li>
+  
+    
+  <div class="node-p " style="width:50px; height:100px;">
+    D
+  </div>
+
+  
+</li>
+    
+      <li>
+  
+    
+  <div class="node-p focused" style="width:50px; height:100px;">
+    E
+  </div>
+
+  
+</li>
+    
+  </ul>
+
+  
+</li>
+    
+  </ul>
+
+  
+</li>
+    
+  </ul>
+
+  
+
+    
+  </div>
+
+  
+
+    
+  </div>
+
+  
+
+  </div>
+
+  
+    <div class="command-label"><pre>pull_out()</pre></div>
+    
+  <div class="tree rhs" style="width: 300px; height: 200px" data-command=pull_out()>
+    
+  
+    
+  <div class="node-tc">
+    
+    
+      
+  
+    
+  <div class="node-t">
+    
+      
+  
+    
+  <ul class="node-sc sc-x">
+    
+      <li>
+  
+    
+  <div class="node-p " style="width:150px; height:200px;">
+    A
+  </div>
+
+  
+</li>
+    
+      <li>
+  
+    
+  <ul class="node-sc sc-y">
+    
+      <li>
+  
+    
+  <div class="node-p " style="width:150px; height:67px;">
+    B
+  </div>
+
+  
+</li>
+    
+      <li>
+  
+    
+  <div class="node-p focused" style="width:150px; height:67px;">
+    E
+  </div>
+
+  
+</li>
+    
+      <li>
+  
+    
+  <ul class="node-sc sc-x">
+    
+      <li>
+  
+    
+  <div class="node-p " style="width:75px; height:67px;">
+    C
+  </div>
+
+  
+</li>
+    
+      <li>
+  
+    
+  <div class="node-p " style="width:75px; height:67px;">
+    D
+  </div>
+
+  
+</li>
+    
+  </ul>
+
+  
+</li>
+    
+  </ul>
+
+  
+</li>
+    
+  </ul>
+
+  
+
+    
+  </div>
+
+  
+
+    
+  </div>
+
+  
+
+  </div>
+
+  
+</div>
+
+<script>
+;(function () {
+  function annotateExample() {
+    const example = document.querySelector(".example-pull_out_2");
+
+    const lhs = example.getElementsByClassName("lhs");
+    const rhsItems = example.getElementsByClassName("rhs");
+
+    for (const rhs of rhsItems) {
+      const line = new LeaderLine({
+        start: lhs[0],
+        end: rhs,
+        size: 1,
+        endPlugSize: 3,
+        color: "#000",
+        path: "grid",
+        endSocketGravity: [-400, 0],
+      });
+    }
+  }
+
+  document.addEventListener("DOMContentLoaded", () => {
+    annotateExample();
+  });
+})()
+</script>
+          
+            <style>
+  .example-pull_out_3 .lhs {
+    grid-row: 1 / 2;
+  }
+</style>
+  
+<pre class="subtitle"></pre>
+<div class="example example-pull_out_3">
+  
+  <div class="tree lhs" style="width: 300px; height: 200px" data-command=None>
+    
+  
+    
+  <div class="node-tc">
+    
+    
+      
+  
+    
+  <div class="node-t">
+    
+      
+  
+    
+  <ul class="node-sc sc-x">
+    
+      <li>
+  
+    
+  <div class="node-p " style="width:150px; height:200px;">
+    A
+  </div>
+
+  
+</li>
+    
+      <li>
+  
+    
+  <ul class="node-sc sc-y">
+    
+      <li>
+  
+    
+  <div class="node-p " style="width:150px; height:100px;">
+    B
+  </div>
+
+  
+</li>
+    
+      <li>
+  
+    
+  <div class="node-tc">
+    
+      <ul class="tc-bar" style="height:15px">
+        
+          <li class="tc-bar-item ">1</li>
+        
+          <li class="tc-bar-item active">2</li>
+        
+      </ul>
+    
+    
+      
+  
+    
+  <div class="node-t">
+    
+      
+  
+    
+  <ul class="node-sc sc-x">
+    
+      <li>
+  
+    
+  <div class="node-p focused" style="width:150px; height:85px;">
+    D
+  </div>
+
+  
+</li>
+    
+  </ul>
+
+  
+
+    
+  </div>
+
+  
+
+    
+  </div>
+
+  
+</li>
+    
+  </ul>
+
+  
+</li>
+    
+  </ul>
+
+  
+
+    
+  </div>
+
+  
+
+    
+  </div>
+
+  
+
+  </div>
+
+  
+    <div class="command-label"><pre>pull_out()</pre></div>
+    
+  <div class="tree rhs" style="width: 300px; height: 200px" data-command=pull_out()>
+    
+  
+    
+  <div class="node-tc">
+    
+    
+      
+  
+    
+  <div class="node-t">
+    
+      
+  
+    
+  <ul class="node-sc sc-x">
+    
+      <li>
+  
+    
+  <div class="node-p " style="width:150px; height:200px;">
+    A
+  </div>
+
+  
+</li>
+    
+      <li>
+  
+    
+  <ul class="node-sc sc-y">
+    
+      <li>
+  
+    
+  <div class="node-p " style="width:150px; height:67px;">
+    B
+  </div>
+
+  
+</li>
+    
+      <li>
+  
+    
+  <div class="node-p focused" style="width:150px; height:67px;">
+    D
+  </div>
+
+  
+</li>
+    
+      <li>
+  
+    
+  <div class="node-p " style="width:150px; height:67px;">
+    C
+  </div>
+
+  
+</li>
+    
+  </ul>
+
+  
+</li>
+    
+  </ul>
+
+  
+
+    
+  </div>
+
+  
+
+    
+  </div>
+
+  
+
+  </div>
+
+  
+</div>
+
+<script>
+;(function () {
+  function annotateExample() {
+    const example = document.querySelector(".example-pull_out_3");
+
+    const lhs = example.getElementsByClassName("lhs");
+    const rhsItems = example.getElementsByClassName("rhs");
+
+    for (const rhs of rhsItems) {
+      const line = new LeaderLine({
+        start: lhs[0],
+        end: rhs,
+        size: 1,
+        endPlugSize: 3,
+        color: "#000",
+        path: "grid",
+        endSocketGravity: [-400, 0],
+      });
+    }
+  }
+
+  document.addEventListener("DOMContentLoaded", () => {
+    annotateExample();
+  });
+})()
+</script>
+          
+        </li>
+      
+        <li class="section">
+          <h2 class="title">Pull Out to Tab</h2>
+          
+            <style>
+  .example-pull_out_to_tab_1 .lhs {
+    grid-row: 1 / 2;
+  }
+</style>
+  
+<pre class="subtitle"></pre>
+<div class="example example-pull_out_to_tab_1">
+  
+  <div class="tree lhs" style="width: 300px; height: 200px" data-command=None>
+    
+  
+    
+  <div class="node-tc">
+    
+    
+      
+  
+    
+  <div class="node-t">
+    
+      
+  
+    
+  <ul class="node-sc sc-x">
+    
+      <li>
+  
+    
+  <div class="node-p " style="width:150px; height:200px;">
+    A
+  </div>
+
+  
+</li>
+    
+      <li>
+  
+    
+  <ul class="node-sc sc-y">
+    
+      <li>
+  
+    
+  <div class="node-p " style="width:150px; height:100px;">
+    B
+  </div>
+
+  
+</li>
+    
+      <li>
+  
+    
+  <div class="node-p focused" style="width:150px; height:100px;">
+    C
+  </div>
+
+  
+</li>
+    
+  </ul>
+
+  
+</li>
+    
+  </ul>
+
+  
+
+    
+  </div>
+
+  
+
+    
+  </div>
+
+  
+
+  </div>
+
+  
+    <div class="command-label"><pre>pull_out_to_tab()</pre></div>
+    
+  <div class="tree rhs" style="width: 300px; height: 200px" data-command=pull_out_to_tab()>
+    
+  
+    
+  <div class="node-tc">
+    
+      <ul class="tc-bar" style="height:15px">
+        
+          <li class="tc-bar-item ">1</li>
+        
+          <li class="tc-bar-item active">2</li>
+        
+      </ul>
+    
+    
+      
+  
+    
+  <div class="node-t">
+    
+      
+  
+    
+  <ul class="node-sc sc-x">
+    
+      <li>
+  
+    
+  <div class="node-p focused" style="width:300px; height:185px;">
+    C
+  </div>
+
+  
+</li>
+    
+  </ul>
+
+  
+
+    
+  </div>
+
+  
+
+    
+  </div>
+
+  
+
+  </div>
+
+  
+</div>
+
+<script>
+;(function () {
+  function annotateExample() {
+    const example = document.querySelector(".example-pull_out_to_tab_1");
+
+    const lhs = example.getElementsByClassName("lhs");
+    const rhsItems = example.getElementsByClassName("rhs");
+
+    for (const rhs of rhsItems) {
+      const line = new LeaderLine({
+        start: lhs[0],
+        end: rhs,
+        size: 1,
+        endPlugSize: 3,
+        color: "#000",
+        path: "grid",
+        endSocketGravity: [-400, 0],
+      });
+    }
+  }
+
+  document.addEventListener("DOMContentLoaded", () => {
+    annotateExample();
+  });
+})()
+</script>
+          
+            <style>
+  .example-pull_out_to_tab_2 .lhs {
+    grid-row: 1 / 2;
+  }
+</style>
+  
+<pre class="subtitle"></pre>
+<div class="example example-pull_out_to_tab_2">
+  
+  <div class="tree lhs" style="width: 300px; height: 200px" data-command=None>
+    
+  
+    
+  <div class="node-tc">
+    
+    
+      
+  
+    
+  <div class="node-t">
+    
+      
+  
+    
+  <ul class="node-sc sc-x">
+    
+      <li>
+  
+    
+  <div class="node-p " style="width:150px; height:200px;">
+    A
+  </div>
+
+  
+</li>
+    
+      <li>
+  
+    
+  <ul class="node-sc sc-y">
+    
+      <li>
+  
+    
+  <div class="node-p " style="width:150px; height:100px;">
+    B
+  </div>
+
+  
+</li>
+    
+      <li>
+  
+    
+  <div class="node-tc">
+    
+      <ul class="tc-bar" style="height:15px">
+        
+          <li class="tc-bar-item ">1</li>
+        
+          <li class="tc-bar-item active">2</li>
+        
+      </ul>
+    
+    
+      
+  
+    
+  <div class="node-t">
+    
+      
+  
+    
+  <ul class="node-sc sc-x">
+    
+      <li>
+  
+    
+  <div class="node-p " style="width:75px; height:85px;">
+    D
+  </div>
+
+  
+</li>
+    
+      <li>
+  
+    
+  <div class="node-p focused" style="width:75px; height:85px;">
+    E
+  </div>
+
+  
+</li>
+    
+  </ul>
+
+  
+
+    
+  </div>
+
+  
+
+    
+  </div>
+
+  
+</li>
+    
+  </ul>
+
+  
+</li>
+    
+  </ul>
+
+  
+
+    
+  </div>
+
+  
+
+    
+  </div>
+
+  
+
+  </div>
+
+  
+    <div class="command-label"><pre>pull_out_to_tab()</pre></div>
+    
+  <div class="tree rhs" style="width: 300px; height: 200px" data-command=pull_out_to_tab()>
+    
+  
+    
+  <div class="node-tc">
+    
+    
+      
+  
+    
+  <div class="node-t">
+    
+      
+  
+    
+  <ul class="node-sc sc-x">
+    
+      <li>
+  
+    
+  <div class="node-p " style="width:150px; height:200px;">
+    A
+  </div>
+
+  
+</li>
+    
+      <li>
+  
+    
+  <ul class="node-sc sc-y">
+    
+      <li>
+  
+    
+  <div class="node-p " style="width:150px; height:100px;">
+    B
+  </div>
+
+  
+</li>
+    
+      <li>
+  
+    
+  <div class="node-tc">
+    
+      <ul class="tc-bar" style="height:15px">
+        
+          <li class="tc-bar-item ">1</li>
+        
+          <li class="tc-bar-item ">2</li>
+        
+          <li class="tc-bar-item active">3</li>
+        
+      </ul>
+    
+    
+      
+  
+    
+  <div class="node-t">
+    
+      
+  
+    
+  <ul class="node-sc sc-x">
+    
+      <li>
+  
+    
+  <div class="node-p focused" style="width:150px; height:85px;">
+    E
+  </div>
+
+  
+</li>
+    
+  </ul>
+
+  
+
+    
+  </div>
+
+  
+
+    
+  </div>
+
+  
+</li>
+    
+  </ul>
+
+  
+</li>
+    
+  </ul>
+
+  
+
+    
+  </div>
+
+  
+
+    
+  </div>
+
+  
+
+  </div>
+
+  
+</div>
+
+<script>
+;(function () {
+  function annotateExample() {
+    const example = document.querySelector(".example-pull_out_to_tab_2");
+
+    const lhs = example.getElementsByClassName("lhs");
+    const rhsItems = example.getElementsByClassName("rhs");
+
+    for (const rhs of rhsItems) {
+      const line = new LeaderLine({
+        start: lhs[0],
+        end: rhs,
+        size: 1,
+        endPlugSize: 3,
+        color: "#000",
+        path: "grid",
+        endSocketGravity: [-400, 0],
+      });
+    }
+  }
+
+  document.addEventListener("DOMContentLoaded", () => {
+    annotateExample();
+  });
+})()
+</script>
+          
+            <style>
+  .example-pull_out_to_tab_3 .lhs {
+    grid-row: 1 / 2;
+  }
+</style>
+  
+<pre class="subtitle"></pre>
+<div class="example example-pull_out_to_tab_3">
+  
+  <div class="tree lhs" style="width: 300px; height: 200px" data-command=None>
+    
+  
+    
+  <div class="node-tc">
+    
+    
+      
+  
+    
+  <div class="node-t">
+    
+      
+  
+    
+  <ul class="node-sc sc-x">
+    
+      <li>
+  
+    
+  <div class="node-p " style="width:150px; height:200px;">
+    A
+  </div>
+
+  
+</li>
+    
+      <li>
+  
+    
+  <ul class="node-sc sc-y">
+    
+      <li>
+  
+    
+  <div class="node-p " style="width:150px; height:100px;">
+    B
+  </div>
+
+  
+</li>
+    
+      <li>
+  
+    
+  <div class="node-tc">
+    
+      <ul class="tc-bar" style="height:15px">
+        
+          <li class="tc-bar-item ">1</li>
+        
+          <li class="tc-bar-item ">2</li>
+        
+          <li class="tc-bar-item active">3</li>
+        
+      </ul>
+    
+    
+      
+  
+    
+  <div class="node-t">
+    
+      
+  
+    
+  <ul class="node-sc sc-x">
+    
+      <li>
+  
+    
+  <div class="node-p focused" style="width:150px; height:85px;">
+    E
+  </div>
+
+  
+</li>
+    
+  </ul>
+
+  
+
+    
+  </div>
+
+  
+
+    
+  </div>
+
+  
+</li>
+    
+  </ul>
+
+  
+</li>
+    
+  </ul>
+
+  
+
+    
+  </div>
+
+  
+
+    
+  </div>
+
+  
+
+  </div>
+
+  
+    <div class="command-label"><pre>pull_out_to_tab()</pre></div>
+    
+  <div class="tree rhs" style="width: 300px; height: 200px" data-command=pull_out_to_tab()>
+    
+  
+    
+  <div class="node-tc">
+    
+      <ul class="tc-bar" style="height:15px">
+        
+          <li class="tc-bar-item ">1</li>
+        
+          <li class="tc-bar-item active">2</li>
+        
+      </ul>
+    
+    
+      
+  
+    
+  <div class="node-t">
+    
+      
+  
+    
+  <ul class="node-sc sc-x">
+    
+      <li>
+  
+    
+  <div class="node-p focused" style="width:300px; height:185px;">
+    E
+  </div>
+
+  
+</li>
+    
+  </ul>
+
+  
+
+    
+  </div>
+
+  
+
+    
+  </div>
+
+  
+
+  </div>
+
+  
+</div>
+
+<script>
+;(function () {
+  function annotateExample() {
+    const example = document.querySelector(".example-pull_out_to_tab_3");
+
+    const lhs = example.getElementsByClassName("lhs");
+    const rhsItems = example.getElementsByClassName("rhs");
+
+    for (const rhs of rhsItems) {
+      const line = new LeaderLine({
+        start: lhs[0],
+        end: rhs,
+        size: 1,
+        endPlugSize: 3,
+        color: "#000",
+        path: "grid",
+        endSocketGravity: [-400, 0],
+      });
+    }
+  }
+
+  document.addEventListener("DOMContentLoaded", () => {
+    annotateExample();
+  });
+})()
+</script>
+          
+        </li>
+      
+        <li class="section">
+          <h2 class="title">Advanced Options for Branch Selection</h2>
+          
+            <style>
+  .example-advanced_1 .lhs {
+    grid-row: 1 / 5;
+  }
+</style>
+  
+<pre class="subtitle">Applicable to merge_to_subtab(), push_in(), pull_out()</pre>
+<div class="example example-advanced_1">
+  
+  <div class="tree lhs" style="width: 300px; height: 200px" data-command=None>
+    
+  
+    
+  <div class="node-tc">
+    
+    
+      
+  
+    
+  <div class="node-t">
+    
+      
+  
+    
+  <ul class="node-sc sc-x">
+    
+      <li>
+  
+    
+  <div class="node-p " style="width:99px; height:200px;">
+    A
+  </div>
+
+  
+</li>
+    
+      <li>
+  
+    
+  <ul class="node-sc sc-y">
+    
+      <li>
+  
+    
+  <div class="node-p " style="width:100px; height:50px;">
+    B
+  </div>
+
+  
+</li>
+    
+      <li>
+  
+    
+  <div class="node-p focused" style="width:100px; height:150px;">
+    C
+  </div>
+
+  
+</li>
+    
+  </ul>
+
+  
+</li>
+    
+      <li>
+  
+    
+  <ul class="node-sc sc-y">
+    
+      <li>
+  
+    
+  <div class="node-p " style="width:101px; height:120px;">
+    D
+  </div>
+
+  
+</li>
+    
+      <li>
+  
+    
+  <div class="node-p " style="width:101px; height:80px;">
+    E
+  </div>
+
+  
+</li>
+    
+  </ul>
+
+  
+</li>
+    
+  </ul>
+
+  
+
+    
+  </div>
+
+  
+
+    
+  </div>
+
+  
+
+  </div>
+
+  
+    <div class="command-label"><pre>merge_to_subtab(
+    &#34;right&#34;,
+    src_selection=&#34;mru_deepest&#34;,
+    dest_selection=&#34;mru_deepest&#34;,
+)</pre></div>
+    
+  <div class="tree rhs" style="width: 300px; height: 200px" data-command=merge_to_subtab(
+    &#34;right&#34;,
+    src_selection=&#34;mru_deepest&#34;,
+    dest_selection=&#34;mru_deepest&#34;,
+)>
+    
+  
+    
+  <div class="node-tc">
+    
+    
+      
+  
+    
+  <div class="node-t">
+    
+      
+  
+    
+  <ul class="node-sc sc-x">
+    
+      <li>
+  
+    
+  <div class="node-p " style="width:99px; height:200px;">
+    A
+  </div>
+
+  
+</li>
+    
+      <li>
+  
+    
+  <div class="node-p " style="width:100px; height:200px;">
+    B
+  </div>
+
+  
+</li>
+    
+      <li>
+  
+    
+  <ul class="node-sc sc-y">
+    
+      <li>
+  
+    
+  <div class="node-p " style="width:101px; height:120px;">
+    D
+  </div>
+
+  
+</li>
+    
+      <li>
+  
+    
+  <div class="node-tc">
+    
+      <ul class="tc-bar" style="height:15px">
+        
+          <li class="tc-bar-item ">1</li>
+        
+          <li class="tc-bar-item active">2</li>
+        
+      </ul>
+    
+    
+      
+  
+    
+  <div class="node-t">
+    
+      
+  
+    
+  <ul class="node-sc sc-x">
+    
+      <li>
+  
+    
+  <div class="node-p focused" style="width:101px; height:65px;">
+    C
+  </div>
+
+  
+</li>
+    
+  </ul>
+
+  
+
+    
+  </div>
+
+  
+
+    
+  </div>
+
+  
+</li>
+    
+  </ul>
+
+  
+</li>
+    
+  </ul>
+
+  
+
+    
+  </div>
+
+  
+
+    
+  </div>
+
+  
+
+  </div>
+
+  
+    <div class="command-label"><pre>merge_to_subtab(
+    &#34;right&#34;,
+    src_selection=&#34;mru_deepest&#34;,
+    dest_selection=&#34;mru_largest&#34;,
+)</pre></div>
+    
+  <div class="tree rhs" style="width: 300px; height: 200px" data-command=merge_to_subtab(
+    &#34;right&#34;,
+    src_selection=&#34;mru_deepest&#34;,
+    dest_selection=&#34;mru_largest&#34;,
+)>
+    
+  
+    
+  <div class="node-tc">
+    
+    
+      
+  
+    
+  <div class="node-t">
+    
+      
+  
+    
+  <ul class="node-sc sc-x">
+    
+      <li>
+  
+    
+  <div class="node-p " style="width:99px; height:200px;">
+    A
+  </div>
+
+  
+</li>
+    
+      <li>
+  
+    
+  <div class="node-p " style="width:100px; height:200px;">
+    B
+  </div>
+
+  
+</li>
+    
+      <li>
+  
+    
+  <div class="node-tc">
+    
+      <ul class="tc-bar" style="height:15px">
+        
+          <li class="tc-bar-item ">1</li>
+        
+          <li class="tc-bar-item active">2</li>
+        
+      </ul>
+    
+    
+      
+  
+    
+  <div class="node-t">
+    
+      
+  
+    
+  <ul class="node-sc sc-x">
+    
+      <li>
+  
+    
+  <div class="node-p focused" style="width:101px; height:185px;">
+    C
+  </div>
+
+  
+</li>
+    
+  </ul>
+
+  
+
+    
+  </div>
+
+  
+
+    
+  </div>
+
+  
+</li>
+    
+  </ul>
+
+  
+
+    
+  </div>
+
+  
+
+    
+  </div>
+
+  
+
+  </div>
+
+  
+    <div class="command-label"><pre>merge_to_subtab(
+    &#34;right&#34;,
+    src_selection=&#34;mru_largest&#34;,
+    dest_selection=&#34;mru_deepest&#34;,
+)</pre></div>
+    
+  <div class="tree rhs" style="width: 300px; height: 200px" data-command=merge_to_subtab(
+    &#34;right&#34;,
+    src_selection=&#34;mru_largest&#34;,
+    dest_selection=&#34;mru_deepest&#34;,
+)>
+    
+  
+    
+  <div class="node-tc">
+    
+    
+      
+  
+    
+  <div class="node-t">
+    
+      
+  
+    
+  <ul class="node-sc sc-x">
+    
+      <li>
+  
+    
+  <div class="node-p " style="width:99px; height:200px;">
+    A
+  </div>
+
+  
+</li>
+    
+      <li>
+  
+    
+  <ul class="node-sc sc-y">
+    
+      <li>
+  
+    
+  <div class="node-p " style="width:201px; height:120px;">
+    D
+  </div>
+
+  
+</li>
+    
+      <li>
+  
+    
+  <div class="node-tc">
+    
+      <ul class="tc-bar" style="height:15px">
+        
+          <li class="tc-bar-item ">1</li>
+        
+          <li class="tc-bar-item active">2</li>
+        
+      </ul>
+    
+    
+      
+  
+    
+  <div class="node-t">
+    
+      
+  
+    
+  <ul class="node-sc sc-y">
+    
+      <li>
+  
+    
+  <div class="node-p " style="width:201px; height:20px;">
+    B
+  </div>
+
+  
+</li>
+    
+      <li>
+  
+    
+  <div class="node-p focused" style="width:201px; height:45px;">
+    C
+  </div>
+
+  
+</li>
+    
+  </ul>
+
+  
+
+    
+  </div>
+
+  
+
+    
+  </div>
+
+  
+</li>
+    
+  </ul>
+
+  
+</li>
+    
+  </ul>
+
+  
+
+    
+  </div>
+
+  
+
+    
+  </div>
+
+  
+
+  </div>
+
+  
+    <div class="command-label"><pre>merge_to_subtab(
+    &#34;right&#34;,
+    src_selection=&#34;mru_largest&#34;,
+    dest_selection=&#34;mru_largest&#34;,
+)</pre></div>
+    
+  <div class="tree rhs" style="width: 300px; height: 200px" data-command=merge_to_subtab(
+    &#34;right&#34;,
+    src_selection=&#34;mru_largest&#34;,
+    dest_selection=&#34;mru_largest&#34;,
+)>
+    
+  
+    
+  <div class="node-tc">
+    
+    
+      
+  
+    
+  <div class="node-t">
+    
+      
+  
+    
+  <ul class="node-sc sc-x">
+    
+      <li>
+  
+    
+  <div class="node-p " style="width:99px; height:200px;">
+    A
+  </div>
+
+  
+</li>
+    
+      <li>
+  
+    
+  <div class="node-tc">
+    
+      <ul class="tc-bar" style="height:15px">
+        
+          <li class="tc-bar-item ">1</li>
+        
+          <li class="tc-bar-item active">2</li>
+        
+      </ul>
+    
+    
+      
+  
+    
+  <div class="node-t">
+    
+      
+  
+    
+  <ul class="node-sc sc-y">
+    
+      <li>
+  
+    
+  <div class="node-p " style="width:201px; height:47px;">
+    B
+  </div>
+
+  
+</li>
+    
+      <li>
+  
+    
+  <div class="node-p focused" style="width:201px; height:138px;">
+    C
+  </div>
+
+  
+</li>
+    
+  </ul>
+
+  
+
+    
+  </div>
+
+  
+
+    
+  </div>
+
+  
+</li>
+    
+  </ul>
+
+  
+
+    
+  </div>
+
+  
+
+    
+  </div>
+
+  
+
+  </div>
+
+  
+</div>
+
+<script>
+;(function () {
+  function annotateExample() {
+    const example = document.querySelector(".example-advanced_1");
+
+    const lhs = example.getElementsByClassName("lhs");
+    const rhsItems = example.getElementsByClassName("rhs");
+
+    for (const rhs of rhsItems) {
+      const line = new LeaderLine({
+        start: lhs[0],
+        end: rhs,
+        size: 1,
+        endPlugSize: 3,
+        color: "#000",
+        path: "grid",
+        endSocketGravity: [-400, 0],
+      });
+    }
+  }
+
+  document.addEventListener("DOMContentLoaded", () => {
+    annotateExample();
+  });
+})()
+</script>
+          
+            <style>
+  .example-advanced_2 .lhs {
+    grid-row: 1 / 3;
+  }
+</style>
+  
+<pre class="subtitle"></pre>
+<div class="example example-advanced_2">
+  
+  <div class="tree lhs" style="width: 300px; height: 200px" data-command=None>
+    
+  
+    
+  <div class="node-tc">
+    
+    
+      
+  
+    
+  <div class="node-t">
+    
+      
+  
+    
+  <ul class="node-sc sc-x">
+    
+      <li>
+  
+    
+  <ul class="node-sc sc-y">
+    
+      <li>
+  
+    
+  <div class="node-p " style="width:99px; height:50px;">
+    A
+  </div>
+
+  
+</li>
+    
+      <li>
+  
+    
+  <div class="node-p " style="width:99px; height:150px;">
+    B
+  </div>
+
+  
+</li>
+    
+  </ul>
+
+  
+</li>
+    
+      <li>
+  
+    
+  <ul class="node-sc sc-y">
+    
+      <li>
+  
+    
+  <div class="node-p focused" style="width:100px; height:100px;">
+    C
+  </div>
+
+  
+</li>
+    
+      <li>
+  
+    
+  <div class="node-p " style="width:100px; height:100px;">
+    D
+  </div>
+
+  
+</li>
+    
+  </ul>
+
+  
+</li>
+    
+      <li>
+  
+    
+  <div class="node-tc">
+    
+      <ul class="tc-bar" style="height:15px">
+        
+          <li class="tc-bar-item ">1</li>
+        
+          <li class="tc-bar-item active">2</li>
+        
+      </ul>
+    
+    
+      
+  
+    
+  <div class="node-t">
+    
+      
+  
+    
+  <ul class="node-sc sc-x">
+    
+      <li>
+  
+    
+  <div class="node-p " style="width:50px; height:185px;">
+    F
+  </div>
+
+  
+</li>
+    
+      <li>
+  
+    
+  <div class="node-p " style="width:51px; height:185px;">
+    G
+  </div>
+
+  
+</li>
+    
+  </ul>
+
+  
+
+    
+  </div>
+
+  
+
+    
+  </div>
+
+  
+</li>
+    
+  </ul>
+
+  
+
+    
+  </div>
+
+  
+
+    
+  </div>
+
+  
+
+  </div>
+
+  
+    <div class="command-label"><pre>merge_to_subtab(
+    &#34;right&#34;,
+    dest_selection=&#34;mru_subtab_else_deepest&#34;,
+)</pre></div>
+    
+  <div class="tree rhs" style="width: 300px; height: 200px" data-command=merge_to_subtab(
+    &#34;right&#34;,
+    dest_selection=&#34;mru_subtab_else_deepest&#34;,
+)>
+    
+  
+    
+  <div class="node-tc">
+    
+    
+      
+  
+    
+  <div class="node-t">
+    
+      
+  
+    
+  <ul class="node-sc sc-x">
+    
+      <li>
+  
+    
+  <ul class="node-sc sc-y">
+    
+      <li>
+  
+    
+  <div class="node-p " style="width:99px; height:50px;">
+    A
+  </div>
+
+  
+</li>
+    
+      <li>
+  
+    
+  <div class="node-p " style="width:99px; height:150px;">
+    B
+  </div>
+
+  
+</li>
+    
+  </ul>
+
+  
+</li>
+    
+      <li>
+  
+    
+  <div class="node-p " style="width:100px; height:200px;">
+    D
+  </div>
+
+  
+</li>
+    
+      <li>
+  
+    
+  <div class="node-tc">
+    
+      <ul class="tc-bar" style="height:15px">
+        
+          <li class="tc-bar-item ">1</li>
+        
+          <li class="tc-bar-item ">2</li>
+        
+          <li class="tc-bar-item active">3</li>
+        
+      </ul>
+    
+    
+      
+  
+    
+  <div class="node-t">
+    
+      
+  
+    
+  <ul class="node-sc sc-x">
+    
+      <li>
+  
+    
+  <div class="node-p focused" style="width:101px; height:185px;">
+    C
+  </div>
+
+  
+</li>
+    
+  </ul>
+
+  
+
+    
+  </div>
+
+  
+
+    
+  </div>
+
+  
+</li>
+    
+  </ul>
+
+  
+
+    
+  </div>
+
+  
+
+    
+  </div>
+
+  
+
+  </div>
+
+  
+    <div class="command-label"><pre>merge_to_subtab(
+    &#34;left&#34;,
+    dest_selection=&#34;mru_subtab_else_deepest&#34;,
+)</pre></div>
+    
+  <div class="tree rhs" style="width: 300px; height: 200px" data-command=merge_to_subtab(
+    &#34;left&#34;,
+    dest_selection=&#34;mru_subtab_else_deepest&#34;,
+)>
+    
+  
+    
+  <div class="node-tc">
+    
+    
+      
+  
+    
+  <div class="node-t">
+    
+      
+  
+    
+  <ul class="node-sc sc-x">
+    
+      <li>
+  
+    
+  <ul class="node-sc sc-y">
+    
+      <li>
+  
+    
+  <div class="node-p " style="width:99px; height:50px;">
+    A
+  </div>
+
+  
+</li>
+    
+      <li>
+  
+    
+  <div class="node-tc">
+    
+      <ul class="tc-bar" style="height:15px">
+        
+          <li class="tc-bar-item ">1</li>
+        
+          <li class="tc-bar-item active">2</li>
+        
+      </ul>
+    
+    
+      
+  
+    
+  <div class="node-t">
+    
+      
+  
+    
+  <ul class="node-sc sc-x">
+    
+      <li>
+  
+    
+  <div class="node-p focused" style="width:99px; height:135px;">
+    C
+  </div>
+
+  
+</li>
+    
+  </ul>
+
+  
+
+    
+  </div>
+
+  
+
+    
+  </div>
+
+  
+</li>
+    
+  </ul>
+
+  
+</li>
+    
+      <li>
+  
+    
+  <div class="node-p " style="width:100px; height:200px;">
+    D
+  </div>
+
+  
+</li>
+    
+      <li>
+  
+    
+  <div class="node-tc">
+    
+      <ul class="tc-bar" style="height:15px">
+        
+          <li class="tc-bar-item ">1</li>
+        
+          <li class="tc-bar-item active">2</li>
+        
+      </ul>
+    
+    
+      
+  
+    
+  <div class="node-t">
+    
+      
+  
+    
+  <ul class="node-sc sc-x">
+    
+      <li>
+  
+    
+  <div class="node-p " style="width:50px; height:185px;">
+    F
+  </div>
+
+  
+</li>
+    
+      <li>
+  
+    
+  <div class="node-p " style="width:51px; height:185px;">
+    G
+  </div>
+
+  
+</li>
+    
+  </ul>
+
+  
+
+    
+  </div>
+
+  
+
+    
+  </div>
+
+  
+</li>
+    
+  </ul>
+
+  
+
+    
+  </div>
+
+  
+
+    
+  </div>
+
+  
+
+  </div>
+
+  
+</div>
+
+<script>
+;(function () {
+  function annotateExample() {
+    const example = document.querySelector(".example-advanced_2");
+
+    const lhs = example.getElementsByClassName("lhs");
+    const rhsItems = example.getElementsByClassName("rhs");
+
+    for (const rhs of rhsItems) {
+      const line = new LeaderLine({
+        start: lhs[0],
+        end: rhs,
+        size: 1,
+        endPlugSize: 3,
+        color: "#000",
+        path: "grid",
+        endSocketGravity: [-400, 0],
+      });
+    }
+  }
+
+  document.addEventListener("DOMContentLoaded", () => {
+    annotateExample();
+  });
+})()
+</script>
+          
+            <style>
+  .example-advanced_3 .lhs {
+    grid-row: 1 / 3;
+  }
+</style>
+  
+<pre class="subtitle"></pre>
+<div class="example example-advanced_3">
+  
+  <div class="tree lhs" style="width: 300px; height: 200px" data-command=None>
+    
+  
+    
+  <div class="node-tc">
+    
+    
+      
+  
+    
+  <div class="node-t">
+    
+      
+  
+    
+  <ul class="node-sc sc-x">
+    
+      <li>
+  
+    
+  <ul class="node-sc sc-y">
+    
+      <li>
+  
+    
+  <div class="node-p " style="width:99px; height:50px;">
+    A
+  </div>
+
+  
+</li>
+    
+      <li>
+  
+    
+  <div class="node-p " style="width:99px; height:150px;">
+    B
+  </div>
+
+  
+</li>
+    
+  </ul>
+
+  
+</li>
+    
+      <li>
+  
+    
+  <ul class="node-sc sc-y">
+    
+      <li>
+  
+    
+  <div class="node-p focused" style="width:100px; height:100px;">
+    C
+  </div>
+
+  
+</li>
+    
+      <li>
+  
+    
+  <div class="node-p " style="width:100px; height:100px;">
+    D
+  </div>
+
+  
+</li>
+    
+  </ul>
+
+  
+</li>
+    
+      <li>
+  
+    
+  <ul class="node-sc sc-y">
+    
+      <li>
+  
+    
+  <div class="node-p " style="width:101px; height:60px;">
+    E
+  </div>
+
+  
+</li>
+    
+      <li>
+  
+    
+  <div class="node-tc">
+    
+      <ul class="tc-bar" style="height:15px">
+        
+          <li class="tc-bar-item ">1</li>
+        
+          <li class="tc-bar-item active">2</li>
+        
+      </ul>
+    
+    
+      
+  
+    
+  <div class="node-t">
+    
+      
+  
+    
+  <ul class="node-sc sc-x">
+    
+      <li>
+  
+    
+  <div class="node-p " style="width:101px; height:125px;">
+    G
+  </div>
+
+  
+</li>
+    
+  </ul>
+
+  
+
+    
+  </div>
+
+  
+
+    
+  </div>
+
+  
+</li>
+    
+  </ul>
+
+  
+</li>
+    
+  </ul>
+
+  
+
+    
+  </div>
+
+  
+
+    
+  </div>
+
+  
+
+  </div>
+
+  
+    <div class="command-label"><pre>merge_to_subtab(
+    &#34;right&#34;,
+    dest_selection=&#34;mru_subtab_else_largest&#34;,
+)</pre></div>
+    
+  <div class="tree rhs" style="width: 300px; height: 200px" data-command=merge_to_subtab(
+    &#34;right&#34;,
+    dest_selection=&#34;mru_subtab_else_largest&#34;,
+)>
+    
+  
+    
+  <div class="node-tc">
+    
+    
+      
+  
+    
+  <div class="node-t">
+    
+      
+  
+    
+  <ul class="node-sc sc-x">
+    
+      <li>
+  
+    
+  <ul class="node-sc sc-y">
+    
+      <li>
+  
+    
+  <div class="node-p " style="width:99px; height:50px;">
+    A
+  </div>
+
+  
+</li>
+    
+      <li>
+  
+    
+  <div class="node-p " style="width:99px; height:150px;">
+    B
+  </div>
+
+  
+</li>
+    
+  </ul>
+
+  
+</li>
+    
+      <li>
+  
+    
+  <div class="node-p " style="width:100px; height:200px;">
+    D
+  </div>
+
+  
+</li>
+    
+      <li>
+  
+    
+  <ul class="node-sc sc-y">
+    
+      <li>
+  
+    
+  <div class="node-p " style="width:101px; height:60px;">
+    E
+  </div>
+
+  
+</li>
+    
+      <li>
+  
+    
+  <div class="node-tc">
+    
+      <ul class="tc-bar" style="height:15px">
+        
+          <li class="tc-bar-item ">1</li>
+        
+          <li class="tc-bar-item ">2</li>
+        
+          <li class="tc-bar-item active">3</li>
+        
+      </ul>
+    
+    
+      
+  
+    
+  <div class="node-t">
+    
+      
+  
+    
+  <ul class="node-sc sc-x">
+    
+      <li>
+  
+    
+  <div class="node-p focused" style="width:101px; height:125px;">
+    C
+  </div>
+
+  
+</li>
+    
+  </ul>
+
+  
+
+    
+  </div>
+
+  
+
+    
+  </div>
+
+  
+</li>
+    
+  </ul>
+
+  
+</li>
+    
+  </ul>
+
+  
+
+    
+  </div>
+
+  
+
+    
+  </div>
+
+  
+
+  </div>
+
+  
+    <div class="command-label"><pre>merge_to_subtab(
+    &#34;left&#34;,
+    dest_selection=&#34;mru_subtab_else_largest&#34;,
+)</pre></div>
+    
+  <div class="tree rhs" style="width: 300px; height: 200px" data-command=merge_to_subtab(
+    &#34;left&#34;,
+    dest_selection=&#34;mru_subtab_else_largest&#34;,
+)>
+    
+  
+    
+  <div class="node-tc">
+    
+    
+      
+  
+    
+  <div class="node-t">
+    
+      
+  
+    
+  <ul class="node-sc sc-x">
+    
+      <li>
+  
+    
+  <div class="node-tc">
+    
+      <ul class="tc-bar" style="height:15px">
+        
+          <li class="tc-bar-item ">1</li>
+        
+          <li class="tc-bar-item active">2</li>
+        
+      </ul>
+    
+    
+      
+  
+    
+  <div class="node-t">
+    
+      
+  
+    
+  <ul class="node-sc sc-x">
+    
+      <li>
+  
+    
+  <div class="node-p focused" style="width:99px; height:185px;">
+    C
+  </div>
+
+  
+</li>
+    
+  </ul>
+
+  
+
+    
+  </div>
+
+  
+
+    
+  </div>
+
+  
+</li>
+    
+      <li>
+  
+    
+  <div class="node-p " style="width:100px; height:200px;">
+    D
+  </div>
+
+  
+</li>
+    
+      <li>
+  
+    
+  <ul class="node-sc sc-y">
+    
+      <li>
+  
+    
+  <div class="node-p " style="width:101px; height:60px;">
+    E
+  </div>
+
+  
+</li>
+    
+      <li>
+  
+    
+  <div class="node-tc">
+    
+      <ul class="tc-bar" style="height:15px">
+        
+          <li class="tc-bar-item ">1</li>
+        
+          <li class="tc-bar-item active">2</li>
+        
+      </ul>
+    
+    
+      
+  
+    
+  <div class="node-t">
+    
+      
+  
+    
+  <ul class="node-sc sc-x">
+    
+      <li>
+  
+    
+  <div class="node-p " style="width:101px; height:125px;">
+    G
+  </div>
+
+  
+</li>
+    
+  </ul>
+
+  
+
+    
+  </div>
+
+  
+
+    
+  </div>
+
+  
+</li>
+    
+  </ul>
+
+  
+</li>
+    
+  </ul>
+
+  
+
+    
+  </div>
+
+  
+
+    
+  </div>
+
+  
+
+  </div>
+
+  
+</div>
+
+<script>
+;(function () {
+  function annotateExample() {
+    const example = document.querySelector(".example-advanced_3");
+
+    const lhs = example.getElementsByClassName("lhs");
+    const rhsItems = example.getElementsByClassName("rhs");
+
+    for (const rhs of rhsItems) {
+      const line = new LeaderLine({
+        start: lhs[0],
+        end: rhs,
+        size: 1,
+        endPlugSize: 3,
+        color: "#000",
+        path: "grid",
+        endSocketGravity: [-400, 0],
+      });
+    }
+  }
+
+  document.addEventListener("DOMContentLoaded", () => {
+    annotateExample();
+  });
+})()
+</script>
+          
+        </li>
+      
+    </ul>
+
+    <footer>
+      For complete details of commands, check the documentation at <a href="https://github.com/aravinda0/qtile-bonsai?tab=readme-ov-file#Commands">github.com/aravinda0/qtile-bonsai</a>
+    </footer>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leader-line/1.0.7/leader-line.min.js" integrity="sha512-0dNdzMjpT6pJdFGF1DwybFCfm3K/lzHhxaMXC/92J9/DZujHlqYFqmhTOAoD0o+LkeEsVK2ar/ESs7/Q2B6wJg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  </body>
+</html>

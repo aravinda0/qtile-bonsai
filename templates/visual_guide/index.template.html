@@ -1,0 +1,36 @@
+{% from 'visual_guide/tree.template.html' import render_tree %}
+
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Visual Guide for Qtile Bonsai</title>
+    <link href="themes.css" rel="stylesheet">
+    <link href="index.css" rel="stylesheet">
+  </head>
+  <body>
+    <header class="main-header">
+      <h1>Qtile Bonsai</h1>
+      <p class="subtitle">Visual Guide</p>
+    </header>
+
+    <ul class="guide">
+      {% for section, examples in sections.items() %}
+        <li class="section">
+          <h2 class="title">{{ section }}</h2>
+          {% for example in examples %}
+            {% include example.template_path %}
+          {% endfor %}
+        </li>
+      {% endfor %}
+    </ul>
+
+    <footer>
+      For complete details of commands, check the documentation at <a href="https://github.com/aravinda0/qtile-bonsai?tab=readme-ov-file#Commands">github.com/aravinda0/qtile-bonsai</a>
+    </footer>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leader-line/1.0.7/leader-line.min.js" integrity="sha512-0dNdzMjpT6pJdFGF1DwybFCfm3K/lzHhxaMXC/92J9/DZujHlqYFqmhTOAoD0o+LkeEsVK2ar/ESs7/Q2B6wJg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  </body>
+</html>
