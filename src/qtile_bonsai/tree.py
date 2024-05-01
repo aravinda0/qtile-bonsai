@@ -104,6 +104,8 @@ class BonsaiTabContainer(BonsaiNodeMixin, TabContainer):
             else:
                 self.bar_drawer.set_source_rgb(tab_bg_color)
                 self.bar_text_layout.colour = tab_fg_color
+            self.bar_text_layout.font_family = tab_font_family
+            self.bar_text_layout.font_size = tab_font_size
 
             # Compute space for the tab rect
             tab_title = f"{i + 1}: {tab.title}" if tab.title else f"{i + 1}"
