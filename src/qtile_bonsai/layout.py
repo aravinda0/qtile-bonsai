@@ -770,7 +770,7 @@ class Bonsai(Layout):
         direction: DirectionParam,
         *,
         src_selection: NodeHierarchySelectionMode = NodeHierarchySelectionMode.mru_deepest,
-        dest_selection: NodeHierarchySelectionMode = NodeHierarchySelectionMode.mru_deepest,
+        dest_selection: NodeHierarchySelectionMode = NodeHierarchySelectionMode.mru_largest,
         normalize: bool = True,
         wrap: bool = True,
     ):
