@@ -107,6 +107,28 @@ class Bonsai(Layout):
             """,
         ),
         LayoutOption(
+            "window.default_add_mode",
+            "tab",
+            """
+            (Experimental)
+
+            Determines how windows get added if they are not explicitly spawned as a
+            split or a tab.
+            Can be one of "tab" or "match_previous". 
+            If "match_previous", then then new window will get added in the same way the
+            previous window was. eg. if the previous window was added as a y-split, so
+            will the new window.
+
+            NOTE: 
+            Setting this to "tab" may seem convenient, since externally spawned GUI apps
+            get added as background tabs instead of messing up the current split layout.
+            But due to how the window creation flow happens, when many splits are
+            requested in quick succession, this may cause some windows requested as a
+            split to open up as a tab instead.
+            """,
+            validator=validation.validate_default_add_mode,
+        ),
+        LayoutOption(
             "tab_bar.height",
             20,
             "Height of tab bars",
@@ -228,7 +250,7 @@ class Bonsai(Layout):
         self._focused_window: Window | None
         self._windows_to_panes: dict[Window, BonsaiPane]
         self._add_client_mode: Bonsai.AddClientMode
-        self._pending_window_capture_ops: collections.deque[Bonsai.WindowHandler]
+        self._next_window_handler: Bonsai.WindowHandler
 
         self._restoration_window_id_to_pane_id: dict[int, int] = {}
 
@@ -373,6 +395,10 @@ class Bonsai(Layout):
         return self.previous(window)
 
     def hide(self):
+        # While other layouts are active, ensure that any new windows are captured
+        # consistenty with the default tab layout here.
+        self._next_window_handler = self._handle_default_next_window
+
         self._tree.hide()
 
         # Use this opportunity for some cleanup
@@ -435,7 +461,7 @@ class Bonsai(Layout):
                 target, axis, ratio=ratio, normalize=normalize, position=position
             )
 
-        self._pending_window_capture_ops.appendleft(_handle_next_window)
+        self._next_window_handler = _handle_next_window
         self._spawn_program(program)
 
     @expose_command
@@ -486,7 +512,7 @@ class Bonsai(Layout):
             # `self.focused_pane` is in.
             return self._tree.tab(self.focused_pane)
 
-        self._pending_window_capture_ops.appendleft(_handle_next_window)
+        self._next_window_handler = _handle_next_window
         self._spawn_program(program)
 
     @expose_command
@@ -954,7 +980,7 @@ class Bonsai(Layout):
         def _handle_next_window():
             return self._tree.tab()
 
-        self._pending_window_capture_ops = collections.deque()
+        self._next_window_handler = _handle_next_window
 
         self._handle_initial_restoration_check()
 
@@ -1103,12 +1129,15 @@ class Bonsai(Layout):
         return pane
 
     def _handle_add_client__normal(self, window: Window) -> BonsaiPane:
-        if self._pending_window_capture_ops:
-            handler = self._pending_window_capture_ops.pop()
-        else:
-            handler = self._handle_default_next_window
+        if self._tree.is_empty:
+            self._next_window_handler = self._handle_default_next_window
 
-        return handler()
+        pane = self._next_window_handler()
+
+        if self._tree.get_config("window.default_add_mode") == "tab":
+            self._next_window_handler = self._handle_default_next_window
+
+        return pane
 
     def _get_windows_to_panes_mapping_from_state(self, state: dict) -> dict:
         windows_to_panes = {}

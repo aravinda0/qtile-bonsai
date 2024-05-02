@@ -12,3 +12,11 @@ def validate_border_size(key: str, value: Any) -> tuple[bool, str | None]:
         )
         return (False, err_msg)
     return (True, None)
+
+
+def validate_default_add_mode(key: str, value: Any) -> tuple[bool, str | None]:
+    allowed_values = ["tab", "match_previous"]
+    if value not in allowed_values:
+        err_msg = f"{key} can only be one of {allowed_values}"
+        return (False, err_msg)
+    return (True, None)
