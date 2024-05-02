@@ -4021,6 +4021,32 @@ class TestMergeTabs:
         assert cb_add.mock_calls == []
         assert cb_remove.mock_calls == [mock.call([t1])]
 
+    def test_when_tc_is_pruned_out(self, tree: Tree):
+        tree.set_config("tab_bar.hide_when", "single_tab")
+
+        p1 = tree.tab()
+        p2 = tree.split(p1, "x")
+        p3 = tree.tab()
+        p4 = tree.split(p3, "y")
+
+        t1 = p2.get_first_ancestor(Tab)
+        t2 = p4.get_first_ancestor(Tab)
+        tree.merge_tabs(t1, t2, "x")
+
+        assert tree_matches_repr(
+            tree,
+            """
+            - tc:1
+                - t:6
+                    - sc.x:10
+                        - sc.y:7
+                            - p:8 | {x: 0, y: 0, w: 200, h: 150}
+                            - p:9 | {x: 0, y: 150, w: 200, h: 150}
+                        - p:4 | {x: 200, y: 0, w: 100, h: 300}
+                        - p:5 | {x: 300, y: 0, w: 100, h: 300}
+            """,
+        )
+
 
 class TestMergeToSubtab:
     def test_when_src_and_dest_resolve_to_same_node_then_error_is_raised(

@@ -540,8 +540,10 @@ class Tree:
         axis = Axis(axis)
 
         removed_nodes = []
-        br_rm, _, _, _removed_nodes = self._remove(src)
+        br_rm, _, br_sib, _removed_nodes = self._remove(src)
         removed_nodes.extend(_removed_nodes)
+        if br_sib is not None:
+            removed_nodes.extend(self._do_post_removal_pruning(br_sib))
 
         br_rm_sc = br_rm.children[0]
         dest_sc = dest.children[0]
