@@ -240,7 +240,7 @@ class EgPushIn1(Example):
         lp2 = lhs.split(lp1, "x", ratio=0.33)
         lp3 = lhs.split(lp2, "y")
         lp4 = lhs.split(lp3.parent, "x")
-        _ = lhs.split(lp4, "y")
+        _ = lhs.split(lp4, "y", ratio=0.3)
         lhs.focus(lp3)
 
         rhs1 = lhs.clone()
