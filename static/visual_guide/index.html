@@ -3517,6 +3517,283 @@
         </li>
       
         <li class="section">
+          <h2 class="title">Merge Tabs</h2>
+          
+            <style>
+  .example-merge_tabs .lhs {
+    grid-row: 1 / 3;
+  }
+</style>
+  
+<pre class="subtitle"></pre>
+<div class="example example-merge_tabs">
+  
+  <div class="tree lhs" style="width: 300px; height: 200px" data-command=None>
+    
+  
+    
+  <div class="node-tc">
+    
+      <ul class="tc-bar" style="height:15px">
+        
+          <li class="tc-bar-item ">1</li>
+        
+          <li class="tc-bar-item active">2</li>
+        
+      </ul>
+    
+    
+      
+  
+    
+  <div class="node-t">
+    
+      
+  
+    
+  <ul class="node-sc sc-y">
+    
+      <li>
+  
+    
+  <div class="node-p " style="width:300px; height:92px;">
+    C
+  </div>
+
+  
+</li>
+    
+      <li>
+  
+    
+  <div class="node-p focused" style="width:300px; height:93px;">
+    D
+  </div>
+
+  
+</li>
+    
+  </ul>
+
+  
+
+    
+  </div>
+
+  
+
+    
+  </div>
+
+  
+
+  </div>
+
+  
+    <div class="command-label"><pre>merge_tabs(&#34;previous&#34;, &#34;x&#34;)</pre></div>
+    
+  <div class="tree rhs" style="width: 300px; height: 200px" data-command=merge_tabs(&#34;previous&#34;, &#34;x&#34;)>
+    
+  
+    
+  <div class="node-tc">
+    
+    
+      
+  
+    
+  <div class="node-t">
+    
+      
+  
+    
+  <ul class="node-sc sc-x">
+    
+      <li>
+  
+    
+  <div class="node-p " style="width:75px; height:200px;">
+    A
+  </div>
+
+  
+</li>
+    
+      <li>
+  
+    
+  <div class="node-p " style="width:75px; height:200px;">
+    B
+  </div>
+
+  
+</li>
+    
+      <li>
+  
+    
+  <ul class="node-sc sc-y">
+    
+      <li>
+  
+    
+  <div class="node-p " style="width:150px; height:99px;">
+    C
+  </div>
+
+  
+</li>
+    
+      <li>
+  
+    
+  <div class="node-p focused" style="width:150px; height:101px;">
+    D
+  </div>
+
+  
+</li>
+    
+  </ul>
+
+  
+</li>
+    
+  </ul>
+
+  
+
+    
+  </div>
+
+  
+
+    
+  </div>
+
+  
+
+  </div>
+
+  
+    <div class="command-label"><pre>merge_tabs(&#34;previous&#34;, &#34;y&#34;)</pre></div>
+    
+  <div class="tree rhs" style="width: 300px; height: 200px" data-command=merge_tabs(&#34;previous&#34;, &#34;y&#34;)>
+    
+  
+    
+  <div class="node-tc">
+    
+    
+      
+  
+    
+  <div class="node-t">
+    
+      
+  
+    
+  <ul class="node-sc sc-y">
+    
+      <li>
+  
+    
+  <ul class="node-sc sc-x">
+    
+      <li>
+  
+    
+  <div class="node-p " style="width:150px; height:100px;">
+    A
+  </div>
+
+  
+</li>
+    
+      <li>
+  
+    
+  <div class="node-p " style="width:150px; height:100px;">
+    B
+  </div>
+
+  
+</li>
+    
+  </ul>
+
+  
+</li>
+    
+      <li>
+  
+    
+  <div class="node-p " style="width:300px; height:50px;">
+    C
+  </div>
+
+  
+</li>
+    
+      <li>
+  
+    
+  <div class="node-p focused" style="width:300px; height:50px;">
+    D
+  </div>
+
+  
+</li>
+    
+  </ul>
+
+  
+
+    
+  </div>
+
+  
+
+    
+  </div>
+
+  
+
+  </div>
+
+  
+</div>
+
+<script>
+;(function () {
+  function annotateExample() {
+    const example = document.querySelector(".example-merge_tabs");
+
+    const lhs = example.getElementsByClassName("lhs");
+    const rhsItems = example.getElementsByClassName("rhs");
+
+    for (const rhs of rhsItems) {
+      const line = new LeaderLine({
+        start: lhs[0],
+        end: rhs,
+        size: 1,
+        endPlugSize: 3,
+        color: "#000",
+        path: "grid",
+        endSocketGravity: [-400, 0],
+      });
+    }
+  }
+
+  document.addEventListener("DOMContentLoaded", () => {
+    annotateExample();
+  });
+})()
+</script>
+          
+        </li>
+      
+        <li class="section">
           <h2 class="title">Advanced Options for Branch Selection</h2>
           
             <style>

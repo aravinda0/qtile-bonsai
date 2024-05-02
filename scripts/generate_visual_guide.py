@@ -4,7 +4,7 @@ from pathlib import Path
 
 import jinja2
 
-from qtile_bonsai.core.nodes import Node, Pane
+from qtile_bonsai.core.nodes import Node, Pane, Tab
 from qtile_bonsai.core.tree import Tree
 from qtile_bonsai.core.utils import to_snake_case
 
@@ -416,6 +416,37 @@ class EgPullOutToTab3(Example):
         return {
             "lhs": lhs,
             "rhs_items": [rhs1],
+        }
+
+
+class EgMergeTabs(Example):
+    section = "Merge Tabs"
+
+    def build_context_fragment(self):
+        lhs = make_tree()
+        lp1 = lhs.tab()
+        _ = lhs.split(lp1, "x")
+        lp3 = lhs.tab()
+        lp4 = lhs.split(lp3, "y")
+        lhs.focus(lp4)
+
+        rhs1 = lhs.clone()
+        rt1 = rhs1.node(lp1.get_first_ancestor(Tab).id)
+        rt2 = rhs1.node(lp4.get_first_ancestor(Tab).id)
+        rhs1.merge_tabs(rt2, rt1, "x")
+        rhs1.command = 'merge_tabs("previous", "x")'
+        rhs1.focus(rhs1.node(lp4.id))
+
+        rhs2 = lhs.clone()
+        rt1 = rhs2.node(lp1.get_first_ancestor(Tab).id)
+        rt2 = rhs2.node(lp4.get_first_ancestor(Tab).id)
+        rhs2.merge_tabs(rt2, rt1, "y")
+        rhs2.command = 'merge_tabs("previous", "y")'
+        rhs2.focus(rhs2.node(lp4.id))
+
+        return {
+            "lhs": lhs,
+            "rhs_items": [rhs1, rhs2],
         }
 
 
