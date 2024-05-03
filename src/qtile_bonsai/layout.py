@@ -707,12 +707,14 @@ class Bonsai(Layout):
         now appear in 2 splits.
 
         Args:
+            `direction`:
+                Which neighbor tab to merge with. Can be either "next" or "previous".
             `axis`:
                 The axis along which the merged content should appear as splits.
 
         Examples:
             - `layout.merge_tabs("previous")`
-            - `layout.merge_tabs("next")`
+            - `layout.merge_tabs("next", "y")`
         """
         if self._tree.is_empty:
             return
