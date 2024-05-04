@@ -3,7 +3,6 @@ body {
 }
 
 .guide {
-  margin: 5% 15%;
   padding: 0;
 }
 
@@ -137,4 +136,61 @@ footer {
 }
 .node-p.focused {
   color: var(--red-dim);
+}
+
+
+/**
+* -------------------------------------------------------------------------------- 
+* Media first.
+* Non-mobile first approach. Order matters.
+* -------------------------------------------------------------------------------- 
+*/
+
+html {
+  font-size: 100%;
+}
+
+/* Extra large devices  */
+@media screen and (min-width: 1025px) {
+  html {
+    font-size: 100%;
+  }
+
+  .guide {
+    margin: 5% 15%;
+  }
+}
+
+
+/* Large devices */
+@media only screen and (max-width: 1024px) {
+  html {
+    font-size: 70%;
+  }
+
+  .guide {
+    margin: 5% 5%;
+  }
+}
+
+/* Medium devices */
+@media only screen and (max-width: 768px) {
+  html {
+    font-size: 45%;
+  }
+
+  .guide {
+    margin: 5% 0%;
+  }
+}
+
+/* Small devices */
+@media only screen and (max-width: 480px) {
+  html {
+    font-size: 35%;
+  }
+
+  .guide {
+    margin: 5% 0;
+  }
 }
