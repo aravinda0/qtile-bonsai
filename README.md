@@ -56,7 +56,6 @@ pip install qtile-bonsai
 #### 1. Make Bonsai available as a layout in your qtile config
 
 ```python
-
 from qtile_bonsai import Bonsai
 
 
@@ -69,9 +68,9 @@ layouts = [
       # You can specify subtab level specific options if desired by prefixing
       # the option key with the appropriate level, eg. L1, L2, L3 etc.
       # For example, the following options affect only 2nd level subtabs and
-      # their windows.
-      "L2.tab_bar.height": 15,
-      "L2.tab_bar.tab.font_size": 10,
+      # their windows. eg:
+      # "L2.window.border_color": "#ff0000",
+      # "L2.window.margin": 5,
     }),
 ]
 ```
@@ -79,20 +78,21 @@ layouts = [
 #### 2. Add your personal keybindings to your qtile config
 
 ```python
-from libqtile.config import EzKey
+from libqtile.config import EzKey, KeyChord
 from libqtile.utils import guess_terminal
+
 
 terminal = guess_terminal()
 rofi_run_cmd = "rofi -show drun -m -1"
 
 keys = [
     # Open your terminal emulator quickly. See further below for more bindings
-    # to directly open GUI apps as splits/tabs.
+    # to directly open apps as splits/tabs using something like rofi.
     EzKey("M-v", lazy.layout.spawn_split(terminal, "x")),
     EzKey("M-x", lazy.layout.spawn_split(terminal, "y")),
     EzKey("M-t", lazy.layout.spawn_tab(terminal)),
     EzKey("M-S-t", lazy.layout.spawn_tab(terminal, new_level=True)),
-    
+
     # Motions to move focus. The names are compatible with built-in layouts.
     EzKey("M-h", lazy.layout.left()),
     EzKey("M-l", lazy.layout.right()),
@@ -100,13 +100,13 @@ keys = [
     EzKey("M-j", lazy.layout.down()),
     EzKey("A-d", lazy.layout.prev_tab()),
     EzKey("A-f", lazy.layout.next_tab()),
-    
+
     # Resize operations
     EzKey("M-C-h", lazy.layout.resize("left", 100)),
     EzKey("M-C-l", lazy.layout.resize("right", 100)),
     EzKey("M-C-k", lazy.layout.resize("up", 100)),
     EzKey("M-C-j", lazy.layout.resize("down", 100)),
-    
+
     # Swap windows/tabs with neighbors
     EzKey("M-S-h", lazy.layout.swap("left")),
     EzKey("M-S-l", lazy.layout.swap("right")),
@@ -114,14 +114,14 @@ keys = [
     EzKey("M-S-j", lazy.layout.swap("down")),
     EzKey("A-S-d", lazy.layout.swap_tab_prev()),
     EzKey("A-S-f", lazy.layout.swap_tab_next()),
-    
+
     # It's kinda nice to have more advanced window management commands under a
     # qtile key chord.
     KeyChord(
         ["mod4"],
         "w",
         [
-            # Pick GUI applications to directly open as tabs/splits via something like rofi
+            # Use something like rofi to pick GUI apps to open as splits/tabs.
             EzKey("v", lazy.layout.spawn_split(rofi_run_cmd, "x")),
             EzKey("x", lazy.layout.spawn_split(rofi_run_cmd, "y")),
             EzKey("t", lazy.layout.spawn_tab(rofi_run_cmd)),
@@ -132,7 +132,7 @@ keys = [
             EzKey("o", lazy.layout.pull_out()),
             EzKey("u", lazy.layout.pull_out_to_tab()),
             
-            # Directional commands to merge windows and their neighbors into subtabs
+            # Directional commands to merge windows with their neighbor into subtabs.
             KeyChord(
                 [],
                 "m",
@@ -148,7 +148,7 @@ keys = [
                 ],
             ),
             
-            # Directional commands for push_in()
+            # Directional commands for push_in() to move window inside neighbor space.
             KeyChord(
                 [],
                 "i",
