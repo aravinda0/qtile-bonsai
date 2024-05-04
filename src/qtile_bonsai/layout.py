@@ -726,6 +726,11 @@ class Bonsai(Layout):
 
         if src is not dest and dest is not None:
             self._tree.merge_tabs(src, dest, axis)
+
+            # Need to re-focus pane after it gets hidden behind dest, which was a
+            # background tab.
+            self._request_focus(self.focused_pane)
+
             self._request_relayout()
 
     @expose_command
