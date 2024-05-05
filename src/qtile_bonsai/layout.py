@@ -778,8 +778,15 @@ class Bonsai(Layout):
                 in play, behaves like `mru_largest`.
 
         Examples:
-            - `layout.merge_to_subtab("right", dest_selection="mru_subtab_else_deepest")`
-            - `layout.merge_to_subtab("up", src_selection_mo="mru_deepest", dest_selection="mru_deepest")`
+            - layout.merge_to_subtab(
+                "right",
+                dest_selection="mru_subtab_else_deepest",
+            )
+            - layout.merge_to_subtab(
+                "up",
+                src_selection="mru_deepest",
+                dest_selection="mru_deepest",
+            )
         """
         if self._tree.is_empty:
             return
