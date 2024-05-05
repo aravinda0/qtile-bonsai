@@ -72,7 +72,7 @@ def get_exposed_comands(layout_cls: type[Layout]) -> list:
                 {
                     "name": node.name,
                     "docstring": rewrap(
-                        docstring, width=100, dedent=True, html_whitespace=True
+                        docstring, width=85, dedent=True, html_whitespace=True
                     ),
                 }
             )
