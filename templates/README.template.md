@@ -51,6 +51,21 @@ can just install qtile-bonsai from PyPI.
 pip install qtile-bonsai
 ```
 
+> [!NOTE]
+> If you've installed qtile using your distro's package manager, you'll have to
+> run:
+> 
+> `pip install qtile-bonsai --break-system-packages`.
+> 
+> That will allow the system-installed qtile and qtile-bonsai to 'see' each
+> other.
+> 
+> The alternative would be to have installed qtile via [pipx](https://github.com/pypa/pipx) and 
+> then 'inject' `qtile-bonsai` into the same virtualenv where qtile resides:
+> 
+> `pipx inject qtile qtile-bonsai`
+
+
 ### Configuration
 
 #### 1. Make Bonsai available as a layout in your qtile config
