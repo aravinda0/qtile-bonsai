@@ -63,7 +63,7 @@ def rewrap(
     # dedent's calculations.
     text = text.strip()
 
-    eos_chars_re = r"[\.:!?`]"
+    eos_chars_re = r"[\.:!?`\)]"
     pattern = rf"(?P<leading_ws>\s*?\n?)(?P<indent> *)(?P<line>\S.*?(?:{eos_chars_re} *|$))(?P<trailing_ws>\n|$)"  # noqa: E501
 
     out_lines = []
