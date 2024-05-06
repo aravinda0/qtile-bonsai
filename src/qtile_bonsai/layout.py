@@ -429,11 +429,11 @@ class Bonsai(Layout):
             `axis`:
                 The axis along which to split the currently focused window. Can be 'x'
                 or 'y'.
-                An `x` split will end up with two top/bottom windows.
-                A `y` split will end up with two left/right windows.
+                An `x` split will end up with two left/right windows.
+                A `y` split will end up with two top/bottom windows.
             `ratio`:
                 The ratio of sizes by which to split the current window.
-                If a window has a width of 100, then splitting on the y-axis with a
+                If a window has a width of 100, then splitting on the x-axis with a
                 ratio = 0.3 will result in a left window of width 30 and a right window
                 of width 70.
                 Defaults to 0.5.
