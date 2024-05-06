@@ -36,17 +36,16 @@ def main():
 def get_config_options(layout_cls: type[Layout]) -> list:
     config_options = []
 
-    for option in layout_cls.defaults:
-        description = option[2]
-        if description is None:
+    for option in layout_cls.options:
+        if option.description is None:
             raise ValueError(f"The `{option[0]}` option is missing documentation")
 
         config_options.append(
             {
-                "name": option[0],
-                "default": option[1],
+                "name": option.name,
+                "default": option.default_value_label or option.default_value,
                 "description": rewrap(
-                    description, width=80, dedent=True, html_whitespace=True
+                    option.description, width=80, dedent=True, html_whitespace=True
                 ),
             }
         )

@@ -226,25 +226,25 @@ Click on the image to open a full-size web view.
 | ---         | ---           | ---         |
 |`window.margin` | 0 | Size of the margin space around windows.<br>Can be an int or a list of ints in [top, right, bottom, left] ordering. |
 |`window.border_size` | 1 | Width of the border around windows. Must be a single integer value since that's<br>what qtile allows for window borders. |
-|`window.border_color` | #6d531f | Color of the border around windows |
-|`window.active.border_color` | #d79921 | Color of the border around an active window |
+|`window.border_color` | Gruvbox.darker_yellow | Color of the border around windows |
+|`window.active.border_color` | Gruvbox.dark_yellow | Color of the border around an active window |
 |`window.normalize_on_remove` | True | Whether or not to normalize the remaining windows after a window is removed.<br>If `True`, the remaining sibling windows will all become of equal size.<br>If `False`, the next (right/down) window will take up the free space. |
 |`window.default_add_mode` | tab | (Experimental)<br><br>Determines how windows get added if they are not explicitly spawned as a split<br>or a tab.<br>Can be one of "tab" or "match_previous".<br>If "match_previous", then then new window will get added in the same way the<br>previous window was. eg. if the previous window was added as a y-split, so will<br>the new window.<br><br>NOTE:<br>Setting this to "tab" may seem convenient, since externally spawned GUI apps get<br>added as background tabs instead of messing up the current split layout.<br>But due to how the window creation flow happens, when many splits are requested<br>in quick succession, this may cause some windows requested as a split to open up<br>as a tab instead. |
 |`tab_bar.height` | 20 | Height of tab bars |
 |`tab_bar.hide_when` | single_tab | When to hide the tab bar. Allowed values are 'never', 'always', 'single_tab'.<br><br>When 'single_tab' is configured, the bar is not shown whenever there is a lone<br>tab remaining, but shows up again when another tab is added.<br><br>For nested tab levels, configuring 'always' or 'single_tab' actually means that<br>when only a single tab remains, its contents get 'merged' upwards, eliminating<br>the sub-tab level. |
 |`tab_bar.margin` | 0 | Size of the margin space around tab bars.<br><br>Can be an int or a list of ints in [top, right, bottom, left] ordering. |
 |`tab_bar.border_size` | 0 | Size of the border around tab bars |
-|`tab_bar.border_color` | #d79921 | Color of border around tab bars |
-|`tab_bar.bg_color` | #282828 | Background color of tab bars, beind their tabs |
+|`tab_bar.border_color` | Gruvbox.dark_yellow | Color of border around tab bars |
+|`tab_bar.bg_color` | Gruvbox.bg0 | Background color of tab bars, beind their tabs |
 |`tab_bar.tab.min_width` | 50 | Minimum width of a tab on a tab bar |
 |`tab_bar.tab.margin` | 0 | Size of the margin space around individual tabs |
 |`tab_bar.tab.padding` | 20 | Size of the padding space inside individual tabs |
-|`tab_bar.tab.bg_color` | #3c3836 | Background color of individual tabs |
-|`tab_bar.tab.fg_color` | #ebdbb2 | Foreground text color of individual tabs |
+|`tab_bar.tab.bg_color` | Gruvbox.bg1 | Background color of individual tabs |
+|`tab_bar.tab.fg_color` | Gruvbox.fg1 | Foreground text color of individual tabs |
 |`tab_bar.tab.font_family` | Mono | Font family to use for tab titles |
 |`tab_bar.tab.font_size` | 15 | Font size to use for tab titles |
-|`tab_bar.tab.active.bg_color` | #7c6f64 | Background color of active tabs |
-|`tab_bar.tab.active.fg_color` | #ebdbb2 | Foreground text color of the active tab |
+|`tab_bar.tab.active.bg_color` | Gruvbox.bg4 | Background color of active tabs |
+|`tab_bar.tab.active.fg_color` | Gruvbox.fg1 | Foreground text color of the active tab |
 |`auto_cwd_for_terminals` | True | (Experimental)<br><br>If `True`, when spawning new windows by specifying a `program` that happens to<br>be a well-known terminal emulator, will try to open the new terminal window in<br>same working directory as the last focused window. |
 |`restore.threshold_seconds` | 4 | You likely don't need to tweak this.<br>Controls the time within which a persisted state file is considered to be from a<br>recent qtile config-reload/restart event. If the persisted file is this many<br>seconds old, we restore our window tree from it. |
 
