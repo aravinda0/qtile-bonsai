@@ -75,7 +75,6 @@
       };
       for (const mq of mediaQueries) {
         if (mq.q.matches) {
-          console.log(mq);
           arrowConfig = { ...mq.arrowConfig };
           break;
         }
