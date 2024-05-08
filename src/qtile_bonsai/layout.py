@@ -920,8 +920,8 @@ class Bonsai(Layout):
     @expose_command
     def normalize(self, *, recurse: bool = True):
         """
-        Starting from the focused window's SplitContainer, make all windows in the
-        container of equal size.
+        Starting from the focused window's container, make all windows in the container
+        of equal size.
 
         Args:
             `recurse`:
@@ -938,7 +938,7 @@ class Bonsai(Layout):
     def normalize_tab(self, *, recurse: bool = True):
         """
         Starting from the focused window's tab, make all windows in the tab of equal
-        size.
+        size under their respective containers.
 
         Args:
             `recurse`:
@@ -955,7 +955,8 @@ class Bonsai(Layout):
     @expose_command
     def normalize_all(self):
         """
-        Make all windows under all tabs be of equal size.
+        Make all windows under all tabs be of equal size under their respective
+        containers.
         """
         if self._tree.is_empty:
             return
