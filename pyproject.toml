@@ -13,9 +13,9 @@ authors = [
   { name = "Aravinda Rao", email = "maniacalace@gmail.com" },
 ]
 classifiers = [
-  "Development Status :: 3 - Alpha",
+  "Development Status :: 5 - Production/Stable",
   "License :: OSI Approved :: MIT License",
-  "Programming Language :: Python",
+  "Programming Language :: Python :: 3 :: Only",
   "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
@@ -33,6 +33,7 @@ dependencies = [
 Documentation = "https://github.com/aravinda0/qtile-bonsai#readme"
 Issues = "https://github.com/aravinda0/qtile-bonsai/issues"
 Source = "https://github.com/aravinda0/qtile-bonsai"
+"Visual Guide" = "https://aravinda0.github.io/qtile-bonsai/static/visual_guide/"
 
 
 [tool.pdm]
