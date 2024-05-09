@@ -451,11 +451,11 @@ class Bonsai(Layout):
             - `layout.spawn_split(my_terminal, "y", ratio=0.2, normalize=False)`
             - `layout.spawn_split(my_terminal, "x", position="previous")`
         """
-        if self._tree.is_empty:
-            logger.warn("There are no windows yet to split")
-            return
 
         def _handle_next_window():
+            if self._tree.is_empty:
+                return self._tree.tab()
+
             target = self.focused_pane or self._tree.find_mru_pane()
             return self._tree.split(
                 target, axis, ratio=ratio, normalize=normalize, position=position
@@ -1144,9 +1144,6 @@ class Bonsai(Layout):
         return pane
 
     def _handle_add_client__normal(self, window: Window) -> BonsaiPane:
-        if self._tree.is_empty:
-            self._next_window_handler = self._handle_default_next_window
-
         pane = self._next_window_handler()
 
         if self._tree.get_config("window.default_add_mode") == "tab":

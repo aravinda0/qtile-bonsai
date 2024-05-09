@@ -68,6 +68,42 @@ def test_when_floating_window_is_unfloated_then_it_is_added_back_to_layout(
     )
 
 
+class TestSpawnSplit:
+    def test_when_tree_is_empty_then_split_still_adds_first_window_as_tab(
+        self, manager, spawn_test_window_cmd
+    ):
+        assert manager.layout.info()["tree"] == "<empty>"
+
+        manager.layout.spawn_split(spawn_test_window_cmd, "x")
+        time.sleep(0.5)
+
+        assert tree_repr_matches_repr(
+            manager.layout.info()["tree"],
+            """
+            - tc:1
+                - t:2
+                    - sc.x:3
+                        - p:4 | {x: 0, y: 0, w: 800, h: 600}
+            """,
+        )
+
+
+class TestConfigOptions:
+    class TestWindowDefaultAddMode:
+        @pytest.mark.skip(
+            reason="""
+            Need to figure out some things around parametrizing config to pass to chain
+            of fixtures so it reaches the qtile_x11 and qtile_wayland fixtures.
+            """
+        )
+        def test_when_tree_is_empty_and_first_window_was_added_as_a_tab_but_from_a_split_request_then_match_previous_still_respects_that_previous_request_was_for_a_split(
+            self,
+            manager,
+            spawn_test_window_cmd,
+        ):
+            raise
+
+
 class TestStateRestoration:
     def test_when_qtile_config_is_reloaded_then_state_is_restored(
         self, manager, spawn_test_window_cmd
