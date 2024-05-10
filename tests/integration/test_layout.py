@@ -90,18 +90,91 @@ class TestSpawnSplit:
 
 class TestConfigOptions:
     class TestWindowDefaultAddMode:
-        @pytest.mark.skip(
-            reason="""
-            Need to figure out some things around parametrizing config to pass to chain
-            of fixtures so it reaches the qtile_x11 and qtile_wayland fixtures.
-            """
+        @pytest.mark.parametrize(
+            "bonsai_layout",
+            [{"window.default_add_mode": "match_previous"}],
+            indirect=True,
+        )
+        def test_when_value_is_match_previous(
+            self, bonsai_layout, manager, spawn_test_window_cmd, make_window
+        ):
+            make_window()
+
+            manager.layout.spawn_split(spawn_test_window_cmd, "y")
+            time.sleep(0.5)
+
+            make_window()
+
+            assert tree_repr_matches_repr(
+                manager.layout.info()["tree"],
+                """
+                - tc:1
+                    - t:2
+                        - sc.y:3
+                            - p:4 | {x: 0, y: 0, w: 800, h: 200}
+                            - p:5 | {x: 0, y: 200, w: 800, h: 200}
+                            - p:6 | {x: 0, y: 400, w: 800, h: 200}
+                """,
+            )
+
+        @pytest.mark.parametrize(
+            "bonsai_layout",
+            [{"window.default_add_mode": "tab"}],
+            indirect=True,
+        )
+        def test_when_value_is_tab(
+            self, bonsai_layout, manager, spawn_test_window_cmd, make_window
+        ):
+            make_window()
+
+            manager.layout.spawn_split(spawn_test_window_cmd, "x")
+            time.sleep(0.5)
+
+            make_window()
+
+            assert tree_repr_matches_repr(
+                manager.layout.info()["tree"],
+                """
+                - tc:1
+                    - t:2
+                        - sc.x:3
+                            - p:4 | {x: 0, y: 20, w: 400, h: 580}
+                            - p:5 | {x: 400, y: 20, w: 400, h: 580}
+                    - t:6
+                        - sc.x:7
+                            - p:8 | {x: 0, y: 20, w: 800, h: 580}
+                """,
+            )
+
+        @pytest.mark.parametrize(
+            "bonsai_layout",
+            [{"window.default_add_mode": "match_previous"}],
+            indirect=True,
         )
         def test_when_tree_is_empty_and_first_window_was_added_as_a_tab_but_from_a_split_request_then_match_previous_still_respects_that_previous_request_was_for_a_split(
             self,
+            bonsai_layout,
             manager,
             spawn_test_window_cmd,
+            make_window,
         ):
-            raise
+            manager.layout.spawn_split(spawn_test_window_cmd, "x")
+            time.sleep(0.5)
+
+            # This should get added as an x-split since the last request was for an
+            # x-split.
+            make_window()
+
+            assert tree_repr_matches_repr(
+                manager.layout.info()["tree"],
+                """
+                - tc:1
+                    - t:2
+                        - sc.x:3
+                            - p:4 | {x: 0, y: 0, w: 400, h: 600}
+                            - p:5 | {x: 400, y: 0, w: 400, h: 600}
+                """,
+            )
 
 
 class TestStateRestoration:
