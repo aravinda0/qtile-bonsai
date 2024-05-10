@@ -25,6 +25,10 @@ from qtile_bonsai.layout import Bonsai
 test_display_resolution = (800, 600)
 
 
+def wait(seconds: float = 0.5):
+    time.sleep(seconds)
+
+
 @pytest.fixture()
 def bonsai_layout(request):
     bonsai_config = getattr(request, "param", {})
@@ -64,13 +68,13 @@ def qtile_x11(qtile_config):
     # launch qtile and give it some time to start up
     qtile_process = multiprocessing.Process(target=run_qtile)
     qtile_process.start()
-    time.sleep(0.5)
+    wait()
 
     yield
 
     # terminate qtile and give it some time to do so
     qtile_process.terminate()
-    time.sleep(0.5)
+    wait()
 
     display.stop()
 
@@ -106,7 +110,7 @@ def qtile_wayland(tmp_xdg_runtime_dir, qtile_config):
     queue = multiprocessing.Queue()
     qtile_process = multiprocessing.Process(target=run_qtile, args=(queue,))
     qtile_process.start()
-    time.sleep(0.5)
+    wait()
 
     # Update the environment with the appropriate wayland display value so subsequently
     # spawned applications can see it
@@ -116,7 +120,7 @@ def qtile_wayland(tmp_xdg_runtime_dir, qtile_config):
 
     # terminate qtile and give it some time to do so
     qtile_process.terminate()
-    time.sleep(0.5)
+    wait()
 
     os.environ.pop("WAYLAND_DISPLAY")
 
@@ -149,7 +153,7 @@ def make_window():
         window_processes.append(process)
 
         # Give it some time to start up.
-        time.sleep(0.5)
+        wait()
 
     yield _make_window
 
@@ -157,7 +161,7 @@ def make_window():
         process.terminate()
 
     # Give some time for windows to terminate
-    time.sleep(0.5)
+    wait()
 
 
 @pytest.fixture()

@@ -1,9 +1,8 @@
 # SPDX-FileCopyrightText: 2023-present Aravinda Rao <maniacalace@gmail.com>
 # SPDX-License-Identifier: MIT
 
-import time
-
 import pytest
+from conftest import wait
 
 from qtile_bonsai.core.tree import tree_repr_matches_repr
 
@@ -37,10 +36,10 @@ def test_when_floating_window_is_unfloated_then_it_is_added_back_to_layout(
     manager, spawn_test_window_cmd
 ):
     manager.layout.spawn_tab(spawn_test_window_cmd)
-    time.sleep(0.5)
+    wait()
 
     manager.layout.spawn_split(spawn_test_window_cmd, "x")
-    time.sleep(0.5)
+    wait()
 
     manager.window.toggle_floating()
     assert tree_repr_matches_repr(
@@ -75,7 +74,7 @@ class TestSpawnSplit:
         assert manager.layout.info()["tree"] == "<empty>"
 
         manager.layout.spawn_split(spawn_test_window_cmd, "x")
-        time.sleep(0.5)
+        wait()
 
         assert tree_repr_matches_repr(
             manager.layout.info()["tree"],
@@ -101,7 +100,7 @@ class TestConfigOptions:
             make_window()
 
             manager.layout.spawn_split(spawn_test_window_cmd, "y")
-            time.sleep(0.5)
+            wait()
 
             make_window()
 
@@ -128,7 +127,7 @@ class TestConfigOptions:
             make_window()
 
             manager.layout.spawn_split(spawn_test_window_cmd, "x")
-            time.sleep(0.5)
+            wait()
 
             make_window()
 
@@ -159,7 +158,7 @@ class TestConfigOptions:
             make_window,
         ):
             manager.layout.spawn_split(spawn_test_window_cmd, "x")
-            time.sleep(0.5)
+            wait()
 
             # This should get added as an x-split since the last request was for an
             # x-split.
@@ -184,16 +183,16 @@ class TestStateRestoration:
         bonsai_layout = manager.layout
 
         bonsai_layout.spawn_tab(spawn_test_window_cmd)
-        time.sleep(0.5)
+        wait()
 
         bonsai_layout.spawn_split(spawn_test_window_cmd, "x")
-        time.sleep(0.5)
+        wait()
 
         bonsai_layout.spawn_split(spawn_test_window_cmd, "y")
-        time.sleep(0.5)
+        wait()
 
         bonsai_layout.spawn_tab(spawn_test_window_cmd, new_level=True)
-        time.sleep(0.5)
+        wait()
 
         manager.reload_config()
 
@@ -229,13 +228,13 @@ class TestStateRestoration:
         bonsai_layout = manager.layout
 
         bonsai_layout.spawn_tab(spawn_test_window_cmd)
-        time.sleep(0.5)
+        wait()
 
         bonsai_layout.spawn_split(spawn_test_window_cmd, "x")
-        time.sleep(0.5)
+        wait()
 
         bonsai_layout.spawn_split(spawn_test_window_cmd, "y")
-        time.sleep(0.5)
+        wait()
 
         manager.restart()
 
