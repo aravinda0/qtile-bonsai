@@ -20,35 +20,45 @@ from pyvirtualdisplay.display import Display
 from qtile_bonsai.layout import Bonsai
 
 
-class BonsaiConfig(Config):
-    auto_fullscreen = True
-    groups = [
-        config.Group("a"),
-        config.Group("b"),
-        config.Group("c"),
-    ]
-    layouts = [Bonsai(), layout.Columns(num_columns=3)]
-    floating_layout = default_config.floating_layout
-    keys = []
-    mouse = []
-    screens = [config.Screen()]
-    follow_mouse_focus = False
-    reconfigure_screens = False
-
-
 # For now set to default of what headless wayland seems to default to. Need to figure
 # out how to control this in wayland env.
 test_display_resolution = (800, 600)
 
 
 @pytest.fixture()
-def qtile_x11():
+def bonsai_layout(request):
+    bonsai_config = getattr(request, "param", {})
+    return Bonsai(**bonsai_config)
+
+
+@pytest.fixture()
+def qtile_config(bonsai_layout):
+    class BonsaiConfig(Config):
+        auto_fullscreen = True
+        groups = [
+            config.Group("a"),
+            config.Group("b"),
+            config.Group("c"),
+        ]
+        layouts = [bonsai_layout, layout.Columns(num_columns=3)]
+        floating_layout = default_config.floating_layout
+        keys = []
+        mouse = []
+        screens = [config.Screen()]
+        follow_mouse_focus = False
+        reconfigure_screens = False
+
+    return BonsaiConfig()
+
+
+@pytest.fixture()
+def qtile_x11(qtile_config):
     display = Display(backend="xvfb", size=test_display_resolution)
     display.start()
 
     def run_qtile():
         core = X11Core(display.new_display_var)
-        qtile = Qtile(core, BonsaiConfig())
+        qtile = Qtile(core, qtile_config)
         qtile.loop()
 
     # launch qtile and give it some time to start up
@@ -72,7 +82,7 @@ def tmp_xdg_runtime_dir():
 
 
 @pytest.fixture()
-def qtile_wayland(tmp_xdg_runtime_dir):
+def qtile_wayland(tmp_xdg_runtime_dir, qtile_config):
     wlroots_env = {
         "WLR_BACKENDS": "headless",
         "WLR_LIBINPUT_NO_DEVICES": "1",
@@ -84,7 +94,7 @@ def qtile_wayland(tmp_xdg_runtime_dir):
 
     def run_qtile(queue):
         core = WaylandCore()
-        qtile = Qtile(core, BonsaiConfig())
+        qtile = Qtile(core, qtile_config)
         queue.put(core.display_name)
         qtile.loop()
 
