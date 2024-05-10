@@ -37,7 +37,7 @@ def bonsai_layout(request):
 
 @pytest.fixture()
 def qtile_config(bonsai_layout):
-    class BonsaiConfig(Config):
+    class TestConfig(Config):
         auto_fullscreen = True
         groups = [
             config.Group("a"),
@@ -52,7 +52,7 @@ def qtile_config(bonsai_layout):
         follow_mouse_focus = False
         reconfigure_screens = False
 
-    return BonsaiConfig()
+    return TestConfig()
 
 
 @pytest.fixture()
