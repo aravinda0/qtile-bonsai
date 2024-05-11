@@ -523,6 +523,9 @@ class Bonsai(Layout):
         them will be chosen.
 
         Args:
+            `direction`:
+                The direction in which a neighbor is found to move focus to. Can be
+                "up"/"down"/"left"/"right".
             `wrap`:
                 If `True`, will wrap around the edge and select windows from the other
                 end of the screen.
