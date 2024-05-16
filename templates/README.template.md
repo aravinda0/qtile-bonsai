@@ -68,7 +68,7 @@ pip install qtile-bonsai
 
 ### Configuration
 
-#### 1. Make Bonsai available as a layout in your qtile config
+#### 1. Make Bonsai available as a layout in your [qtile config](https://docs.qtile.org/en/latest/manual/config/default.html)
 
 ```python
 from qtile_bonsai import Bonsai
