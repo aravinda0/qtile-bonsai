@@ -5,7 +5,7 @@
 groups = ["default", "dev"]
 strategy = ["cross_platform"]
 lock_version = "4.4.1"
-content_hash = "sha256:f20cbde74d48c3c5c4d8c79fa06e1d31b70e90984adc2e8fd3a4a33fa75397a4"
+content_hash = "sha256:42e2072c735f8443d8cfba2be18bfd8d39ff49ba82d81930815e33e20bf60a27"
 
 [[package]]
 name = "appdirs"
@@ -14,6 +14,19 @@ summary = "A small Python module for determining appropriate platform-specific d
 files = [
     {file = "appdirs-1.4.4-py2.py3-none-any.whl", hash = "sha256:a841dacd6b99318a741b166adb07e19ee71a274450e68237b4650ca1055ab128"},
     {file = "appdirs-1.4.4.tar.gz", hash = "sha256:7d5d0167b2b1ba821647616af46a749d1c653740dd0d2415100fe26e27afdf41"},
+]
+
+[[package]]
+name = "basedpyright"
+version = "1.12.3"
+requires_python = ">=3.8"
+summary = "static type checking for Python (but based)"
+dependencies = [
+    "nodejs-wheel-binaries>=20.13.1",
+]
+files = [
+    {file = "basedpyright-1.12.3-py3-none-any.whl", hash = "sha256:dab6b70bedfd6e352098f28319d46c202de419f9c56129b9c086e412a97727a0"},
+    {file = "basedpyright-1.12.3.tar.gz", hash = "sha256:6d4885d4f258c175b0fb31289f61f2733231093bf24724cc08e1a1eef33a7eea"},
 ]
 
 [[package]]
@@ -321,6 +334,20 @@ files = [
 ]
 
 [[package]]
+name = "nodejs-wheel-binaries"
+version = "20.13.1"
+requires_python = ">=3.7"
+summary = "unoffical Node.js package"
+files = [
+    {file = "nodejs_wheel_binaries-20.13.1-py2.py3-none-macosx_10_15_x86_64.whl", hash = "sha256:3970c7b7f174550fb27483f32129d75c0b4eec021e20021405565495d2464683"},
+    {file = "nodejs_wheel_binaries-20.13.1-py2.py3-none-macosx_11_0_arm64.whl", hash = "sha256:868b21bb6848a1c1127733bf88a0bbddb4437f943dc49c9c00d3950a0beb27e3"},
+    {file = "nodejs_wheel_binaries-20.13.1-py2.py3-none-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:d72f80103c15f233e401524bd2288b8f64b27cf3a251d94226a0f7ff38f960e2"},
+    {file = "nodejs_wheel_binaries-20.13.1-py2.py3-none-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:a94ff775ca08cf6698676c3915f7bfde4e54b581b9fdfcb6b7edfbbd9fd436ba"},
+    {file = "nodejs_wheel_binaries-20.13.1-py2.py3-none-win_amd64.whl", hash = "sha256:c57d6357b05cfa1762c58c297f3cb15a0b8e26b48196502a32add5eea88eb3d7"},
+    {file = "nodejs_wheel_binaries-20.13.1.tar.gz", hash = "sha256:fc14d0f64506c384f2f578d64bd8852c92ca254add0f6d1a71773a57a7fb680b"},
+]
+
+[[package]]
 name = "packaging"
 version = "23.2"
 requires_python = ">=3.7"
@@ -439,19 +466,6 @@ summary = "Pygments is a syntax highlighting package written in Python."
 files = [
     {file = "pygments-2.17.2-py3-none-any.whl", hash = "sha256:b27c2826c47d0f3219f29554824c30c5e8945175d888647acd804ddd04af846c"},
     {file = "pygments-2.17.2.tar.gz", hash = "sha256:da46cec9fd2de5be3a8a784f434e4c4ab670b4ff54d605c4c2717e9d49c4c367"},
-]
-
-[[package]]
-name = "pyright"
-version = "1.1.361"
-requires_python = ">=3.7"
-summary = "Command line wrapper for pyright"
-dependencies = [
-    "nodeenv>=1.6.0",
-]
-files = [
-    {file = "pyright-1.1.361-py3-none-any.whl", hash = "sha256:c50fc94ce92b5c958cfccbbe34142e7411d474da43d6c14a958667e35b9df7ea"},
-    {file = "pyright-1.1.361.tar.gz", hash = "sha256:1d67933315666b05d230c85ea8fb97aaa2056e4092a13df87b7765bb9e8f1a8d"},
 ]
 
 [[package]]
