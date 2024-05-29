@@ -94,6 +94,7 @@ layouts = [
 
 ```python
 from libqtile.config import EzKey, KeyChord
+from libqtile.lazy import lazy
 from libqtile.utils import guess_terminal
 
 
@@ -101,8 +102,8 @@ terminal = guess_terminal()
 rofi_run_cmd = "rofi -show drun -m -1"
 
 keys = [
-    # Open your terminal emulator quickly. See further below for more bindings
-    # to directly open apps as splits/tabs using something like rofi.
+    # Open your terminal emulator quickly. See further below for how to
+    # directly open other apps as splits/tabs using something like rofi.
     EzKey("M-v", lazy.layout.spawn_split(terminal, "x")),
     EzKey("M-x", lazy.layout.spawn_split(terminal, "y")),
     EzKey("M-t", lazy.layout.spawn_tab(terminal)),
