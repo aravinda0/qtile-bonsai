@@ -7,7 +7,8 @@ from __future__ import annotations
 import collections
 import textwrap
 import uuid
-from typing import Any, Callable, Iterable, Iterator
+from collections.abc import Iterable, Iterator
+from typing import Any, Callable
 
 from strenum import StrEnum
 
