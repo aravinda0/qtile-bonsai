@@ -176,15 +176,27 @@ class Bonsai(Layout):
             default_value_label="Gruvbox.bg0",
         ),
         LayoutOption(
-            "tab_bar.tab.min_width", 50, "Minimum width of a tab on a tab bar"
+            "tab_bar.tab.width",
+            50,
+            """
+            Width of a tab on a tab bar. 
+
+            Can be an int or `auto`. If `auto`, the tabs take up as much of the
+            available screen space as possible.
+
+            Note that this width follows the 'margin box'/'principal box' model, so it
+            includes any configured margin amount.
+            """,
         ),
         LayoutOption(
-            "tab_bar.tab.margin", 0, "Size of the margin space around individual tabs"
+            "tab_bar.tab.margin",
+            0,
+            "Size of the space on either outer side of individual tabs.",
         ),
         LayoutOption(
             "tab_bar.tab.padding",
-            20,
-            "Size of the padding space inside individual tabs",
+            0,
+            "Size of the space on either inner side of individual tabs.",
         ),
         LayoutOption(
             "tab_bar.tab.bg_color",

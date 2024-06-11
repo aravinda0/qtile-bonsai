@@ -237,9 +237,9 @@ Click on the image to open a full-size web view.
 |`tab_bar.border_size` | 0 | Size of the border around tab bars |
 |`tab_bar.border_color` | Gruvbox.dark_yellow | Color of border around tab bars |
 |`tab_bar.bg_color` | Gruvbox.bg0 | Background color of tab bars, beind their tabs |
-|`tab_bar.tab.min_width` | 50 | Minimum width of a tab on a tab bar |
-|`tab_bar.tab.margin` | 0 | Size of the margin space around individual tabs |
-|`tab_bar.tab.padding` | 20 | Size of the padding space inside individual tabs |
+|`tab_bar.tab.width` | 50 | Width of a tab on a tab bar.<br><br>Can be an int or `auto`. If `auto`, the tabs take up as much of the available<br>screen space as possible.<br><br>Note that this width follows the 'margin box'/'principal box' model, so it<br>includes any configured margin amount. |
+|`tab_bar.tab.margin` | 0 | Size of the space on either outer side of individual tabs. |
+|`tab_bar.tab.padding` | 0 | Size of the space on either inner side of individual tabs. |
 |`tab_bar.tab.bg_color` | Gruvbox.bg1 | Background color of individual tabs |
 |`tab_bar.tab.fg_color` | Gruvbox.fg1 | Foreground text color of individual tabs |
 |`tab_bar.tab.font_family` | Mono | Font family to use for tab titles |

@@ -1,7 +1,6 @@
 # SPDX-FileCopyrightText: 2023-present Aravinda Rao <maniacalace@gmail.com>
 # SPDX-License-Identifier: MIT
 
-
 from libqtile.backend.base.drawer import Drawer, TextLayout
 from libqtile.backend.base.window import Internal, Window
 from libqtile.config import ScreenRect
@@ -58,21 +57,21 @@ class BonsaiTabContainer(BonsaiNodeMixin, TabContainer):
 
         level = self.tab_level
 
-        tab_bar_border_color = tree.get_config("tab_bar.border_color", level=level)
-        tab_bar_bg_color = tree.get_config("tab_bar.bg_color", level=level)
+        tab_bar_border_color: str = tree.get_config("tab_bar.border_color", level=level)
+        tab_bar_bg_color: str = tree.get_config("tab_bar.bg_color", level=level)
 
-        tab_min_width = tree.get_config("tab_bar.tab.min_width", level=level)
-        tab_margin = tree.get_config("tab_bar.tab.margin", level=level)
-        tab_padding = tree.get_config("tab_bar.tab.padding", level=level)
-        tab_font_family = tree.get_config("tab_bar.tab.font_family", level=level)
-        tab_font_size = tree.get_config("tab_bar.tab.font_size", level=level)
-        tab_bg_color = tree.get_config("tab_bar.tab.bg_color", level=level)
-        tab_fg_color = tree.get_config("tab_bar.tab.fg_color", level=level)
+        tab_width: int | str = tree.get_config("tab_bar.tab.width", level=level)
+        tab_margin: int = tree.get_config("tab_bar.tab.margin", level=level)
+        tab_padding: int = tree.get_config("tab_bar.tab.padding", level=level)
+        tab_font_family: str = tree.get_config("tab_bar.tab.font_family", level=level)
+        tab_font_size: float = tree.get_config("tab_bar.tab.font_size", level=level)
+        tab_bg_color: str = tree.get_config("tab_bar.tab.bg_color", level=level)
+        tab_fg_color: str = tree.get_config("tab_bar.tab.fg_color", level=level)
 
-        tab_active_bg_color = tree.get_config(
+        tab_active_bg_color: str = tree.get_config(
             "tab_bar.tab.active.bg_color", level=level
         )
-        tab_active_fg_color = tree.get_config(
+        tab_active_fg_color: str = tree.get_config(
             "tab_bar.tab.active.fg_color", level=level
         )
 
@@ -97,9 +96,21 @@ class BonsaiTabContainer(BonsaiNodeMixin, TabContainer):
 
         self.bar_drawer.clear(tab_bar_bg_color)
 
-        offset = 0
+        if tab_width == "auto":
+            per_tab_w: int = bar_rect.w // len(self.children)
+        else:
+            per_tab_w = tab_width
+
+        # NOTE: This is accurate for monospaced fonts, but is still a safe enough
+        # approximation for non-monospaced fonts as we may only over-estimate.
+        one_char_w, _ = self.bar_drawer.max_layout_size(
+            ["x"], tab_font_family, tab_font_size
+        )
+        per_tab_max_chars = int(
+            (per_tab_w - tab_margin * 2 - tab_padding * 2) / one_char_w
+        )
+
         for i, tab in enumerate(self.children):
-            # Prime drawers with colors
             if tab is self.active_child:
                 self.bar_drawer.set_source_rgb(tab_active_bg_color)
                 self.bar_text_layout.colour = tab_active_fg_color
@@ -109,29 +120,29 @@ class BonsaiTabContainer(BonsaiNodeMixin, TabContainer):
             self.bar_text_layout.font_family = tab_font_family
             self.bar_text_layout.font_size = tab_font_size
 
-            # Compute space for the tab rect
-            tab_title = f"{i + 1}: {tab.title}" if tab.title else f"{i + 1}"
-            content_w, _ = self.bar_drawer.max_layout_size(
-                [tab_title], tab_font_family, tab_font_size
-            )
-            principal_w = max(
-                tab_min_width, content_w + (2 * tab_margin) + (2 * tab_padding)
-            )
             tab_box = Box(
-                principal_rect=Rect(offset, 0, principal_w, bar_rect.h),
+                principal_rect=Rect(i * per_tab_w, 0, per_tab_w, bar_rect.h),
                 margin=tab_margin,
                 border=0,  # Individual tabs don't have borders
                 padding=tab_padding,
             )
 
+            tab_title = f"{i + 1}: {tab.title}" if tab.title else f"{i + 1}"
+            if len(tab_title) > per_tab_max_chars:
+                tab_title = f"{tab_title[:per_tab_max_chars - 1]}…"
+
             # Draw the tab
             self.bar_drawer.fillrect(
                 tab_box.border_rect.x, 0, tab_box.border_rect.w, bar_rect.h
             )
-            self.bar_text_layout.text = tab_title
-            self.bar_text_layout.draw(tab_box.content_rect.x, 0)
 
-            offset += principal_w
+            # Draw the tab's title text
+            text_w, _ = self.bar_drawer.max_layout_size(
+                [tab_title], tab_font_family, tab_font_size
+            )
+            self.bar_text_layout.text = tab_title
+            text_offset = (tab_box.content_rect.w - text_w) / 2
+            self.bar_text_layout.draw(tab_box.content_rect.x + text_offset, 0)
 
         self.bar_drawer.draw(0, 0, bar_rect.w, bar_rect.h)
 
