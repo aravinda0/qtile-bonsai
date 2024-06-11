@@ -37,4 +37,6 @@ class Gruvbox:
     dark_gray = "#a89984"
     dark_orange = "#d65d0e"
 
-    darker_yellow = "#6d531f"
+    # Some unofficial gruvbox tweaks
+    dull_yellow = "#453b2b"
+    vivid_yellow = "#c29755"

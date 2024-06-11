@@ -87,15 +87,15 @@ class Bonsai(Layout):
         ),
         LayoutOption(
             "window.border_color",
-            Gruvbox.darker_yellow,
+            Gruvbox.dull_yellow,
             "Color of the border around windows",
-            default_value_label="Gruvbox.darker_yellow",
+            default_value_label="Gruvbox.dull_yellow",
         ),
         LayoutOption(
             "window.active.border_color",
-            Gruvbox.dark_yellow,
+            Gruvbox.vivid_yellow,
             "Color of the border around an active window",
-            default_value_label="Gruvbox.dark_yellow",
+            default_value_label="Gruvbox.vivid_yellow",
         ),
         LayoutOption(
             "window.normalize_on_remove",
@@ -200,9 +200,9 @@ class Bonsai(Layout):
         ),
         LayoutOption(
             "tab_bar.tab.bg_color",
-            Gruvbox.bg1,
+            Gruvbox.dull_yellow,
             "Background color of individual tabs",
-            default_value_label="Gruvbox.bg1",
+            default_value_label="Gruvbox.dull_yellow",
         ),
         LayoutOption(
             "tab_bar.tab.fg_color",
@@ -216,15 +216,15 @@ class Bonsai(Layout):
         LayoutOption("tab_bar.tab.font_size", 15, "Font size to use for tab titles"),
         LayoutOption(
             "tab_bar.tab.active.bg_color",
-            Gruvbox.bg4,
+            Gruvbox.vivid_yellow,
             "Background color of active tabs",
-            default_value_label="Gruvbox.bg4",
+            default_value_label="Gruvbox.vivid_yellow",
         ),
         LayoutOption(
             "tab_bar.tab.active.fg_color",
-            Gruvbox.fg1,
+            Gruvbox.bg0_hard,
             "Foreground text color of the active tab",
-            default_value_label="Gruvbox.fg1",
+            default_value_label="Gruvbox.bg0_hard",
         ),
         LayoutOption(
             "tab_bar.tab.title_provider",
