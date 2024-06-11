@@ -1,6 +1,8 @@
 # SPDX-FileCopyrightText: 2023-present Aravinda Rao <maniacalace@gmail.com>
 # SPDX-License-Identifier: MIT
 
+from collections.abc import Callable
+
 from libqtile.backend.base.drawer import Drawer, TextLayout
 from libqtile.backend.base.window import Internal, Window
 from libqtile.config import ScreenRect
@@ -67,6 +69,9 @@ class BonsaiTabContainer(BonsaiNodeMixin, TabContainer):
         tab_font_size: float = tree.get_config("tab_bar.tab.font_size", level=level)
         tab_bg_color: str = tree.get_config("tab_bar.tab.bg_color", level=level)
         tab_fg_color: str = tree.get_config("tab_bar.tab.fg_color", level=level)
+        tab_title_provider: Callable[[int, BonsaiPane, BonsaiTab], str] = (
+            tree.get_config("tab_bar.tab.title_provider", level=level)
+        )
 
         tab_active_bg_color: str = tree.get_config(
             "tab_bar.tab.active.bg_color", level=level
@@ -127,7 +132,11 @@ class BonsaiTabContainer(BonsaiNodeMixin, TabContainer):
                 padding=tab_padding,
             )
 
-            tab_title = f"{i + 1}: {tab.title}" if tab.title else f"{i + 1}"
+            if tab_title_provider is not None:
+                active_pane = tree.find_mru_pane(start_node=tab)
+                tab_title = tab_title_provider(i, active_pane, tab)
+            else:
+                tab_title = f"{i + 1}: {tab.title}" if tab.title else f"{i + 1}"
             if len(tab_title) > per_tab_max_chars:
                 tab_title = f"{tab_title[:per_tab_max_chars - 1]}…"
 

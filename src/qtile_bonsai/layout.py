@@ -227,6 +227,25 @@ class Bonsai(Layout):
             default_value_label="Gruvbox.fg1",
         ),
         LayoutOption(
+            "tab_bar.tab.title_provider",
+            None,
+            """
+            A callback that generates the title for a tab. The callback accepts 3
+            parameters and returns the final title string. The params are:
+            1. `index`: 
+                The index of the current tab in the list of tabs.
+            2. `active_pane`: 
+                The active `Pane` instance under the current tab. A `Pane` is just a
+                container for a window and can be accessed via `pane.window`.
+            3. `tab`:
+                The current `Tab` instance.
+
+            For example, here's a callback that returns the active window's title:
+            def my_title_provider(index, active_pane, tab):
+                return active_pane.window.name
+            """,
+        ),
+        LayoutOption(
             "auto_cwd_for_terminals",
             True,
             """
