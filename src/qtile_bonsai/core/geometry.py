@@ -150,6 +150,11 @@ class Rect:
 
         return self.__class__(x1, y1, x2 - x1, y2 - y1)
 
+    def has_coord(self, x: int, y: int) -> bool:
+        if x >= self.x and x < self.x2 and y >= self.y and y < self.y2:
+            return True
+        return False
+
     def split(self, axis: AxisParam, ratio: float = 0.5) -> tuple[Rect, Rect]:
         """Returns two new Rect instances that have dimensions according to the
         requested split.

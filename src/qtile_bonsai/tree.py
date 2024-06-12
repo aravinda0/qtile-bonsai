@@ -21,7 +21,7 @@ class BonsaiNodeMixin:
         """
         pass
 
-    def render(self, screen_rect: ScreenRect, tree: "BonsaiTree"):
+    def render(self, screen_rect: ScreenRect):
         """Renders UI elements of this node."""
         pass
 
@@ -35,28 +35,41 @@ class BonsaiNodeMixin:
 
 
 class BonsaiTabContainer(BonsaiNodeMixin, TabContainer):
-    def __init__(self):
+    TabBarClickHandler = Callable[["BonsaiTabContainer", int, int], None]
+
+    def __init__(
+        self,
+        tree: "BonsaiTree",
+        on_click_tab_bar: "BonsaiTabContainer.TabBarClickHandler | None" = None,
+    ):
         super().__init__()
 
         self.bar_window: Internal
         self.bar_drawer: Drawer
         self.bar_text_layout: TextLayout
 
+        self._tree = tree
+        self._on_click_tab_bar: "BonsaiTabContainer.TabBarClickHandler | None" = (
+            on_click_tab_bar
+        )
+
     def init_ui(self, qtile: Qtile):
         # Arbitrary coords on init. Will get rendered to proper screen position
         # during layout phase.
         self.bar_window = qtile.core.create_internal(0, 0, 1, 1)
+        self.bar_window.process_button_click = self._handle_click_bar
 
         self.bar_drawer = self.bar_window.create_drawer(1, 1)
         self.bar_text_layout = self.bar_drawer.textlayout(
             "", "000000", "mono", 15, None
         )
 
-    def render(self, screen_rect: ScreenRect, tree: "BonsaiTree"):
+    def render(self, screen_rect: ScreenRect):
         if self.tab_bar.is_hidden:
             self.hide()
             return
 
+        tree = self._tree
         level = self.tab_level
 
         tab_bar_border_color: str = tree.get_config("tab_bar.border_color", level=level)
@@ -101,10 +114,7 @@ class BonsaiTabContainer(BonsaiNodeMixin, TabContainer):
 
         self.bar_drawer.clear(tab_bar_bg_color)
 
-        if tab_width == "auto":
-            per_tab_w: int = bar_rect.w // len(self.children)
-        else:
-            per_tab_w = tab_width
+        per_tab_w = self._get_per_tab_width()
 
         # NOTE: This is accurate for monospaced fonts, but is still a safe enough
         # approximation for non-monospaced fonts as we may only over-estimate.
@@ -125,12 +135,7 @@ class BonsaiTabContainer(BonsaiNodeMixin, TabContainer):
             self.bar_text_layout.font_family = tab_font_family
             self.bar_text_layout.font_size = tab_font_size
 
-            tab_box = Box(
-                principal_rect=Rect(i * per_tab_w, 0, per_tab_w, bar_rect.h),
-                margin=tab_margin,
-                border=0,  # Individual tabs don't have borders
-                padding=tab_padding,
-            )
+            tab_box = self._get_object_space_tab_box(i, per_tab_w)
 
             if tab_title_provider is not None:
                 active_pane = tree.find_mru_pane(start_node=tab)
@@ -163,6 +168,37 @@ class BonsaiTabContainer(BonsaiNodeMixin, TabContainer):
         self.bar_drawer.finalize()
         self.bar_window.kill()
 
+    def _handle_click_bar(self, x: int, y: int, button: int):
+        if self._on_click_tab_bar is None:
+            return
+
+        per_tab_w = self._get_per_tab_width()
+        i = x // per_tab_w
+
+        if i > len(self.children) - 1:
+            return
+
+        tab_box = self._get_object_space_tab_box(i, per_tab_w)
+
+        # Note that the `x`, `y` provided here by qtile are object space coords.
+        if tab_box.border_rect.has_coord(x, y):
+            self._on_click_tab_bar(self, i, button)
+
+    def _get_per_tab_width(self) -> int:
+        tab_width_config: int | str = self._tree.get_config("tab_bar.tab.width")
+        if tab_width_config == "auto":
+            return self.tab_bar.box.principal_rect.w // len(self.children)
+        return int(tab_width_config)
+
+    def _get_object_space_tab_box(self, i: int, per_tab_w: int) -> Box:
+        bar_rect = self.tab_bar.box.principal_rect
+        return Box(
+            principal_rect=Rect((i * per_tab_w), 0, per_tab_w, bar_rect.h),
+            margin=self._tree.get_config("tab_bar.tab.margin", level=self.tab_level),
+            border=0,
+            padding=self._tree.get_config("tab_bar.tab.padding", level=self.tab_level),
+        )
+
 
 class BonsaiTab(BonsaiNodeMixin, Tab):
     pass
@@ -179,6 +215,7 @@ class BonsaiPane(BonsaiNodeMixin, Pane):
         *,
         margin: PerimieterParams = 0,
         border: PerimieterParams = 1,
+        tree: "BonsaiTree",
     ):
         super().__init__(
             principal_rect=principal_rect,
@@ -189,16 +226,18 @@ class BonsaiPane(BonsaiNodeMixin, Pane):
 
         self.window: Window | None = None
 
-    def render(self, screen_rect: ScreenRect, tree: "BonsaiTree"):
+        self._tree = tree
+
+    def render(self, screen_rect: ScreenRect):
         if self.window is None:
             return
 
         if self.window.has_focus:
-            window_border_color = tree.get_config(
+            window_border_color = self._tree.get_config(
                 "window.active.border_color", level=self.tab_level
             )
         else:
-            window_border_color = tree.get_config(
+            window_border_color = self._tree.get_config(
                 "window.border_color", level=self.tab_level
             )
 
@@ -218,6 +257,17 @@ class BonsaiPane(BonsaiNodeMixin, Pane):
 
 
 class BonsaiTree(Tree):
+    def __init__(
+        self,
+        width: int,
+        height: int,
+        config: Tree.MultiLevelConfig | None = None,
+        on_click_tab_bar: BonsaiTabContainer.TabBarClickHandler | None = None,
+    ):
+        super().__init__(width, height, config)
+
+        self._on_click_tab_bar = on_click_tab_bar
+
     def create_pane(
         self,
         principal_rect: Rect | None = None,
@@ -235,6 +285,7 @@ class BonsaiTree(Tree):
             principal_rect=principal_rect,
             margin=margin,
             border=border,
+            tree=self,
         )
 
     def create_split_container(self) -> BonsaiSplitContainer:
@@ -244,12 +295,12 @@ class BonsaiTree(Tree):
         return BonsaiTab(title)
 
     def create_tab_container(self) -> BonsaiTabContainer:
-        return BonsaiTabContainer()
+        return BonsaiTabContainer(tree=self, on_click_tab_bar=self._on_click_tab_bar)
 
     def render(self, screen_rect: ScreenRect):
         for node in self.iter_walk():
             if self.is_visible(node):
-                node.render(screen_rect, self)
+                node.render(screen_rect)
             else:
                 node.hide()
 

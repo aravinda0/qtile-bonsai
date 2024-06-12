@@ -40,7 +40,12 @@ from qtile_bonsai.core.tree import (
     TreeEvent,
 )
 from qtile_bonsai.theme import Gruvbox
-from qtile_bonsai.tree import BonsaiNodeMixin, BonsaiPane, BonsaiTree
+from qtile_bonsai.tree import (
+    BonsaiNodeMixin,
+    BonsaiPane,
+    BonsaiTabContainer,
+    BonsaiTree,
+)
 from qtile_bonsai.utils.process import modify_terminal_cmd_with_cwd
 
 
@@ -1013,7 +1018,12 @@ class Bonsai(Layout):
 
         # We initialize the tree with arbitrary dimensions. These get reset soon as this
         # layout's group is assigned to a screen.
-        self._tree = BonsaiTree(100, 100, config=config)
+        self._tree = BonsaiTree(
+            100,
+            100,
+            config=config,
+            on_click_tab_bar=self._handle_click_tab_bar,
+        )
         self._tree.validate_config()
 
         self._tree.subscribe(
@@ -1228,3 +1238,8 @@ class Bonsai(Layout):
     def _get_state_file_path(self, group) -> pathlib.Path:
         tmp_dir = tempfile.gettempdir()
         return pathlib.Path(f"{tmp_dir}/qtile_bonsai/state_{os.getpid()}_{group.name}")
+
+    def _handle_click_tab_bar(self, tc: BonsaiTabContainer, i: int, button: int):
+        tab = tc.children[i]
+        active_pane = self._tree.find_mru_pane(start_node=tab)
+        self._request_focus(active_pane)
