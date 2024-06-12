@@ -75,7 +75,6 @@ class BonsaiTabContainer(BonsaiNodeMixin, TabContainer):
         tab_bar_border_color: str = tree.get_config("tab_bar.border_color", level=level)
         tab_bar_bg_color: str = tree.get_config("tab_bar.bg_color", level=level)
 
-        tab_width: int | str = tree.get_config("tab_bar.tab.width", level=level)
         tab_margin: int = tree.get_config("tab_bar.tab.margin", level=level)
         tab_padding: int = tree.get_config("tab_bar.tab.padding", level=level)
         tab_font_family: str = tree.get_config("tab_bar.tab.font_family", level=level)
@@ -137,11 +136,11 @@ class BonsaiTabContainer(BonsaiNodeMixin, TabContainer):
 
             tab_box = self._get_object_space_tab_box(i, per_tab_w)
 
+            tab_title = f"{i + 1}: {tab.title}" if tab.title else f"{i + 1}"
             if tab_title_provider is not None:
                 active_pane = tree.find_mru_pane(start_node=tab)
-                tab_title = tab_title_provider(i, active_pane, tab)
-            else:
-                tab_title = f"{i + 1}: {tab.title}" if tab.title else f"{i + 1}"
+                if active_pane.window is not None:
+                    tab_title = tab_title_provider(i, active_pane, tab)
             if len(tab_title) > per_tab_max_chars:
                 tab_title = f"{tab_title[:per_tab_max_chars - 1]}…"
 
