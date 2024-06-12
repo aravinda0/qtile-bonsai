@@ -237,13 +237,6 @@ Click on the image to open a full-size web view.
 {% endfor %}
 
 
-## Roadmap
-
-- Basic mouse support (click on tab to focus)
-- Grow/shrink style resizing
-- Some nicer ricing possibilities for subtabs 
-
-
 ## Support
 
 For any bug reports, please file an issue. For questions/discussions, use the

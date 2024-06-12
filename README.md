@@ -227,8 +227,8 @@ Click on the image to open a full-size web view.
 | ---         | ---           | ---         |
 |`window.margin` | 0 | Size of the margin space around windows.<br>Can be an int or a list of ints in [top, right, bottom, left] ordering. |
 |`window.border_size` | 1 | Width of the border around windows. Must be a single integer value since that's<br>what qtile allows for window borders. |
-|`window.border_color` | Gruvbox.darker_yellow | Color of the border around windows |
-|`window.active.border_color` | Gruvbox.dark_yellow | Color of the border around an active window |
+|`window.border_color` | Gruvbox.dull_yellow | Color of the border around windows |
+|`window.active.border_color` | Gruvbox.vivid_yellow | Color of the border around an active window |
 |`window.normalize_on_remove` | True | Whether or not to normalize the remaining windows after a window is removed.<br>If `True`, the remaining sibling windows will all become of equal size.<br>If `False`, the next (right/down) window will take up the free space. |
 |`window.default_add_mode` | tab | (Experimental)<br><br>Determines how windows get added if they are not explicitly spawned as a split<br>or a tab.<br>Can be one of "tab" or "match_previous".<br>If "match_previous", then then new window will get added in the same way the<br>previous window was. eg. if the previous window was added as a y-split, so will<br>the new window.<br><br>NOTE:<br>Setting this to "tab" may seem convenient, since externally spawned GUI apps get<br>added as background tabs instead of messing up the current split layout.<br>But due to how the window creation flow happens, when many splits are requested<br>in quick succession, this may cause some windows requested as a split to open up<br>as a tab instead. |
 |`tab_bar.height` | 20 | Height of tab bars |
@@ -240,12 +240,12 @@ Click on the image to open a full-size web view.
 |`tab_bar.tab.width` | 50 | Width of a tab on a tab bar.<br><br>Can be an int or `auto`. If `auto`, the tabs take up as much of the available<br>screen space as possible.<br><br>Note that this width follows the 'margin box'/'principal box' model, so it<br>includes any configured margin amount. |
 |`tab_bar.tab.margin` | 0 | Size of the space on either outer side of individual tabs. |
 |`tab_bar.tab.padding` | 0 | Size of the space on either inner side of individual tabs. |
-|`tab_bar.tab.bg_color` | Gruvbox.bg1 | Background color of individual tabs |
+|`tab_bar.tab.bg_color` | Gruvbox.dull_yellow | Background color of individual tabs |
 |`tab_bar.tab.fg_color` | Gruvbox.fg1 | Foreground text color of individual tabs |
 |`tab_bar.tab.font_family` | Mono | Font family to use for tab titles |
 |`tab_bar.tab.font_size` | 15 | Font size to use for tab titles |
-|`tab_bar.tab.active.bg_color` | Gruvbox.bg4 | Background color of active tabs |
-|`tab_bar.tab.active.fg_color` | Gruvbox.fg1 | Foreground text color of the active tab |
+|`tab_bar.tab.active.bg_color` | Gruvbox.vivid_yellow | Background color of active tabs |
+|`tab_bar.tab.active.fg_color` | Gruvbox.bg0_hard | Foreground text color of the active tab |
 |`tab_bar.tab.title_provider` | None | A callback that generates the title for a tab. The callback accepts 3 parameters<br>and returns the final title string. The params are:<br>1. `index`:<br>&nbsp;&nbsp;&nbsp;&nbsp;The index of the current tab in the list of tabs.<br>2. `active_pane`:<br>&nbsp;&nbsp;&nbsp;&nbsp;The active `Pane` instance under the current tab. A `Pane` is just a<br>&nbsp;&nbsp;&nbsp;&nbsp;container for a window and can be accessed via `pane.window`.<br>3. `tab`:<br>&nbsp;&nbsp;&nbsp;&nbsp;The current `Tab` instance.<br><br>For example, here's a callback that returns the active window's title:<br>def my_title_provider(index, active_pane, tab):<br>&nbsp;&nbsp;&nbsp;&nbsp;return active_pane.window.name |
 |`auto_cwd_for_terminals` | True | (Experimental)<br><br>If `True`, when spawning new windows by specifying a `program` that happens to<br>be a well-known terminal emulator, will try to open the new terminal window in<br>same working directory as the last focused window. |
 |`restore.threshold_seconds` | 4 | You likely don't need to tweak this.<br>Controls the time within which a persisted state file is considered to be from a<br>recent qtile config-reload/restart event. If the persisted file is this many<br>seconds old, we restore our window tree from it. |
@@ -278,13 +278,6 @@ Click on the image to open a full-size web view.
 |`normalize_tab` | Starting from the focused window's tab, make all windows in the tab of equal size<br>under their respective containers.<br><br>Args:<br>&nbsp;&nbsp;&nbsp;&nbsp;`recurse`:<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;If `True`, then nested nodes are also normalized similarly.<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Defaults to `True`. |
 |`normalize_all` | Make all windows under all tabs be of equal size under their respective containers. |
 
-
-
-## Roadmap
-
-- Basic mouse support (click on tab to focus)
-- Grow/shrink style resizing
-- Some nicer ricing possibilities for subtabs 
 
 
 ## Support
