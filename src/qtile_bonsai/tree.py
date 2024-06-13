@@ -9,7 +9,8 @@ from libqtile.config import ScreenRect
 from libqtile.core.manager import Qtile
 
 from qtile_bonsai.core.geometry import Box, PerimieterParams, Rect
-from qtile_bonsai.core.tree import Pane, SplitContainer, Tab, TabContainer, Tree
+from qtile_bonsai.core.nodes import Pane, SplitContainer, Tab, TabContainer
+from qtile_bonsai.core.tree import Tree
 
 
 class BonsaiNodeMixin:

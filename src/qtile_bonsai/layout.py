@@ -22,20 +22,18 @@ from libqtile.log_utils import logger
 
 import qtile_bonsai.validation as validation
 from qtile_bonsai.core.geometry import (
+    Axis,
     AxisParam,
     Direction,
     Direction1D,
     Direction1DParam,
     DirectionParam,
 )
+from qtile_bonsai.core.nodes import Pane, SplitContainer, Tab
 from qtile_bonsai.core.tree import (
-    Axis,
     InvalidNodeSelectionError,
     NodeHierarchyPullOutSelectionMode,
     NodeHierarchySelectionMode,
-    Pane,
-    SplitContainer,
-    Tab,
     Tree,
     TreeEvent,
 )
