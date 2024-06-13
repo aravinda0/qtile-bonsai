@@ -37,7 +37,7 @@ Source = "https://github.com/aravinda0/qtile-bonsai"
 
 
 [tool.pdm]
-version = { source = "file", path = "src/qtile_bonsai/__about__.py" }
+version = { source = "file", path = "src/qtile_bonsai/__init__.py" }
 
 
 [tool.pdm.dev-dependencies]
@@ -71,9 +71,7 @@ format_check = "ruff format --check {args}"
 [tool.coverage.run]
 branch = true
 parallel = true
-omit = [
-  "src/qtile_bonsai/__about__.py",
-]
+omit = []
 
 [tool.coverage.report]
 exclude_lines = [
