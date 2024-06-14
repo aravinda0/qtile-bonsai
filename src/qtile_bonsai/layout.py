@@ -768,8 +768,6 @@ class Bonsai(Layout):
             # background tab.
             self._request_focus(self.focused_pane)
 
-            self._request_relayout()
-
     @expose_command
     def merge_to_subtab(
         self,
