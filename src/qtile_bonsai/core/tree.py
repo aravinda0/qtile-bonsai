@@ -434,6 +434,30 @@ class Tree:
             node = node.parent
         pane.recency = self.next_recency_value()
 
+    def adjacent_node(
+        self, node: Node, direction: DirectionParam, *, wrap: bool = True
+    ) -> Node:
+        """Return the node that is adjacent to the provided `node` in the specified
+        direction. This may be a 'supernode' that is a container for multiple child
+        nodes.
+        Returns the node itself when there are no suitable sibling nodes.
+
+        NOTES:
+            - Tab bars are ignored. Two panes can be adjacent even if a subtab bar
+              appears between them.
+        """
+        direction = Direction(direction)
+
+        supernode = self.find_border_encompassing_supernode(node, direction)
+        if supernode is None:
+            return node
+
+        supernode_sibling = supernode.sibling(direction.axis_unit, wrap=wrap)
+        if supernode_sibling is None or supernode_sibling is supernode:
+            return node
+
+        return supernode_sibling
+
     def adjacent_pane(
         self, pane: Pane, direction: DirectionParam, *, wrap: bool = True
     ) -> Pane:
@@ -450,22 +474,11 @@ class Tree:
     ) -> list[Pane]:
         """Returns all panes that are adjacent to the provided `node` in the specified
         `direction`.
-
-        NOTES:
-            - 'Adjacent' here means that panes may partially or wholly share a border
-              with the provided `node`.
-            - A pane is not adjacent to itself.
-            - Tab bars are ignored. Two panes can be adjacent even if a subtab bar
-              appears between them.
         """
         direction = Direction(direction)
 
-        supernode = self.find_border_encompassing_supernode(node, direction)
-        if supernode is None:
-            return []
-
-        supernode_sibling = supernode.sibling(direction.axis_unit, wrap=wrap)
-        if supernode_sibling is None or supernode_sibling is supernode:
+        supernode_sibling = self.adjacent_node(node, direction, wrap=wrap)
+        if supernode_sibling is node:
             return []
 
         adjacent = []
