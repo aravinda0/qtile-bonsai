@@ -17,6 +17,7 @@ from typing import Any, Callable, ClassVar, Sequence
 from libqtile.backend.base.window import Window
 from libqtile.command.base import expose_command
 from libqtile.config import ScreenRect
+from libqtile.group import _Group
 from libqtile.layout.base import Layout
 from libqtile.log_utils import logger
 
@@ -29,12 +30,11 @@ from qtile_bonsai.core.geometry import (
     Direction1DParam,
     DirectionParam,
 )
-from qtile_bonsai.core.nodes import Pane, SplitContainer, Tab
+from qtile_bonsai.core.nodes import Node, Pane, SplitContainer, Tab, TabContainer
 from qtile_bonsai.core.tree import (
     InvalidNodeSelectionError,
     NodeHierarchyPullOutSelectionMode,
     NodeHierarchySelectionMode,
-    Tree,
     TreeEvent,
 )
 from qtile_bonsai.theme import Gruvbox
@@ -65,6 +65,10 @@ class Bonsai(Layout):
     class AddClientMode(enum.Enum):
         restoration_in_progress = 1
         normal = 2
+
+    class InteractionMode(enum.Enum):
+        normal = 1
+        branch_select = 2
 
     level_specific_config_format = re.compile(r"^L(\d+)\.(.+)")
 
@@ -249,6 +253,23 @@ class Bonsai(Layout):
             """,
         ),
         LayoutOption(
+            "branch_select_mode.border_size",
+            3,
+            """
+            Size of the border around the active selection when `branch_select_mode` is
+            active.
+            """,
+        ),
+        LayoutOption(
+            "branch_select_mode.border_color",
+            Gruvbox.dark_purple,
+            """
+            Color of the border around the active selection when `branch_select_mode` is
+            active.
+            """,
+            default_value_label="Gruvbox.dark_purple",
+        ),
+        LayoutOption(
             "auto_cwd_for_terminals",
             True,
             """
@@ -280,10 +301,11 @@ class Bonsai(Layout):
 
         # We declare everything here, but things are initialized in `self._init()`. See
         # docs for `self.clone()`.
-        self._tree: Tree
+        self._tree: BonsaiTree
         self._focused_window: Window | None
         self._windows_to_panes: dict[Window, BonsaiPane]
         self._add_client_mode: Bonsai.AddClientMode
+        self._interaction_mode: Bonsai.InteractionMode
         self._next_window_handler: Bonsai.WindowHandler
 
         self._restoration_window_id_to_pane_id: dict[int, int] = {}
@@ -301,7 +323,31 @@ class Bonsai(Layout):
             return self._windows_to_panes[self.focused_window]
         return None
 
-    def clone(self, group):
+    @property
+    def actionable_node(self) -> Node | None:
+        if self.interaction_mode == Bonsai.InteractionMode.branch_select:
+            return self._tree.selected_node
+        return self.focused_pane
+
+    @property
+    def interaction_mode(self) -> "Bonsai.InteractionMode":
+        return self._interaction_mode
+
+    @interaction_mode.setter
+    def interaction_mode(self, value: "Bonsai.InteractionMode"):
+        self._interaction_mode = value
+
+        if (
+            value == Bonsai.InteractionMode.branch_select
+            and self.focused_pane is not None
+        ):
+            self._tree.activate_selection(self.focused_pane)
+        elif value == Bonsai.InteractionMode.normal:
+            self._tree.clear_selection()
+
+        self._request_relayout()
+
+    def clone(self, group: _Group):
         """In the manner qtile expects, creates a fresh, blank-slate instance of this
         class.
 
@@ -320,7 +366,7 @@ class Bonsai(Layout):
         when qtile is ready to provide us with the associated `Group` instance.
         """
         pseudo_clone = super().clone(group)
-        pseudo_clone._init()
+        pseudo_clone._init(group)
         return pseudo_clone
 
     def layout(self, windows: Sequence[Window], screen_rect: ScreenRect):
@@ -372,6 +418,9 @@ class Bonsai(Layout):
         pane.window = window
         self._windows_to_panes[window] = pane
 
+        # Prefer to safely revert back to normal mode on any additions to the tree
+        self.interaction_mode = Bonsai.InteractionMode.normal
+
     def remove(self, window: Window) -> Window | None:
         pane = self._windows_to_panes[window]
         normalize_on_remove = self._tree.get_config(
@@ -384,6 +433,9 @@ class Bonsai(Layout):
         # Set to None immediately so as not to use stale references in the time between
         # remove() and the next focus() invocation. eg. float/unfloat
         self._focused_window = None
+
+        # Prefer to safely revert back to normal mode on any removals to the tree
+        self.interaction_mode = Bonsai.InteractionMode.normal
 
         if next_focus_pane is not None:
             return next_focus_pane.window
@@ -434,6 +486,8 @@ class Bonsai(Layout):
         self._next_window_handler = self._handle_default_next_window
 
         self._tree.hide()
+
+        self.interaction_mode = Bonsai.InteractionMode.normal
 
         # Use this opportunity for some cleanup
         self._handle_delayed_release_of_removed_nodes()
@@ -490,7 +544,7 @@ class Bonsai(Layout):
             if self._tree.is_empty:
                 return self._tree.tab()
 
-            target = self.focused_pane or self._tree.find_mru_pane()
+            target = self.actionable_node or self._tree.find_mru_pane()
             return self._tree.split(
                 target, axis, ratio=ratio, normalize=normalize, position=position
             )
@@ -538,12 +592,12 @@ class Bonsai(Layout):
             if not fall_back_to_default_tab_spawning:
                 fall_back_to_default_tab_spawning = True
                 return self._tree.tab(
-                    self.focused_pane, new_level=new_level, level=level
+                    self.actionable_node, new_level=new_level, level=level
                 )
 
             # Subsequent implicitly created tabs are spawned at whatever level
-            # `self.focused_pane` is in.
-            return self._tree.tab(self.focused_pane)
+            # `self.actionable_node` is in.
+            return self._tree.tab(self.actionable_node)
 
         self._next_window_handler = _handle_next_window
         self._spawn_program(program)
@@ -554,21 +608,32 @@ class Bonsai(Layout):
         Move focus to the window in the specified direction relative to the currently
         focused window. If there are multiple candidates, the most recently focused of
         them will be chosen.
+        When `branch_select_mode` is active, will similarly pick neighboring nodes, which
+        may consist of multiple windows under it.
 
         Args:
             `direction`:
                 The direction in which a neighbor is found to move focus to. Can be
                 "up"/"down"/"left"/"right".
             `wrap`:
-                If `True`, will wrap around the edge and select windows from the other
-                end of the screen.
-                Defaults to `True`.
+                If `True`, will wrap around the edge and select items from the other
+                end of the screen. Defaults to `True`.
         """
         if self._tree.is_empty:
             return
 
-        next_pane = self._tree.adjacent_pane(self.focused_pane, direction, wrap=wrap)
-        self._request_focus(next_pane)
+        if self.interaction_mode == Bonsai.InteractionMode.branch_select:
+            if self._tree.selected_node is not None:
+                next_node = self._tree.adjacent_node(
+                    self._tree.selected_node, direction, wrap=wrap
+                )
+                self._tree.activate_selection(next_node)
+                self._request_relayout()
+        else:
+            next_pane = self._tree.adjacent_pane(
+                self.focused_pane, direction, wrap=wrap
+            )
+            self._request_focus(next_pane)
 
     @expose_command
     def left(self, *, wrap: bool = True):
@@ -627,8 +692,10 @@ class Bonsai(Layout):
         """
         if self._tree.is_empty:
             return
+        if self._cancel_if_unsupported_branch_select_mode_op():
+            return
 
-        next_pane = self._tree.next_tab(self.focused_pane, wrap=wrap)
+        next_pane = self._tree.next_tab(self.actionable_node, wrap=wrap)
         if next_pane is not None:
             self._request_focus(next_pane)
 
@@ -639,8 +706,10 @@ class Bonsai(Layout):
         """
         if self._tree.is_empty:
             return
+        if self._cancel_if_unsupported_branch_select_mode_op():
+            return
 
-        next_pane = self._tree.prev_tab(self.focused_pane, wrap=wrap)
+        next_pane = self._tree.prev_tab(self.actionable_node, wrap=wrap)
         if next_pane is not None:
             self._request_focus(next_pane)
 
@@ -669,7 +738,7 @@ class Bonsai(Layout):
 
         direction = Direction(direction)
         self._tree.resize(
-            self.focused_pane, direction.axis, direction.axis_unit * amount
+            self.actionable_node, direction.axis, direction.axis_unit * amount
         )
         self._request_relayout()
 
@@ -688,12 +757,16 @@ class Bonsai(Layout):
         """
         if self._tree.is_empty:
             return
-
-        other_pane = self._tree.adjacent_pane(self.focused_pane, direction, wrap=wrap)
-        if other_pane is self.focused_pane:
+        if self._cancel_if_unsupported_branch_select_mode_op():
             return
 
-        self._tree.swap(self.focused_pane, other_pane)
+        other_pane = self._tree.adjacent_pane(
+            self.actionable_node, direction, wrap=wrap
+        )
+        if other_pane is self.actionable_node:
+            return
+
+        self._tree.swap(self.actionable_node, other_pane)
         self._request_relayout()
 
     @expose_command
@@ -712,7 +785,7 @@ class Bonsai(Layout):
 
         direction = Direction1D(direction)
 
-        t1 = self.focused_pane.get_first_ancestor(Tab)
+        t1 = self.actionable_node.get_first_ancestor(Tab)
         t2 = t1.sibling(direction.axis_unit, wrap=wrap)
 
         if t1 is not t2 and t2 is not None:
@@ -757,7 +830,7 @@ class Bonsai(Layout):
 
         direction = Direction1D(direction)
 
-        src = self.focused_pane.get_first_ancestor(Tab)
+        src = self.actionable_node.get_first_ancestor(Tab)
         dest = src.sibling(direction.axis_unit)
 
         if src is not dest and dest is not None:
@@ -824,10 +897,12 @@ class Bonsai(Layout):
         """
         if self._tree.is_empty:
             return
+        if self._cancel_if_unsupported_branch_select_mode_op():
+            return
 
         try:
             self._tree.merge_with_neighbor_to_subtab(
-                self.focused_pane,
+                self.actionable_node,
                 direction,
                 src_selection=src_selection,
                 dest_selection=dest_selection,
@@ -871,6 +946,8 @@ class Bonsai(Layout):
             - `layout.push_in("down", dest_selection="mru_largest", wrap=False)`
         """
         if self._tree.is_empty:
+            return
+        if self._cancel_if_unsupported_branch_select_mode_op():
             return
 
         try:
@@ -918,6 +995,8 @@ class Bonsai(Layout):
         """
         if self._tree.is_empty:
             return
+        if self._cancel_if_unsupported_branch_select_mode_op():
+            return
 
         try:
             self._tree.pull_out(
@@ -943,6 +1022,8 @@ class Bonsai(Layout):
         """
         if self._tree.is_empty:
             return
+        if self._cancel_if_unsupported_branch_select_mode_op():
+            return
 
         try:
             self._tree.pull_out_to_tab(self.focused_pane, normalize=normalize)
@@ -964,7 +1045,11 @@ class Bonsai(Layout):
         if self._tree.is_empty:
             return
 
-        sc, *_ = self.focused_pane.get_ancestors(SplitContainer)
+        try:
+            sc = self.actionable_node.get_self_or_first_ancestor(SplitContainer)
+        except ValueError:
+            return
+
         self._tree.normalize(sc, recurse=recurse)
         self._request_relayout()
 
@@ -982,7 +1067,7 @@ class Bonsai(Layout):
         if self._tree.is_empty:
             return
 
-        tab, *_ = self.focused_pane.get_ancestors(Tab)
+        tab, *_ = self.actionable_node.get_ancestors(Tab)
         self._tree.normalize(tab, recurse=recurse)
         self._request_relayout()
 
@@ -999,16 +1084,99 @@ class Bonsai(Layout):
         self._request_relayout()
 
     @expose_command
+    def toggle_branch_select_mode(self):
+        """
+        Enable branch-select mode where we can select not just a window, but even their
+        container nodes.
+
+        This will activate a special border around the active selection. You can move
+        its focus around using the same bindings as for switching window focus. You can
+        also select upper/parent or lower/child nodes with the `select_branch_out()` and
+        `select_branch_in()` commands.
+
+        Handy for cases where you want to split over a collection of windows or make a
+        new subtab level over a collection of windows.
+
+        Aside from focus-switching motions, the only operations supported are
+        `spawn_split()` and `spawn_tab()`. Triggering other commands will simply exit
+        branch-select mode.
+        """
+        if self._tree.is_empty:
+            return
+
+        if self.interaction_mode == Bonsai.InteractionMode.normal:
+            self.interaction_mode = Bonsai.InteractionMode.branch_select
+        else:
+            self.interaction_mode = Bonsai.InteractionMode.normal
+
+    @expose_command
+    def select_branch_in(self):
+        """
+        When in branch-select mode, it will narrow the active selection by selecting the
+        first descendent node.
+        """
+        if self._tree.is_empty:
+            return
+        if self.interaction_mode != Bonsai.InteractionMode.branch_select:
+            return
+
+        if self._tree.selected_node is None:
+            return
+
+        child = next(
+            (
+                n
+                for n in self._tree.iter_walk(
+                    start=self._tree.selected_node, only_visible=True
+                )
+                if not isinstance(n, Tab) and n is not self._tree.selected_node
+            ),
+            None,
+        )
+        if child is None:
+            return
+
+        self._tree.activate_selection(child)
+        self._request_relayout()
+
+    @expose_command
+    def select_branch_out(self):
+        """
+        When in branch-select mode, it will expand the active selection by selecting the
+        next ancestor node.
+        """
+        if self._tree.is_empty:
+            return
+        if self.interaction_mode != Bonsai.InteractionMode.branch_select:
+            return
+
+        if self._tree.selected_node is None:
+            return
+
+        try:
+            ancestor = self._tree.selected_node.get_first_ancestor(
+                (SplitContainer, TabContainer)
+            )
+        except ValueError:
+            return
+        if ancestor is self._tree.root:
+            return
+
+        self._tree.activate_selection(ancestor)
+        self._request_relayout()
+
+    @expose_command
     def info(self):
         return {
             "name": "bonsai",
             "tree": repr(self._tree),
+            "interaction_mode": self.interaction_mode.name,
         }
 
     def _handle_default_next_window(self) -> BonsaiPane:
         return self._tree.tab()
 
-    def _init(self):
+    def _init(self, group: _Group):
         config = self.parse_multi_level_config()
 
         # We initialize the tree with arbitrary dimensions. These get reset soon as this
@@ -1016,6 +1184,7 @@ class Bonsai(Layout):
         self._tree = BonsaiTree(
             100,
             100,
+            qtile=group.qtile,
             config=config,
             on_click_tab_bar=self._handle_click_tab_bar,
         )
@@ -1028,6 +1197,7 @@ class Bonsai(Layout):
             TreeEvent.node_removed, lambda nodes: self._handle_removed_tree_nodes(nodes)
         )
 
+        self._interaction_mode = Bonsai.InteractionMode.normal
         self._focused_window = None
         self._windows_to_panes = {}
 
@@ -1109,7 +1279,7 @@ class Bonsai(Layout):
             node.finalize()
 
     def _handle_rename_tab(self, new_title: str):
-        tab = self.focused_pane.get_first_ancestor(Tab)
+        tab = self.actionable_node.get_first_ancestor(Tab)
         tab.title = new_title
         self._request_relayout()
 
@@ -1238,3 +1408,10 @@ class Bonsai(Layout):
         tab = tc.children[i]
         active_pane = self._tree.find_mru_pane(start_node=tab)
         self._request_focus(active_pane)
+
+    def _cancel_if_unsupported_branch_select_mode_op(self) -> bool:
+        if self.interaction_mode == Bonsai.InteractionMode.branch_select:
+            logger.warn("This operation isn't yet supported in branch-select mode.")
+            self.interaction_mode = Bonsai.InteractionMode.normal
+            return True
+        return False

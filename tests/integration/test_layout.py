@@ -250,3 +250,81 @@ class TestStateRestoration:
                             - p:7 | {x: 400, y: 300, w: 400, h: 300}
             """,
         )
+
+
+class TestBranchSelectMode:
+    def test_split_on_sc(self, manager, spawn_test_window_cmd):
+        manager.layout.spawn_tab(spawn_test_window_cmd)
+        wait()
+
+        manager.layout.spawn_split(spawn_test_window_cmd, "y")
+        wait()
+
+        manager.layout.spawn_split(spawn_test_window_cmd, "x")
+        wait()
+
+        manager.layout.toggle_branch_select_mode()
+        manager.layout.select_branch_out()
+
+        manager.layout.spawn_split(spawn_test_window_cmd, "y")
+        wait()
+
+        assert tree_repr_matches_repr(
+            manager.layout.info()["tree"],
+            """
+            - tc:1
+                - t:2
+                    - sc.y:3
+                        - p:4 | {x: 0, y: 0, w: 800, h: 200}
+                        - sc.x:6
+                            - p:5 | {x: 0, y: 200, w: 400, h: 200}
+                            - p:7 | {x: 400, y: 200, w: 400, h: 200}
+                        - p:8 | {x: 0, y: 400, w: 800, h: 200}
+            """,
+        )
+
+    def test_subtab_on_sc(self, manager, spawn_test_window_cmd):
+        manager.layout.spawn_tab(spawn_test_window_cmd)
+        wait()
+
+        manager.layout.spawn_split(spawn_test_window_cmd, "y")
+        wait()
+
+        manager.layout.spawn_split(spawn_test_window_cmd, "x")
+        wait()
+
+        manager.layout.toggle_branch_select_mode()
+        manager.layout.select_branch_out()
+
+        manager.layout.spawn_tab(spawn_test_window_cmd, new_level=True)
+        wait()
+
+        assert tree_repr_matches_repr(
+            manager.layout.info()["tree"],
+            """
+            - tc:1
+                - t:2
+                    - sc.y:3
+                        - p:4 | {x: 0, y: 0, w: 800, h: 300}
+                        - tc:8
+                            - t:9
+                                - sc.x:6
+                                    - p:5 | {x: 0, y: 320, w: 400, h: 280}
+                                    - p:7 | {x: 400, y: 320, w: 400, h: 280}
+                            - t:10
+                                - sc.x:11
+                                    - p:12 | {x: 0, y: 320, w: 800, h: 280}
+            """,
+        )
+
+    def test_when_a_new_window_is_added_implicitly_then_interaction_mode_reverts_to_normal_mode(
+        self, manager, spawn_test_window_cmd, make_window
+    ):
+        manager.layout.spawn_tab(spawn_test_window_cmd)
+        wait()
+
+        manager.layout.toggle_branch_select_mode()
+
+        make_window()
+
+        assert manager.layout.info()["interaction_mode"] == "normal"

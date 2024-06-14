@@ -9,7 +9,7 @@ from libqtile.config import ScreenRect
 from libqtile.core.manager import Qtile
 
 from qtile_bonsai.core.geometry import Box, PerimieterParams, Rect
-from qtile_bonsai.core.nodes import Pane, SplitContainer, Tab, TabContainer
+from qtile_bonsai.core.nodes import Node, Pane, SplitContainer, Tab, TabContainer
 from qtile_bonsai.core.tree import Tree
 
 
@@ -19,6 +19,9 @@ class BonsaiNodeMixin:
     def init_ui(self, qtile: Qtile):
         """Handles any initialization of UI elements that are part of this node's
         representation.
+
+        TODO: Review. This approach may no longer be necessary after some changes where
+        `group.qtile` is now passed to `BonsaiTree`.
         """
         pass
 
@@ -226,7 +229,7 @@ class BonsaiPane(BonsaiNodeMixin, Pane):
 
         self.window: Window | None = None
 
-        self._tree = tree
+        self._tree = tree  # just for config
 
     def render(self, screen_rect: ScreenRect):
         if self.window is None:
@@ -261,12 +264,18 @@ class BonsaiTree(Tree):
         self,
         width: int,
         height: int,
+        qtile: Qtile,
         config: Tree.MultiLevelConfig | None = None,
         on_click_tab_bar: BonsaiTabContainer.TabBarClickHandler | None = None,
     ):
         super().__init__(width, height, config)
 
+        self._branch_selection: BranchSelection = BranchSelection(self, qtile)
         self._on_click_tab_bar = on_click_tab_bar
+
+    @property
+    def selected_node(self) -> Node | None:
+        return self._branch_selection.focused_node
 
     def create_pane(
         self,
@@ -303,14 +312,117 @@ class BonsaiTree(Tree):
                 node.render(screen_rect)
             else:
                 node.hide()
+        self._branch_selection.render(screen_rect)
 
     def finalize(self):
+        self._branch_selection.finalize()
         for node in self.iter_walk():
             node.finalize()
 
     def hide(self):
         for node in self.iter_walk():
             node.hide()
+
+    def activate_selection(self, node: Node):
+        self._branch_selection.focused_node = node
+
+    def clear_selection(self):
+        self._branch_selection.focused_node = None
+
+
+class BranchSelection:
+    """Manages a UI rect representing a 'selection' of a BonsaiNode subtree in the form
+    of a border around them.
+
+    The border is implemented in a somewhat quirky way as a collection of 4 thin windows
+    positioned around the selection target. This helps to make things work with basic X
+    windows without transparency providers such as picom (where we could simply have one
+    overlay window and give it a border while making its body transparent).
+    """
+
+    def __init__(self, tree: BonsaiTree, qtile: Qtile):
+        self.focused_node: Node | None = None
+
+        self._tree = tree  # just to be able to access config
+
+        self._win_t = qtile.core.create_internal(0, 0, 1, 1)
+        self._win_r = qtile.core.create_internal(0, 0, 1, 1)
+        self._win_b = qtile.core.create_internal(0, 0, 1, 1)
+        self._win_l = qtile.core.create_internal(0, 0, 1, 1)
+
+        self._drawer_t = self._win_t.create_drawer(1, 1)
+        self._drawer_r = self._win_r.create_drawer(1, 1)
+        self._drawer_b = self._win_b.create_drawer(1, 1)
+        self._drawer_l = self._win_l.create_drawer(1, 1)
+
+    def render(self, screen_rect: ScreenRect):
+        if self.focused_node is None:
+            self._win_t.hide()
+            self._win_r.hide()
+            self._win_b.hide()
+            self._win_l.hide()
+            return
+
+        border_size: int = self._tree.get_config("branch_select_mode.border_size")
+        border_color: str = self._tree.get_config("branch_select_mode.border_color")
+
+        rect = self.focused_node.principal_rect
+        is_x = hasattr(self._drawer_t, "_check_xcb")  # See notes in BonsaiTabContainer
+
+        rect_t = Rect(rect.x, rect.y, rect.w, border_size)
+        place_window_using_box(self._win_t, Box(rect_t), "000000", screen_rect)
+        self._win_t.unhide()
+        self._win_t.bring_to_front()
+        self._drawer_t.width = rect_t.w
+        self._drawer_t.height = rect_t.h
+        if is_x:
+            self._drawer_t._check_xcb()
+        self._drawer_t.clear(border_color)
+        self._drawer_t.draw(0, 0, rect_t.w, rect_t.h)
+
+        rect_r = Rect(rect.x2 - border_size, rect.y, border_size, rect.h)
+        place_window_using_box(self._win_r, Box(rect_r), "000000", screen_rect)
+        self._win_r.unhide()
+        self._win_r.bring_to_front()
+        self._drawer_r.width = rect_r.w
+        self._drawer_r.height = rect_r.h
+        if is_x:
+            self._drawer_r._check_xcb()
+        self._drawer_r.clear(border_color)
+        self._drawer_r.draw(0, 0, rect_r.w, rect_r.h)
+
+        rect_b = Rect(rect.x, rect.y2 - border_size, rect.w, border_size)
+        place_window_using_box(self._win_b, Box(rect_b), "000000", screen_rect)
+        self._win_b.unhide()
+        self._win_b.bring_to_front()
+        self._drawer_b.width = rect_b.w
+        self._drawer_b.height = rect_b.h
+        if is_x:
+            self._drawer_b._check_xcb()
+        self._drawer_b.clear(border_color)
+        self._drawer_b.draw(0, 0, rect_b.w, rect_b.h)
+
+        rect_l = Rect(rect.x, rect.y, border_size, rect.h)
+        place_window_using_box(self._win_l, Box(rect_l), "000000", screen_rect)
+        self._win_l.unhide()
+        self._win_l.bring_to_front()
+        self._drawer_l.width = rect_l.w
+        self._drawer_l.height = rect_l.h
+        if is_x:
+            self._drawer_l._check_xcb()
+        self._drawer_l.clear(border_color)
+        self._drawer_l.draw(0, 0, rect_l.w, rect_l.h)
+
+    def finalize(self):
+        self._drawer_t.finalize()
+        self._drawer_r.finalize()
+        self._drawer_b.finalize()
+        self._drawer_l.finalize()
+
+        self._win_t.kill()
+        self._win_r.kill()
+        self._win_b.kill()
+        self._win_l.kill()
 
 
 def place_window_using_box(
