@@ -187,7 +187,9 @@ class Node(metaclass=abc.ABCMeta):
 
         return ancestors
 
-    def get_first_ancestor(self, of_type: type[NodeType]) -> NodeType:
+    def get_first_ancestor(
+        self, of_type: type[NodeType] | tuple[type[NodeType], ...]
+    ) -> NodeType:
         node = self.parent
         while node is not None:
             if isinstance(node, of_type):

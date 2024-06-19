@@ -960,7 +960,7 @@ class Tree:
         if self.is_empty:
             return
 
-        def walk(node) -> Iterator[Node]:
+        def walk(node: Node) -> Iterator[Node]:
             yield node
             if only_visible and isinstance(node, TabContainer):
                 yield from walk(node.active_child)
