@@ -526,11 +526,10 @@ class Bonsai(Layout):
             - `layout.spawn_tab(my_terminal, new_level=True)`
             - `layout.spawn_tab("qutebrowser", level=1)`
         """
-        # We use this closed-over flag to ensure that after the explicit user-invoked
-        # spawning of a tab based on the provided variables, any subsequent 'implicit'
-        # tabs that are spawned are done so in a sensible manner. eg. if user invokes a
-        # new subtab, any subsequent implicitly created tabs should not create further
-        # subtabs since they were not explicitly asked for.
+        # We use this closed-over flag to ensure that subtab UX is sensible. After a new
+        # subtab is invoked, subsequent 'spawn tab' invocations should not implicitly
+        # continue to create further subtab levels due to the captured `new_level` value
+        # in `_handle_next_window`.
         fall_back_to_default_tab_spawning = False
 
         def _handle_next_window():
