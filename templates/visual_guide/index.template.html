@@ -19,7 +19,7 @@
     <ul class="guide">
       {% for section, examples in sections.items() %}
         <li class="section">
-          <h2 class="title">{{ section }}</h2>
+          <h2 id="{{ section }}" class="title">{{ section }}</h2>
           {% for example in examples %}
             {% include example.template_path %}
           {% endfor %}
