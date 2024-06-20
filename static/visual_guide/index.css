@@ -82,6 +82,19 @@ footer {
   align-self: start;
 }
 
+.node {
+  position: relative;
+}
+
+.node.selected:after {
+  content: "";
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border: 3px solid var(--purple-dim);
+  box-sizing: border-box;
+}
+
 .node-tc {
 
 }

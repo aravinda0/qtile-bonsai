@@ -4,7 +4,7 @@ from pathlib import Path
 
 import jinja2
 
-from qtile_bonsai.core.nodes import Node, Pane, Tab
+from qtile_bonsai.core.nodes import Node, Pane, SplitContainer, Tab
 from qtile_bonsai.core.tree import Tree
 from qtile_bonsai.core.utils import to_snake_case
 
@@ -26,10 +26,26 @@ class ExamplePane(Pane):
 
 
 class ExampleTree(Tree):
+    """Tree variant with helpers for generating visual guide docs.
+
+    Additional dynamic node attributes:
+        Node:
+            - selected: bool
+        Pane:
+            See `ExamplePane` above.
+
+    Notes:
+        The examples primarily use all the functionality from the core Tree class to
+        generate examples. Except for a few things.
+        The branch-selection mode is a UI-driven feature implemented in the qtile layer,
+        outside the core Tree. So we kind of fake its behavior in a simple manner here.
+    """
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
         self.command: str | None = None
+        self.selection: Node | None = None
         self._pane_label_seq = "A"
 
     def focus(self, pane: ExamplePane):
@@ -37,6 +53,11 @@ class ExampleTree(Tree):
         for p in self.iter_panes():
             p.focused = False
         pane.focused = True
+
+    def activate_selection(self, node: Node):
+        for n in self.iter_walk():
+            n.selected = False
+        node.selected = True
 
     def create_pane(self, *args, **kwargs) -> ExamplePane:
         p = super().create_pane(*args, **kwargs)
@@ -443,6 +464,82 @@ class EgMergeTabs(Example):
         rhs2.merge_tabs(rt2, rt1, "y")
         rhs2.command = 'merge_tabs("previous", "y")'
         rhs2.focus(rhs2.node(lp4.id))
+
+        return {
+            "lhs": lhs,
+            "rhs_items": [rhs1, rhs2],
+        }
+
+
+class EgBranchSelectMode1(Example):
+    section = "Branch Select Mode"
+
+    def build_context_fragment(self):
+        lhs = make_tree()
+        lp1 = lhs.tab()
+        lp2 = lhs.split(lp1, "x")
+        lp3 = lhs.split(lp2, "y")
+        lhs.focus(lp3)
+
+        rhs = lhs.clone()
+        rhs.focus(rhs.node(lp3.id))
+        rhs.activate_selection(rhs.node(lp3.id))
+        rhs.command = "toggle_branch_select_mode()"
+
+        return {
+            "lhs": lhs,
+            "rhs_items": [rhs],
+        }
+
+
+class EgBranchSelectMode2(Example):
+    section = "Branch Select Mode"
+
+    def build_context_fragment(self):
+        lhs = make_tree()
+        lp1 = lhs.tab()
+        lp2 = lhs.split(lp1, "x")
+        lp3 = lhs.split(lp2, "y")
+        _ = lhs.split(lp3, "x")
+        lhs.focus(lp3)
+        lhs.activate_selection(lp3.parent)
+
+        rhs1 = lhs.clone()
+        rhs1.focus(rhs1.node(lp3.id))
+        rhs1.activate_selection(rhs1.node(lp3.parent.parent.id))
+        rhs1.command = "select_branch_out()"
+
+        rhs2 = lhs.clone()
+        rhs2.focus(rhs2.node(lp3.id))
+        rhs2.activate_selection(rhs2.node(lp3.id))
+        rhs2.command = "select_branch_in()"
+
+        return {
+            "lhs": lhs,
+            "rhs_items": [rhs1, rhs2],
+        }
+
+
+class EgBranchSelectMode3(Example):
+    section = "Branch Select Mode"
+
+    def build_context_fragment(self):
+        lhs = make_tree()
+        lp1 = lhs.tab()
+        lp2 = lhs.split(lp1, "x")
+        lp3 = lhs.split(lp2, "y")
+        _ = lhs.split(lp3, "x")
+        lhs.focus(lp3)
+        lhs.activate_selection(lp3.parent.parent)
+
+        rhs1 = lhs.clone()
+        rhs1.split(rhs1.node(lp3.parent.parent.id), "x", normalize=True)
+        rhs1.command = 'spawn_split(program, "x")'
+
+        rhs2 = lhs.clone()
+        rhs2.tab(rhs2.node(lp3.parent.parent.id), new_level=True)
+        # rhs2.focus(rhs2.node(lp3.id))
+        rhs2.command = "spawn_tab(program, new_level=True)"
 
         return {
             "lhs": lhs,

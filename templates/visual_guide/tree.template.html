@@ -1,5 +1,5 @@
 {% macro render_tc(node) %}
-  <div class="node-tc">
+  <div class="node node-tc {%- if node.selected %} selected {%- endif %}">
     {% if not node.tab_bar.is_hidden %}
       <ul class="tc-bar" style="height:{{ node.tab_bar.box.principal_rect.h}}px">
         {% for t in node.children %}
@@ -14,7 +14,7 @@
 {% endmacro %}
 
 {% macro render_t(node) %}
-  <div class="node-t">
+  <div class="node node-t">
     {% for n in node.children %}
       {{ render_node(n) }}
     {% endfor %}
@@ -22,7 +22,7 @@
 {% endmacro %}
 
 {% macro render_sc(node) %}
-  <ul class="node-sc sc-{{ node.axis}}">
+  <ul class="node node-sc sc-{{ node.axis}} {%- if node.selected %} selected {%- endif %}">
     {% for n in node.children %}
       <li>{{ render_node(n) }}</li>
     {% endfor %}
@@ -30,7 +30,7 @@
 {% endmacro %}
 
 {% macro render_p(node) %}
-  <div class="node-p {% if node.focused %}focused{% endif %}" style="width:{{ node.box.principal_rect.w}}px; height:{{ node.box.principal_rect.h}}px;">
+  <div class="node node-p {% if node.focused %}focused{% endif %} {%- if node.selected %} selected {%- endif %}" style="width:{{ node.box.principal_rect.w}}px; height:{{ node.box.principal_rect.h}}px;">
     {{ node.label }}
   </div>
 {% endmacro %}
