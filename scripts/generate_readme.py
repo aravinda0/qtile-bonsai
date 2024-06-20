@@ -61,7 +61,12 @@ def get_exposed_comands(layout_cls: type[Layout]) -> list:
 
     def is_exposed_command(node):
         expose_command_decorator = next(
-            (d for d in node.decorator_list if d.id == "expose_command"), None
+            (
+                d
+                for d in node.decorator_list
+                if getattr(d, "id", "") == "expose_command"
+            ),
+            None,
         )
         if expose_command_decorator is not None and node.name not in excluded_commands:
             docstring = ast.get_docstring(node)
