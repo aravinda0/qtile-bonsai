@@ -1169,9 +1169,13 @@ class Bonsai(Layout):
     def info(self):
         return {
             "name": "bonsai",
-            "tree": repr(self._tree),
+            "tree": self._tree.as_dict(),
             "interaction_mode": self.interaction_mode.name,
         }
+
+    @expose_command
+    def tree_repr(self):
+        return repr(self._tree)
 
     def _handle_default_next_window(self) -> BonsaiPane:
         return self._tree.tab()

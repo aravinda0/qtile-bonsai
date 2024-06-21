@@ -19,7 +19,7 @@ def test_when_bonsai_layout_is_inactive_and_windows_are_added_in_another_active_
     manager.to_layout_index(0)
 
     assert tree_repr_matches_repr(
-        manager.layout.info()["tree"],
+        manager.layout.tree_repr(),
         """
         - tc:1
             - t:2
@@ -43,7 +43,7 @@ def test_when_floating_window_is_unfloated_then_it_is_added_back_to_layout(
 
     manager.window.toggle_floating()
     assert tree_repr_matches_repr(
-        manager.layout.info()["tree"],
+        manager.layout.tree_repr(),
         """
         - tc:1
             - t:2
@@ -54,7 +54,7 @@ def test_when_floating_window_is_unfloated_then_it_is_added_back_to_layout(
 
     manager.window.toggle_floating()
     assert tree_repr_matches_repr(
-        manager.layout.info()["tree"],
+        manager.layout.tree_repr(),
         """
         - tc:1
             - t:2
@@ -71,13 +71,13 @@ class TestSpawnSplit:
     def test_when_tree_is_empty_then_split_still_adds_first_window_as_tab(
         self, manager, spawn_test_window_cmd
     ):
-        assert manager.layout.info()["tree"] == "<empty>"
+        assert manager.layout.tree_repr() == "<empty>"
 
         manager.layout.spawn_split(spawn_test_window_cmd, "x")
         wait()
 
         assert tree_repr_matches_repr(
-            manager.layout.info()["tree"],
+            manager.layout.tree_repr(),
             """
             - tc:1
                 - t:2
@@ -105,7 +105,7 @@ class TestConfigOptions:
             make_window()
 
             assert tree_repr_matches_repr(
-                manager.layout.info()["tree"],
+                manager.layout.tree_repr(),
                 """
                 - tc:1
                     - t:2
@@ -132,7 +132,7 @@ class TestConfigOptions:
             make_window()
 
             assert tree_repr_matches_repr(
-                manager.layout.info()["tree"],
+                manager.layout.tree_repr(),
                 """
                 - tc:1
                     - t:2
@@ -165,7 +165,7 @@ class TestConfigOptions:
             make_window()
 
             assert tree_repr_matches_repr(
-                manager.layout.info()["tree"],
+                manager.layout.tree_repr(),
                 """
                 - tc:1
                     - t:2
@@ -197,7 +197,7 @@ class TestStateRestoration:
         manager.reload_config()
 
         assert tree_repr_matches_repr(
-            manager.layout.info()["tree"],
+            manager.layout.tree_repr(),
             """
             - tc:1
                 - t:2
@@ -239,7 +239,7 @@ class TestStateRestoration:
         manager.restart()
 
         assert tree_repr_matches_repr(
-            manager.layout.info()["tree"],
+            manager.layout.tree_repr(),
             """
             - tc:1
                 - t:2
@@ -270,7 +270,7 @@ class TestBranchSelectMode:
         wait()
 
         assert tree_repr_matches_repr(
-            manager.layout.info()["tree"],
+            manager.layout.tree_repr(),
             """
             - tc:1
                 - t:2
@@ -300,7 +300,7 @@ class TestBranchSelectMode:
         wait()
 
         assert tree_repr_matches_repr(
-            manager.layout.info()["tree"],
+            manager.layout.tree_repr(),
             """
             - tc:1
                 - t:2
