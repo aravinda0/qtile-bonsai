@@ -85,9 +85,6 @@ class BonsaiTabContainer(BonsaiNodeMixin, TabContainer):
         tab_font_size: float = tree.get_config("tab_bar.tab.font_size", level=level)
         tab_bg_color: str = tree.get_config("tab_bar.tab.bg_color", level=level)
         tab_fg_color: str = tree.get_config("tab_bar.tab.fg_color", level=level)
-        tab_title_provider: Callable[[int, BonsaiPane, BonsaiTab], str] = (
-            tree.get_config("tab_bar.tab.title_provider", level=level)
-        )
 
         tab_active_bg_color: str = tree.get_config(
             "tab_bar.tab.active.bg_color", level=level
@@ -140,11 +137,7 @@ class BonsaiTabContainer(BonsaiNodeMixin, TabContainer):
 
             tab_box = self._get_object_space_tab_box(i, per_tab_w)
 
-            tab_title = f"{i + 1}: {tab.title}" if tab.title else f"{i + 1}"
-            if tab_title_provider is not None:
-                active_pane = tree.find_mru_pane(start_node=tab)
-                if active_pane.window is not None:
-                    tab_title = tab_title_provider(i, active_pane, tab)
+            tab_title = tab.title_resolved
             if len(tab_title) > per_tab_max_chars:
                 tab_title = f"{tab_title[:per_tab_max_chars - 1]}…"
 
@@ -204,7 +197,33 @@ class BonsaiTabContainer(BonsaiNodeMixin, TabContainer):
 
 
 class BonsaiTab(BonsaiNodeMixin, Tab):
-    pass
+    def __init__(
+        self,
+        title: str,
+        tree: "BonsaiTree",
+    ):
+        super().__init__(title)
+
+        self._tree = tree
+
+    @property
+    def title_resolved(self) -> str:
+        tab_title_provider: Callable[[int, BonsaiPane, BonsaiTab], str] | None = (
+            self._tree.get_config("tab_bar.tab.title_provider", level=self.tab_level)
+        )
+
+        i = self.parent.children.index(self)
+        if tab_title_provider is not None:
+            active_pane = self._tree.find_mru_pane(start_node=self)
+            if active_pane.window is not None:
+                return tab_title_provider(i, active_pane, self)
+
+        return f"{i + 1}: {self.title}" if self.title else f"{i + 1}"
+
+    def as_dict(self) -> dict:
+        state = super().as_dict()
+        state["title_resolved"] = self.title_resolved
+        return state
 
 
 class BonsaiSplitContainer(BonsaiNodeMixin, SplitContainer):
@@ -301,7 +320,7 @@ class BonsaiTree(Tree):
         return BonsaiSplitContainer()
 
     def create_tab(self, title: str = "") -> BonsaiTab:
-        return BonsaiTab(title)
+        return BonsaiTab(title, tree=self)
 
     def create_tab_container(self) -> BonsaiTabContainer:
         return BonsaiTabContainer(tree=self, on_click_tab_bar=self._on_click_tab_bar)
