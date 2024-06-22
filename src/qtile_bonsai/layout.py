@@ -242,8 +242,8 @@ class Bonsai(Layout):
             1. `index`: 
                 The index of the current tab in the list of tabs.
             2. `active_pane`: 
-                The active `Pane` instance under the current tab. A `Pane` is just a
-                container for a window and can be accessed via `pane.window`.
+                The active `Pane` instance under this tab. A `Pane` is just a container
+                for a window and can be accessed via `pane.window`.
             3. `tab`:
                 The current `Tab` instance.
 
