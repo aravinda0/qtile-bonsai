@@ -137,22 +137,30 @@ class BonsaiTabContainer(BonsaiNodeMixin, TabContainer):
 
             tab_box = self._get_object_space_tab_box(i, per_tab_w)
 
+            # Truncate title based on available width
             tab_title = tab.title_resolved
             if len(tab_title) > per_tab_max_chars:
                 tab_title = f"{tab_title[:per_tab_max_chars - 1]}…"
 
             # Draw the tab
             self.bar_drawer.fillrect(
-                tab_box.border_rect.x, 0, tab_box.border_rect.w, bar_rect.h
+                tab_box.border_rect.x,
+                tab_box.border_rect.y,
+                tab_box.border_rect.w,
+                tab_box.border_rect.h,
             )
 
-            # Draw the tab's title text
-            text_w, _ = self.bar_drawer.max_layout_size(
+            # Center title text in the tab and draw it
+            text_w, text_h = self.bar_drawer.max_layout_size(
                 [tab_title], tab_font_family, tab_font_size
             )
             self.bar_text_layout.text = tab_title
-            text_offset = (tab_box.content_rect.w - text_w) / 2
-            self.bar_text_layout.draw(tab_box.content_rect.x + text_offset, 0)
+            text_offset_x = (tab_box.content_rect.w - text_w) / 2
+            text_offset_y = (tab_box.content_rect.h - text_h) / 2
+            self.bar_text_layout.draw(
+                tab_box.content_rect.x + text_offset_x,
+                tab_box.content_rect.y + text_offset_y,
+            )
 
         self.bar_drawer.draw(0, 0, bar_rect.w, bar_rect.h)
 
