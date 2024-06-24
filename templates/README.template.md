@@ -203,6 +203,40 @@ keys = [
 ]
 ```
 
+#### (Optional) 3. Add the BonsaiBar widget to your qtile bar
+
+qtile-bonsai comes with an optional `BonsaiBar` widget that can let you hide the
+top-level tab bar and display it as a widget on the qtile screen bar instead.
+
+
+```python
+
+from libqtile import bar
+from libqtile.config import Screen
+
+from qtile_bonsai import Bonsai, BonsaiBar
+
+
+# Hide away only the top level of the default tab bar that is available on the
+# layout itself. Subtab bars will remain visible.
+layouts = [
+    Bonsai(**{
+      "L1.tab_bar.hide_when": "always",
+    }),
+]
+
+screens = [
+    Screen(top=bar.Bar([
+        BonsaiBar(**{
+            # "length": 500,
+            # "tab.width": 50,
+            # ...
+        }),
+        # ... your other widgets ...
+    ])),
+]
+```
+
 
 ## Visual Guide
 
@@ -213,7 +247,7 @@ Click on the image to open a full-size web view.
 
 ## Reference
 
-### Configuration
+### Layout Configuration
 
 > [!TIP]
 > Most options have subtab-level support! ie. you can have one setting for top
@@ -225,15 +259,25 @@ Click on the image to open a full-size web view.
 
 | Option Name | Default Value | Description |
 | ---         | ---           | ---         |
-{% for config_option in config_options %}|`{{ config_option.name }}` | {{ config_option.default }} | {{ config_option.description }} |
+{% for config_option in layout_config_options %}|`{{ config_option.name }}` | {{ config_option.default }} | {{ config_option.description }} |
 {% endfor %}
 
+<br>
 
-### Commands
+### Layout Commands
 
 | Command Name | Description |
 | ---          | ---         |
 {% for command in commands %}|`{{ command.name }}` | {{ command.docstring }} |
+{% endfor %}
+
+<br>
+
+### BonsaiBar Widget
+
+| Option Name | Default Value | Description |
+| ---         | ---           | ---         |
+{% for config_option in widget_config_options %}|`{{ config_option.name }}` | {{ config_option.default }} | {{ config_option.description }} |
 {% endfor %}
 
 

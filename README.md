@@ -203,6 +203,40 @@ keys = [
 ]
 ```
 
+#### (Optional) 3. Add the BonsaiBar widget to your qtile bar
+
+qtile-bonsai comes with an optional `BonsaiBar` widget that can let you hide the
+top-level tab bar and display it as a widget on the qtile screen bar instead.
+
+
+```python
+
+from libqtile import bar
+from libqtile.config import Screen
+
+from qtile_bonsai import Bonsai, BonsaiBar
+
+
+# Hide away only the top level of the default tab bar that is available on the
+# layout itself. Subtab bars will remain visible.
+layouts = [
+    Bonsai(**{
+      "L1.tab_bar.hide_when": "always",
+    }),
+]
+
+screens = [
+    Screen(top=bar.Bar([
+        BonsaiBar(**{
+            # "length": 500,
+            # "tab.width": 50,
+            # ...
+        }),
+        # ... your other widgets ...
+    ])),
+]
+```
+
 
 ## Visual Guide
 
@@ -213,7 +247,7 @@ Click on the image to open a full-size web view.
 
 ## Reference
 
-### Configuration
+### Layout Configuration
 
 > [!TIP]
 > Most options have subtab-level support! ie. you can have one setting for top
@@ -246,15 +280,16 @@ Click on the image to open a full-size web view.
 |`tab_bar.tab.font_size` | 15 | Font size to use for tab titles |
 |`tab_bar.tab.active.bg_color` | Gruvbox.vivid_yellow | Background color of active tabs |
 |`tab_bar.tab.active.fg_color` | Gruvbox.bg0_hard | Foreground text color of the active tab |
-|`tab_bar.tab.title_provider` | None | A callback that generates the title for a tab. The callback accepts 3 parameters<br>and returns the final title string. The params are:<br>1. `index`:<br>&nbsp;&nbsp;&nbsp;&nbsp;The index of the current tab in the list of tabs.<br>2. `active_pane`:<br>&nbsp;&nbsp;&nbsp;&nbsp;The active `Pane` instance under the current tab. A `Pane` is just a<br>&nbsp;&nbsp;&nbsp;&nbsp;container for a window and can be accessed via `pane.window`.<br>3. `tab`:<br>&nbsp;&nbsp;&nbsp;&nbsp;The current `Tab` instance.<br><br>For example, here's a callback that returns the active window's title:<br>def my_title_provider(index, active_pane, tab):<br>&nbsp;&nbsp;&nbsp;&nbsp;return active_pane.window.name |
+|`tab_bar.tab.title_provider` | None | A callback that generates the title for a tab. The callback accepts 3 parameters<br>and returns the final title string. The params are:<br>1. `index`:<br>&nbsp;&nbsp;&nbsp;&nbsp;The index of the current tab in the list of tabs.<br>2. `active_pane`:<br>&nbsp;&nbsp;&nbsp;&nbsp;The active `Pane` instance under this tab. A `Pane` is just a container for<br>&nbsp;&nbsp;&nbsp;&nbsp;a window and can be accessed via `pane.window`.<br>3. `tab`:<br>&nbsp;&nbsp;&nbsp;&nbsp;The current `Tab` instance.<br><br>For example, here's a callback that returns the active window's title:<br>def my_title_provider(index, active_pane, tab):<br>&nbsp;&nbsp;&nbsp;&nbsp;return active_pane.window.name |
 |`branch_select_mode.border_size` | 3 | Size of the border around the active selection when `branch_select_mode` is<br>active. |
 |`branch_select_mode.border_color` | Gruvbox.dark_purple | Color of the border around the active selection when `branch_select_mode` is<br>active. |
 |`auto_cwd_for_terminals` | True | (Experimental)<br><br>If `True`, when spawning new windows by specifying a `program` that happens to<br>be a well-known terminal emulator, will try to open the new terminal window in<br>same working directory as the last focused window. |
 |`restore.threshold_seconds` | 4 | You likely don't need to tweak this.<br>Controls the time within which a persisted state file is considered to be from a<br>recent qtile config-reload/restart event. If the persisted file is this many<br>seconds old, we restore our window tree from it. |
 
 
+<br>
 
-### Commands
+### Layout Commands
 
 | Command Name | Description |
 | ---          | ---         |
@@ -267,6 +302,7 @@ Click on the image to open a full-size web view.
 |`down` | Same as `move_focus("down")`. For compatibility with API of other built-in layouts. |
 |`next_tab` | Switch focus to the next tab. The window that was previously active there will be<br>focused.<br><br>Args:<br>&nbsp;&nbsp;&nbsp;&nbsp;`wrap`:<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;If `True`, will cycle back to the fist tab if invoked on the last tab.<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Defaults to `True`. |
 |`prev_tab` | Same as `next_tab()` but switches focus to the previous tab. |
+|`focus_tab` | Switches focus to the tab at the position specified by `index`. When subtabs are<br>present, the nearest TabContainer is used as the context, unless `level` is<br>specified.<br><br>Args:<br>&nbsp;&nbsp;&nbsp;&nbsp;`index`:<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;The index of the tab that should be focused.<br>&nbsp;&nbsp;&nbsp;&nbsp;`level`:<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;When there are subtab levels at play, specifies which TabContainer's tabs are<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;being considered for focus.<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`level = 1` indicates top level tabs.<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`level = None` (default) indicates the 'nearest' tabs.<br><br>Examples:<br>&nbsp;&nbsp;&nbsp;&nbsp;- `layout.focus_tab(0, level=1) # Always pick from topmost tabs`<br>&nbsp;&nbsp;&nbsp;&nbsp;- `layout.focus_tab(3)` |
 |`resize` | Resizes by moving an appropriate border leftwards. Usually this is the right/bottom<br>border, but for the 'last' node under a SplitContainer, it will be the left/top<br>border.<br><br>Basically the way tmux does resizing.<br><br>If there are multiple nested windows under the area being resized, those windows are<br>resized proportionally.<br><br>Args:<br>&nbsp;&nbsp;&nbsp;&nbsp;`amount`:<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;The amount by which to resize.<br><br>Examples:<br>&nbsp;&nbsp;&nbsp;&nbsp;- `layout.resize("left", 100)`<br>&nbsp;&nbsp;&nbsp;&nbsp;- `layout.resize("right", 100)` |
 |`swap` | Swaps the currently focused window with the nearest window in the specified<br>direction. If there are multiple candidates to pick from, then the most recently<br>focused one is chosen.<br><br>Args:<br>&nbsp;&nbsp;&nbsp;&nbsp;`wrap`:<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;If `True`, will wrap around the edge and select windows from the other end of<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;the screen to swap.<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Defaults to `False`. |
 |`swap_tabs` | Swaps the currently active tab with the previous tab.<br><br>Args:<br>&nbsp;&nbsp;&nbsp;&nbsp;`wrap`:<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;If `True`, will wrap around the edge of the tab bar and swap with the last<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;tab.<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Defaults to `True`. |
@@ -282,6 +318,28 @@ Click on the image to open a full-size web view.
 |`toggle_branch_select_mode` | Enable branch-select mode where we can select not just a window, but even their<br>container nodes.<br><br>This will activate a special border around the active selection. You can move its<br>focus around using the same bindings as for switching window focus. You can also<br>select upper/parent or lower/child nodes with the `select_branch_out()` and<br>`select_branch_in()` commands.<br><br>Handy for cases where you want to split over a collection of windows or make a new<br>subtab level over a collection of windows.<br><br>Aside from focus-switching motions, the only operations supported are `spawn_split()`<br>and `spawn_tab()`. Triggering other commands will simply exit branch-select mode. |
 |`select_branch_in` | When in branch-select mode, it will narrow the active selection by selecting the<br>first descendent node. |
 |`select_branch_out` | When in branch-select mode, it will expand the active selection by selecting the next<br>ancestor node. |
+|`tree_repr` | Returns a YAML-like text representation of the internal tree hierarchy. |
+
+
+<br>
+
+### BonsaiBar Widget
+
+| Option Name | Default Value | Description |
+| ---         | ---           | ---         |
+|`length` | 500 | The standard `length` property of qtile widgets. |
+|`bg_color` | None | Background color of the bar.<br>If None, the qtile-bar's' background color is used. |
+|`font_family` | Mono | Font family to use for tab titles |
+|`font_size` | 15 | Size of the font to use for tab titles |
+|`tab.width` | 50 | Width of a tab on a tab bar. |
+|`tab.margin` | 0 | Size of the space on either outer side of individual tabs. |
+|`tab.padding` | 0 | Size of the space on either inner side of individual tabs. |
+|`tab.bg_color` | Gruvbox.dull_yellow | Background color of the inactive tabs |
+|`tab.fg_color` | Gruvbox.fg1 | Foreground color of the inactive tabs |
+|`tab.active.bg_color` | Gruvbox.vivid_yellow | Background color of active tab |
+|`tab.active.fg_color` | Gruvbox.bg0_hard | Foreground color of active tab |
+|`branch_select_mode.indicator.bg_color` | Gruvbox.bg0_hard | Background color of active tab when in branch_select_mode. |
+|`branch_select_mode.indicator.fg_color` | Gruvbox.bg0_hard | Foreground color of active tab when in branch_select_mode. |
 
 
 
