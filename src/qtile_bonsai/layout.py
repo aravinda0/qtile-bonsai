@@ -428,6 +428,10 @@ class Bonsai(Layout):
         if next_focus_pane is not None:
             return next_focus_pane.window
 
+        # We only need this re-rendering in the case when there is no subsequent window
+        # to focus
+        self._request_relayout()
+
         return None
 
     def focus(self, window: Window):
