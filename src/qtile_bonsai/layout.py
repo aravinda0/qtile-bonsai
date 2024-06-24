@@ -4,7 +4,6 @@
 
 import ast
 import collections
-import dataclasses
 import enum
 import itertools
 import os
@@ -44,19 +43,8 @@ from qtile_bonsai.tree import (
     BonsaiTabContainer,
     BonsaiTree,
 )
+from qtile_bonsai.utils.config import ConfigOption
 from qtile_bonsai.utils.process import modify_terminal_cmd_with_cwd
-
-
-@dataclasses.dataclass
-class LayoutOption:
-    name: str
-    default_value: Any
-    description: str
-    validator: Callable[[str, Any], tuple[bool, str | None]] | None = None
-
-    # This is just a documentation helper. To allow us to present enum values such as
-    # `Gruvbox.bright_red` as the friendly enum string instead of a cryptic `#fb4934`.
-    default_value_label: str | None = None
 
 
 class Bonsai(Layout):
@@ -74,8 +62,8 @@ class Bonsai(Layout):
 
     # Analogous to qtile's `Layout.defaults`, but has some more handy metadata.
     # `Layout.defaults` is set below, derived from this.
-    options: ClassVar[list[LayoutOption]] = [
-        LayoutOption(
+    options: ClassVar[list[ConfigOption]] = [
+        ConfigOption(
             "window.margin",
             0,
             """
@@ -83,7 +71,7 @@ class Bonsai(Layout):
             Can be an int or a list of ints in [top, right, bottom, left] ordering.
             """,
         ),
-        LayoutOption(
+        ConfigOption(
             "window.border_size",
             1,
             """
@@ -92,19 +80,19 @@ class Bonsai(Layout):
             """,
             validator=validation.validate_border_size,
         ),
-        LayoutOption(
+        ConfigOption(
             "window.border_color",
             Gruvbox.dull_yellow,
             "Color of the border around windows",
             default_value_label="Gruvbox.dull_yellow",
         ),
-        LayoutOption(
+        ConfigOption(
             "window.active.border_color",
             Gruvbox.vivid_yellow,
             "Color of the border around an active window",
             default_value_label="Gruvbox.vivid_yellow",
         ),
-        LayoutOption(
+        ConfigOption(
             "window.normalize_on_remove",
             True,
             """
@@ -113,7 +101,7 @@ class Bonsai(Layout):
             If `False`, the next (right/down) window will take up the free space.
             """,
         ),
-        LayoutOption(
+        ConfigOption(
             "window.default_add_mode",
             "tab",
             """
@@ -135,12 +123,12 @@ class Bonsai(Layout):
             """,
             validator=validation.validate_default_add_mode,
         ),
-        LayoutOption(
+        ConfigOption(
             "tab_bar.height",
             20,
             "Height of tab bars",
         ),
-        LayoutOption(
+        ConfigOption(
             "tab_bar.hide_when",
             "single_tab",
             """
@@ -155,7 +143,7 @@ class Bonsai(Layout):
             eliminating the sub-tab level.
             """,
         ),
-        LayoutOption(
+        ConfigOption(
             "tab_bar.margin",
             0,
             """
@@ -164,25 +152,25 @@ class Bonsai(Layout):
             Can be an int or a list of ints in [top, right, bottom, left] ordering.
             """,
         ),
-        LayoutOption(
+        ConfigOption(
             "tab_bar.border_size",
             0,
             "Size of the border around tab bars",
             validator=validation.validate_border_size,
         ),
-        LayoutOption(
+        ConfigOption(
             "tab_bar.border_color",
             Gruvbox.dark_yellow,
             "Color of border around tab bars",
             default_value_label="Gruvbox.dark_yellow",
         ),
-        LayoutOption(
+        ConfigOption(
             "tab_bar.bg_color",
             Gruvbox.bg0,
             "Background color of tab bars, beind their tabs",
             default_value_label="Gruvbox.bg0",
         ),
-        LayoutOption(
+        ConfigOption(
             "tab_bar.tab.width",
             50,
             """
@@ -195,45 +183,45 @@ class Bonsai(Layout):
             includes any configured margin amount.
             """,
         ),
-        LayoutOption(
+        ConfigOption(
             "tab_bar.tab.margin",
             0,
             "Size of the space on either outer side of individual tabs.",
         ),
-        LayoutOption(
+        ConfigOption(
             "tab_bar.tab.padding",
             0,
             "Size of the space on either inner side of individual tabs.",
         ),
-        LayoutOption(
+        ConfigOption(
             "tab_bar.tab.bg_color",
             Gruvbox.dull_yellow,
             "Background color of individual tabs",
             default_value_label="Gruvbox.dull_yellow",
         ),
-        LayoutOption(
+        ConfigOption(
             "tab_bar.tab.fg_color",
             Gruvbox.fg1,
             "Foreground text color of individual tabs",
             default_value_label="Gruvbox.fg1",
         ),
-        LayoutOption(
+        ConfigOption(
             "tab_bar.tab.font_family", "Mono", "Font family to use for tab titles"
         ),
-        LayoutOption("tab_bar.tab.font_size", 15, "Font size to use for tab titles"),
-        LayoutOption(
+        ConfigOption("tab_bar.tab.font_size", 15, "Font size to use for tab titles"),
+        ConfigOption(
             "tab_bar.tab.active.bg_color",
             Gruvbox.vivid_yellow,
             "Background color of active tabs",
             default_value_label="Gruvbox.vivid_yellow",
         ),
-        LayoutOption(
+        ConfigOption(
             "tab_bar.tab.active.fg_color",
             Gruvbox.bg0_hard,
             "Foreground text color of the active tab",
             default_value_label="Gruvbox.bg0_hard",
         ),
-        LayoutOption(
+        ConfigOption(
             "tab_bar.tab.title_provider",
             None,
             """
@@ -252,7 +240,7 @@ class Bonsai(Layout):
                 return active_pane.window.name
             """,
         ),
-        LayoutOption(
+        ConfigOption(
             "branch_select_mode.border_size",
             3,
             """
@@ -260,7 +248,7 @@ class Bonsai(Layout):
             active.
             """,
         ),
-        LayoutOption(
+        ConfigOption(
             "branch_select_mode.border_color",
             Gruvbox.dark_purple,
             """
@@ -269,7 +257,7 @@ class Bonsai(Layout):
             """,
             default_value_label="Gruvbox.dark_purple",
         ),
-        LayoutOption(
+        ConfigOption(
             "auto_cwd_for_terminals",
             True,
             """
@@ -280,7 +268,7 @@ class Bonsai(Layout):
             window in same working directory as the last focused window.
             """,
         ),
-        LayoutOption(
+        ConfigOption(
             "restore.threshold_seconds",
             4,
             """
