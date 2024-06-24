@@ -2,14 +2,18 @@
 # SPDX-License-Identifier: MIT
 
 
+# pyright: reportPrivateUsage=false
+
+
 import ast
 import inspect
 import pathlib
 
 import jinja2
 from libqtile.layout.base import Layout
+from libqtile.widget.base import _Widget
 
-from qtile_bonsai import Bonsai
+from qtile_bonsai import Bonsai, BonsaiBar
 from qtile_bonsai.core.utils import rewrap
 
 
@@ -20,25 +24,25 @@ readme_path = pathlib.Path("README.md")
 def main():
     t_readme = jinja2.Template(t_readme_path.read_text())
 
-    config_options = get_config_options(Bonsai)
-    commands = get_exposed_comands(Bonsai)
-
     readme = t_readme.render(
         {
-            "config_options": config_options,
-            "commands": commands,
+            "layout_config_options": get_config_options(Bonsai),
+            "commands": get_exposed_comands(Bonsai),
+            "widget_config_options": get_config_options(BonsaiBar),
         }
     )
 
     readme_path.write_text(readme)
 
 
-def get_config_options(layout_cls: type[Layout]) -> list:
+def get_config_options(qtile_entity_cls) -> list:
     config_options = []
 
-    for option in layout_cls.options:
+    for option in qtile_entity_cls.options:
         if option.description is None:
-            raise ValueError(f"The `{option[0]}` option is missing documentation")
+            raise ValueError(
+                f"The `{option.name}` layout option is missing documentation"
+            )
 
         config_options.append(
             {
