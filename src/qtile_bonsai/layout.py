@@ -1209,6 +1209,9 @@ class Bonsai(Layout):
 
     @expose_command
     def tree_repr(self):
+        """
+        Returns a YAML-like text representation of the internal tree hierarchy.
+        """
         return repr(self._tree)
 
     def _handle_default_next_window(self) -> BonsaiPane:
