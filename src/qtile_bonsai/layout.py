@@ -714,6 +714,40 @@ class Bonsai(Layout):
             self._request_focus(next_pane)
 
     @expose_command
+    def focus_tab(self, index: int, *, level: int | None = None):
+        """
+        Switches focus to the tab at the position specified by `index`. When subtabs are
+        present, the nearest TabContainer is used as the context, unless `level` is
+        specified.
+
+        Args:
+            `index`:
+                The index of the tab that should be focused.
+            `level`:
+                When there are subtab levels at play, specifies which TabContainer's
+                tabs are being considered for focus.
+                `level = 1` indicates top level tabs.
+                `level = None` (default) indicates the 'nearest' tabs.
+
+        Examples:
+            - `layout.focus_tab(0, level=1)  # Always pick from topmost tabs`
+            - `layout.focus_tab(3)`
+        """
+        if self._tree.is_empty:
+            return
+
+        ancestor_tcs = list(reversed(self.focused_pane.get_ancestors(TabContainer)))
+        if level is None or not (1 <= level < len(ancestor_tcs)):
+            level = len(ancestor_tcs)
+
+        tc = ancestor_tcs[level - 1]
+        if not (0 <= index < len(tc.children)):
+            return
+
+        pane = self._tree.find_mru_pane(start_node=tc.children[index])
+        self._request_focus(pane)
+
+    @expose_command
     def resize(self, direction: DirectionParam, amount: int = 50):
         """
         Resizes by moving an appropriate border leftwards. Usually this is the
