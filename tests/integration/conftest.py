@@ -17,7 +17,7 @@ from libqtile.resources import default_config
 from PySide6.QtWidgets import QApplication, QWidget
 from pyvirtualdisplay.display import Display
 
-from qtile_bonsai.layout import Bonsai
+from qtile_bonsai import Bonsai
 
 
 # For now set to default of what headless wayland seems to default to. Need to figure
@@ -35,24 +35,35 @@ def bonsai_layout(request):
     return Bonsai(**bonsai_config)
 
 
-@pytest.fixture()
-def qtile_config(bonsai_layout):
-    class TestConfig(Config):
-        auto_fullscreen = True
-        groups = [
-            config.Group("a"),
-            config.Group("b"),
-            config.Group("c"),
-        ]
-        layouts = [bonsai_layout, layout.Columns(num_columns=3)]
-        floating_layout = default_config.floating_layout
-        keys = []
-        mouse = []
-        screens = [config.Screen()]
-        follow_mouse_focus = False
-        reconfigure_screens = False
+class TestConfigBase(Config):
+    auto_fullscreen = True
+    groups = [
+        config.Group("a"),
+        config.Group("b"),
+        config.Group("c"),
+    ]
+    layouts = [layout.Columns(num_columns=3)]
+    floating_layout = default_config.floating_layout
+    keys = []
+    mouse = []
+    screens = [config.Screen()]
+    follow_mouse_focus = False
+    reconfigure_screens = False
 
-    return TestConfig()
+
+@pytest.fixture()
+def qtile_config(request, bonsai_layout):
+    """Provides a qtile config parametrized by the `bonsai_layout` fixture OR allows for
+    completely overriding the config via an indirect parametrized fixture (bypassing
+    `bonsai_layout`).
+    """
+
+    class DefaultTestConfig(TestConfigBase):
+        layouts = [bonsai_layout, layout.Columns(num_columns=3)]
+
+    config = getattr(request, "param", DefaultTestConfig())
+
+    return config
 
 
 @pytest.fixture()
