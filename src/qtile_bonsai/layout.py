@@ -706,37 +706,106 @@ class Bonsai(Layout):
             self._request_focus(next_pane)
 
     @expose_command
-    def focus_tab(self, index: int, *, level: int | None = None):
+    def focus_nth_tab(self, n: int, *, level: int = -1):
         """
-        Switches focus to the tab at the position specified by `index`. When subtabs are
-        present, the nearest TabContainer is used as the context, unless `level` is
-        specified.
+        Switches focus to the nth tab at the specified tab `level`.
 
         Args:
-            `index`:
-                The index of the tab that should be focused.
+            `n`:
+                The 1-based index of the tab that should be focused.
             `level`:
-                When there are subtab levels at play, specifies which TabContainer's
-                tabs are being considered for focus.
-                `level = 1` indicates top level tabs.
-                `level = None` (default) indicates the 'nearest' tabs.
+                When there are subtab levels at play, specifies which `TabContainer's`
+                tabs among the hierarchy of active `TabContainers` is being acted upon.
+                Tab levels are 1-based.
+                `level=1` indicates outermost/top-level tabs.
+                `level=-1` (default) indicates the innermost/nearest tabs.
 
         Examples:
-            - `layout.focus_tab(0, level=1)  # Always pick from topmost tabs`
-            - `layout.focus_tab(3)`
+            - `layout.focus_nth_tab(2)  # Pick the 2nd top-level tab`
+            - `layout.focus_nth_tab(3, level=-1)`  # Pick 3rd from nearest tabs
         """
         if self._tree.is_empty:
             return
 
         ancestor_tcs = list(reversed(self.focused_pane.get_ancestors(TabContainer)))
-        if level is None or not (1 <= level < len(ancestor_tcs)):
+        if not (level == -1 or 0 < level <= len(ancestor_tcs)):
+            logger.debug("`level` should be either -1 or a valid 1-indexed tab level.")
+            return
+        if level == -1:
             level = len(ancestor_tcs)
 
         tc = ancestor_tcs[level - 1]
-        if not (0 <= index < len(tc.children)):
+        if not (0 < n <= len(tc.children)):
+            logger.debug("`n` is out of range.")
             return
 
-        pane = self._tree.find_mru_pane(start_node=tc.children[index])
+        pane = self._tree.find_mru_pane(start_node=tc.children[n - 1])
+        self._request_focus(pane)
+
+    @expose_command
+    def focus_nth_window(
+        self, n: int, *, ignore_inactive_tabs_at_levels: list[int] | None = None
+    ):
+        """Switches focus to the nth window.
+
+        Counting is always done based on the geospatial position of windows - ie.
+        starting from the leftmost+innermost window (ie. we traverse leaves of the tree,
+        left to right).
+
+        Args:
+            `n`:
+                The 1-based index of the window in the list of all candidate windows.
+            `ignore_inactive_tabs_at_levels`:
+                For the specified list of tab levels, only consider windows under the
+                active tab at that level, ignoring windows under inactive/background
+                tabs.
+
+                eg. `[1]` means we should start counting `n` from the first window in
+                the currently active level 1 (top-level) tab, ignoring windows under
+                inactive tabs. But if there are any subtabs under this active tabs, we
+                DO consider the inactive windows under background/inactive subtabs.
+
+                eg. `[1,2]` means we start counting `n` from the first window of the
+                active top-level tab, and if there are any level 2 subtabs under the
+                active tab, we pick windows only from the active level 2 tab as well,
+                ignoring inactive subtabs.
+
+                eg. `[]` or `None` (default) means consider every single window - even
+                if it's inactive under a background tab.
+
+                eg. `[2]` means we start counting from the very first window at the top
+                level, even if it is inactive under a background tab. But whenever there
+                are level 2 subtabs to consider, we only count its windows that are
+                under the active level 2 subtab.
+
+            Examples:
+                - `layout.focus_nth_window(1)`
+                - `layout.focus_nth_window(3, ignore_inactive_tabs_at_levels=[1])`
+                - `layout.focus_nth_window(2, ignore_inactive_tabs_at_levels=[1, 2])`
+        """
+        if n < 1:
+            logger.debug("`n` is out of range.")
+            return
+        if ignore_inactive_tabs_at_levels is None:
+            ignore_inactive_tabs_at_levels = []
+
+        candidates = []
+        for p in self._tree.iter_panes():
+            for t in p.get_ancestors(Tab):
+                if (
+                    t.tab_level in ignore_inactive_tabs_at_levels
+                    and t is not t.parent.active_child
+                ):
+                    break
+            else:
+                candidates.append(p)
+
+        try:
+            pane = candidates[n - 1]
+        except IndexError:
+            logger.debug("`n` is out of range.")
+            return
+
         self._request_focus(pane)
 
     @expose_command

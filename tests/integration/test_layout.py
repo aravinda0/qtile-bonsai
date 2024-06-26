@@ -7,6 +7,58 @@ from conftest import wait
 from qtile_bonsai.core.tree import tree_repr_matches_repr
 
 
+@pytest.fixture()
+def setup_complex_arrangement(manager, spawn_test_window_cmd):
+    """
+    Here's the tree that this sets up:
+
+    - tc:1
+        - t:2
+            - sc.x:3
+                - p:4 | {x: 0, y: 20, w: 400, h: 580}
+                - sc.y:6
+                    - p:5 | {x: 400, y: 20, w: 400, h: 290}
+                    - tc:8
+                        - t:9
+                            - sc.x:10
+                                - p:7 | {x: 400, y: 330, w: 400, h: 270}
+                        - t:11
+                            - sc.x:12
+                                - p:13 | {x: 400, y: 330, w: 200, h: 270}
+                                - p:14 | {x: 600, y: 330, w: 200, h: 270}
+                        - t:15
+                            - sc.x:16
+                                - p:17 | {x: 400, y: 330, w: 400, h: 270}
+        - t:18
+            - sc.y:19
+                - p:20 | {x: 0, y: 20, w: 800, h: 290}
+                - p:21 | {x: 0, y: 310, w: 800, h: 290}
+    """
+    manager.layout.spawn_tab(spawn_test_window_cmd())
+    wait()
+
+    manager.layout.spawn_split(spawn_test_window_cmd(), "x")
+    wait()
+
+    manager.layout.spawn_split(spawn_test_window_cmd(), "y")
+    wait()
+
+    manager.layout.spawn_tab(spawn_test_window_cmd(), new_level=True)
+    wait()
+
+    manager.layout.spawn_split(spawn_test_window_cmd(), "x")
+    wait()
+
+    manager.layout.spawn_tab(spawn_test_window_cmd())
+    wait()
+
+    manager.layout.spawn_tab(spawn_test_window_cmd(), level=1)
+    wait()
+
+    manager.layout.spawn_split(spawn_test_window_cmd(), "y")
+    wait()
+
+
 def test_when_bonsai_layout_is_inactive_and_windows_are_added_in_another_active_layout_then_the_windows_are_captured_as_tabs(
     manager, make_window
 ):
@@ -328,3 +380,189 @@ class TestBranchSelectMode:
         make_window()
 
         assert manager.layout.info()["interaction_mode"] == "normal"
+
+
+def test_focus_nth_tab(setup_complex_arrangement, manager):
+    """
+    Reference:
+
+    - tc:1
+        - t:2
+            - sc.x:3
+                - p:4 | {x: 0, y: 20, w: 400, h: 580}
+                - sc.y:6
+                    - p:5 | {x: 400, y: 20, w: 400, h: 290}
+                    - tc:8
+                        - t:9
+                            - sc.x:10
+                                - p:7 | {x: 400, y: 330, w: 400, h: 270}
+                        - t:11
+                            - sc.x:12
+                                - p:13 | {x: 400, y: 330, w: 200, h: 270}
+                                - p:14 | {x: 600, y: 330, w: 200, h: 270}
+                        - t:15
+                            - sc.x:16
+                                - p:17 | {x: 400, y: 330, w: 400, h: 270}
+        - t:18
+            - sc.y:19
+                - p:20 | {x: 0, y: 20, w: 800, h: 290}
+                - p:21 | {x: 0, y: 310, w: 800, h: 290}
+    """
+    manager.switch_window(1)  # 1-indexed
+    assert manager.layout.info()["focused_pane_id"] == 4
+
+    manager.layout.focus_nth_tab(2)
+    assert manager.layout.info()["focused_pane_id"] == 21
+
+    manager.layout.focus_nth_tab(1, level=1)
+    assert manager.layout.info()["focused_pane_id"] == 4
+
+    manager.switch_window(3)
+    assert manager.layout.info()["focused_pane_id"] == 7
+
+    manager.layout.focus_nth_tab(3)
+    assert manager.layout.info()["focused_pane_id"] == 17
+
+    manager.layout.focus_nth_tab(2, level=-1)
+    assert manager.layout.info()["focused_pane_id"] == 14
+
+    manager.layout.focus_nth_tab(2, level=1)
+    assert manager.layout.info()["focused_pane_id"] == 21
+
+    # Bad level -> no-op
+    manager.layout.focus_nth_tab(1, level=100)
+    assert manager.layout.info()["focused_pane_id"] == 21
+
+    # Bad index -> no-op
+    manager.layout.focus_nth_tab(100, level=1)
+    assert manager.layout.info()["focused_pane_id"] == 21
+
+
+class TestFocusNthWindow:
+    def test_focus_nth_window(self, setup_complex_arrangement, manager):
+        """
+        Reference:
+
+        - tc:1
+            - t:2
+                - sc.x:3
+                    - p:4 | {x: 0, y: 20, w: 400, h: 580}
+                    - sc.y:6
+                        - p:5 | {x: 400, y: 20, w: 400, h: 290}
+                        - tc:8
+                            - t:9
+                                - sc.x:10
+                                    - p:7 | {x: 400, y: 330, w: 400, h: 270}
+                            - t:11
+                                - sc.x:12
+                                    - p:13 | {x: 400, y: 330, w: 200, h: 270}
+                                    - p:14 | {x: 600, y: 330, w: 200, h: 270}
+                            - t:15
+                                - sc.x:16
+                                    - p:17 | {x: 400, y: 330, w: 400, h: 270}
+            - t:18
+                - sc.y:19
+                    - p:20 | {x: 0, y: 20, w: 800, h: 290}
+                    - p:21 | {x: 0, y: 310, w: 800, h: 290}
+        """
+        manager.switch_window(1)  # 1-indexed
+        assert manager.layout.info()["focused_pane_id"] == 4
+
+        manager.layout.focus_nth_window(2)
+        assert manager.layout.info()["focused_pane_id"] == 5
+
+        manager.layout.focus_nth_window(5)
+        assert manager.layout.info()["focused_pane_id"] == 14
+
+        manager.layout.focus_nth_tab(2, level=1)
+        manager.layout.focus_nth_window(2, ignore_inactive_tabs_at_levels=[1])
+        assert manager.layout.info()["focused_pane_id"] == 21
+
+        manager.layout.focus_nth_window(1, ignore_inactive_tabs_at_levels=[1])
+        assert manager.layout.info()["focused_pane_id"] == 20
+
+        manager.layout.focus_nth_window(3, ignore_inactive_tabs_at_levels=[2])
+        assert manager.layout.info()["focused_pane_id"] == 13
+
+        # Bad index -> no-op
+        manager.layout.focus_nth_window(100)
+        assert manager.layout.info()["focused_pane_id"] == 13
+
+    def test_when_3_levels_and_only_level_2_inactive_tabs_not_ignored_but_levels_are(
+        self, manager, spawn_test_window_cmd
+    ):
+        """
+        Reference:
+
+        - tc:1
+            - t:2
+                - sc.x:3
+                    - p:4 | {x: 0, y: 20, w: 800, h: 580}
+            - t:5
+                - sc.x:6
+                    - p:7 | {x: 0, y: 20, w: 400, h: 580}
+                    - sc.y:9
+                        - p:8 | {x: 400, y: 20, w: 400, h: 290}
+                        - tc:11
+                            - t:12
+                                - sc.x:13
+                                    - p:10 | {x: 400, y: 330, w: 400, h: 270}
+                            - t:14
+                                - sc.x:15
+                                    - p:16 | {x: 400, y: 330, w: 200, h: 270}
+                                    - sc.y:18
+                                        - p:17 | {x: 600, y: 330, w: 200, h: 135}
+                                        - tc:20
+                                            - t:21
+                                                - sc.x:22
+                                                    - p:19 | {x: 600, y: 485, w: 200, h: 115}
+                                            - t:23
+                                                - sc.x:24
+                                                    - p:25 | {x: 600, y: 485, w: 200, h: 115}
+                            - t:26
+                                - sc.x:27
+                                    - p:28 | {x: 400, y: 330, w: 400, h: 270}
+            - t:29
+                - sc.x:30
+                    - p:31 | {x: 0, y: 20, w: 800, h: 580}
+        """
+        manager.layout.spawn_tab(spawn_test_window_cmd())
+        wait()
+
+        manager.layout.spawn_tab(spawn_test_window_cmd())
+        wait()
+
+        manager.layout.spawn_split(spawn_test_window_cmd(), "x")
+        wait()
+
+        manager.layout.spawn_split(spawn_test_window_cmd(), "y")
+        wait()
+
+        manager.layout.spawn_tab(spawn_test_window_cmd(), new_level=True)
+        wait()
+
+        manager.layout.spawn_split(spawn_test_window_cmd(), "x")
+        wait()
+
+        manager.layout.spawn_split(spawn_test_window_cmd(), "y")
+        wait()
+
+        manager.layout.spawn_tab(spawn_test_window_cmd(), new_level=True)
+        wait()
+
+        manager.layout.spawn_tab(spawn_test_window_cmd(), level=2)
+        wait()
+
+        manager.layout.spawn_tab(spawn_test_window_cmd(), level=1)
+        wait()
+
+        # ----------
+
+        manager.switch_window(5)  # 1-indexed
+        assert manager.layout.info()["focused_pane_id"] == 16
+
+        # `p:10` is in a background tab. But we should still be able to select it as
+        # level 2 doesn't appear in our `ignore_inactive_tabs_at_levels` and its
+        # ancestor tabs that do appear in it are not inactive.
+        manager.layout.focus_nth_window(3, ignore_inactive_tabs_at_levels=[1, 3])
+        assert manager.layout.info()["focused_pane_id"] == 10
