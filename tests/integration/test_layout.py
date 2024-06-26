@@ -7,6 +7,33 @@ from conftest import wait
 from qtile_bonsai.core.tree import tree_repr_matches_repr
 
 
+@pytest.fixture()
+def setup_complex_arrangement(manager, spawn_test_window_cmd):
+    manager.layout.spawn_tab(spawn_test_window_cmd("L1.T1.1"))
+    wait()
+
+    manager.layout.spawn_split(spawn_test_window_cmd("L1.T1.2"), "x")
+    wait()
+
+    manager.layout.spawn_split(spawn_test_window_cmd("L2.T1.1"), "y")
+    wait()
+
+    manager.layout.spawn_tab(spawn_test_window_cmd("L2.T2.1"), new_level=True)
+    wait()
+
+    manager.layout.spawn_split(spawn_test_window_cmd("L2.T2.2"), "x")
+    wait()
+
+    manager.layout.spawn_tab(spawn_test_window_cmd("L2.T3.1"))
+    wait()
+
+    manager.layout.spawn_tab(spawn_test_window_cmd("L1.T2.1"), level=1)
+    wait()
+
+    manager.layout.spawn_split(spawn_test_window_cmd("L1.T2.2"), "y")
+    wait()
+
+
 def test_when_bonsai_layout_is_inactive_and_windows_are_added_in_another_active_layout_then_the_windows_are_captured_as_tabs(
     manager, make_window
 ):
@@ -328,3 +355,55 @@ class TestBranchSelectMode:
         make_window()
 
         assert manager.layout.info()["interaction_mode"] == "normal"
+
+
+def test_focus_nth_tab(setup_complex_arrangement, manager):
+    manager.switch_window(1)  # 1-indexed
+    assert manager.window.info()["name"] == "L1.T1.1"
+
+    manager.layout.focus_nth_tab(2)
+    assert manager.window.info()["name"] == "L1.T2.2"
+
+    manager.layout.focus_nth_tab(1, level=1)
+    assert manager.window.info()["name"] == "L1.T1.1"
+
+    manager.switch_window(3)
+    assert manager.window.info()["name"] == "L2.T1.1"
+
+    manager.layout.focus_nth_tab(3)
+    assert manager.window.info()["name"] == "L2.T3.1"
+
+    manager.layout.focus_nth_tab(2, level=-1)
+    assert manager.window.info()["name"] == "L2.T2.2"
+
+    manager.layout.focus_nth_tab(2, level=1)
+    assert manager.window.info()["name"] == "L1.T2.2"
+
+    # Bad level -> no-op
+    manager.layout.focus_nth_tab(1, level=100)
+    assert manager.window.info()["name"] == "L1.T2.2"
+
+    # Bad index -> no-op
+    manager.layout.focus_nth_tab(100, level=1)
+    assert manager.window.info()["name"] == "L1.T2.2"
+
+
+@pytest.mark.a
+def test_focus_nth_window(setup_complex_arrangement, manager):
+    manager.switch_window(1)  # 1-indexed
+    assert manager.window.info()["name"] == "L1.T1.1"
+
+    manager.layout.focus_nth_window(2)
+    assert manager.window.info()["name"] == "L1.T1.2"
+
+    manager.layout.focus_nth_window(5)
+    assert manager.window.info()["name"] == "L2.T2.2"
+
+    manager.layout.focus_nth_tab(2, level=1)
+    manager.layout.focus_nth_window(2, ignore_inactive_tabs_at_levels=[1])
+    assert manager.window.info()["name"] == "L1.T2.2"
+
+    manager.layout.focus_nth_window(1, ignore_inactive_tabs_at_levels=[1])
+    assert manager.window.info()["name"] == "L1.T2.1"
+
+    # manager.layout.focus_nth_tab(1, level=1)
