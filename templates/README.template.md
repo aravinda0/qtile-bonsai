@@ -16,8 +16,8 @@ Then generate the README with `python scripts/generate_readme.py`
   <a href="https://github.com/aravinda0/qtile-bonsai/blob/master/LICENSE.txt"><img src="https://img.shields.io/github/license/aravinda0/qtile-bonsai?style=for-the-badge"></a>
 </p>
 <p align="center">
-  <a href="https://aravinda0.github.io/qtile-bonsai/static/visual_guide/"><img src="https://img.shields.io/badge/Visual%20Guide-d79921?style=flat-square"></a>
-  <a href="#reference"><img src="https://img.shields.io/badge/Reference-d79921?style=flat-square"></a>
+  <a href="https://aravinda0.github.io/qtile-bonsai/static/visual_guide/"><img src="https://img.shields.io/badge/Visual%20Guide-d79921?style=for-the-badge"></a>
+  <a href="#reference"><img src="https://img.shields.io/badge/Reference-d79921?style=for-the-badge"></a>
 </p>
 
 <br/>
