@@ -248,9 +248,9 @@ screens = [
 
 ## Visual Guide
 
-Click on the image to open a full-size web view.
+Click on the image to open a web view with the full guide.
 
-<a href="https://aravinda0.github.io/qtile-bonsai/static/visual_guide/">![Visual Guide](static/visual_guide/visual_guide.png)</a>
+<a href="https://aravinda0.github.io/qtile-bonsai/static/visual_guide/">![Visual Guide](static/visual_guide/visual_guide_preview.png)</a>
 
 
 ## Reference
