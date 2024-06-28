@@ -114,8 +114,8 @@ keys = [
     EzKey("M-l", lazy.layout.right()),
     EzKey("M-k", lazy.layout.up()),
     EzKey("M-j", lazy.layout.down()),
-    EzKey("A-d", lazy.layout.prev_tab()),
-    EzKey("A-f", lazy.layout.next_tab()),
+    EzKey("M-d", lazy.layout.prev_tab()),
+    EzKey("M-f", lazy.layout.next_tab()),
 
     # Resize operations
     EzKey("M-C-h", lazy.layout.resize("left", 100)),
