@@ -10,8 +10,11 @@ from PySide6.QtWidgets import QApplication, QWidget
 
 def main():
     def run_qt_app():
+        title = sys.argv[1]
+
         app = QApplication([])
         window = QWidget()
+        window.setWindowTitle(title)
         window.show()
         app.exec()
 

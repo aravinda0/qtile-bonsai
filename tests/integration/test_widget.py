@@ -30,13 +30,13 @@ def make_config_with_bar(**bonsai_bar_config):
 def test_when_widget_tab_clicked_then_that_tab_is_activated_in_layout(
     qtile_config, manager, spawn_test_window_cmd
 ):
-    manager.layout.spawn_tab(spawn_test_window_cmd)
+    manager.layout.spawn_tab(spawn_test_window_cmd())
     wait()
 
-    manager.layout.spawn_tab(spawn_test_window_cmd)
+    manager.layout.spawn_tab(spawn_test_window_cmd())
     wait()
 
-    manager.layout.spawn_tab(spawn_test_window_cmd)
+    manager.layout.spawn_tab(spawn_test_window_cmd())
     wait()
 
     _, win2, win3 = manager.windows()

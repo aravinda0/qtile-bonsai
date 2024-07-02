@@ -35,10 +35,10 @@ def test_when_bonsai_layout_is_inactive_and_windows_are_added_in_another_active_
 def test_when_floating_window_is_unfloated_then_it_is_added_back_to_layout(
     manager, spawn_test_window_cmd
 ):
-    manager.layout.spawn_tab(spawn_test_window_cmd)
+    manager.layout.spawn_tab(spawn_test_window_cmd())
     wait()
 
-    manager.layout.spawn_split(spawn_test_window_cmd, "x")
+    manager.layout.spawn_split(spawn_test_window_cmd(), "x")
     wait()
 
     manager.window.toggle_floating()
@@ -73,7 +73,7 @@ class TestSpawnSplit:
     ):
         assert manager.layout.tree_repr() == "<empty>"
 
-        manager.layout.spawn_split(spawn_test_window_cmd, "x")
+        manager.layout.spawn_split(spawn_test_window_cmd(), "x")
         wait()
 
         assert tree_repr_matches_repr(
@@ -99,7 +99,7 @@ class TestConfigOptions:
         ):
             make_window()
 
-            manager.layout.spawn_split(spawn_test_window_cmd, "y")
+            manager.layout.spawn_split(spawn_test_window_cmd(), "y")
             wait()
 
             make_window()
@@ -126,7 +126,7 @@ class TestConfigOptions:
         ):
             make_window()
 
-            manager.layout.spawn_split(spawn_test_window_cmd, "x")
+            manager.layout.spawn_split(spawn_test_window_cmd(), "x")
             wait()
 
             make_window()
@@ -157,7 +157,7 @@ class TestConfigOptions:
             spawn_test_window_cmd,
             make_window,
         ):
-            manager.layout.spawn_split(spawn_test_window_cmd, "x")
+            manager.layout.spawn_split(spawn_test_window_cmd(), "x")
             wait()
 
             # This should get added as an x-split since the last request was for an
@@ -182,16 +182,16 @@ class TestStateRestoration:
     ):
         bonsai_layout = manager.layout
 
-        bonsai_layout.spawn_tab(spawn_test_window_cmd)
+        bonsai_layout.spawn_tab(spawn_test_window_cmd())
         wait()
 
-        bonsai_layout.spawn_split(spawn_test_window_cmd, "x")
+        bonsai_layout.spawn_split(spawn_test_window_cmd(), "x")
         wait()
 
-        bonsai_layout.spawn_split(spawn_test_window_cmd, "y")
+        bonsai_layout.spawn_split(spawn_test_window_cmd(), "y")
         wait()
 
-        bonsai_layout.spawn_tab(spawn_test_window_cmd, new_level=True)
+        bonsai_layout.spawn_tab(spawn_test_window_cmd(), new_level=True)
         wait()
 
         manager.reload_config()
@@ -227,13 +227,13 @@ class TestStateRestoration:
     ):
         bonsai_layout = manager.layout
 
-        bonsai_layout.spawn_tab(spawn_test_window_cmd)
+        bonsai_layout.spawn_tab(spawn_test_window_cmd())
         wait()
 
-        bonsai_layout.spawn_split(spawn_test_window_cmd, "x")
+        bonsai_layout.spawn_split(spawn_test_window_cmd(), "x")
         wait()
 
-        bonsai_layout.spawn_split(spawn_test_window_cmd, "y")
+        bonsai_layout.spawn_split(spawn_test_window_cmd(), "y")
         wait()
 
         manager.restart()
@@ -254,19 +254,19 @@ class TestStateRestoration:
 
 class TestBranchSelectMode:
     def test_split_on_sc(self, manager, spawn_test_window_cmd):
-        manager.layout.spawn_tab(spawn_test_window_cmd)
+        manager.layout.spawn_tab(spawn_test_window_cmd())
         wait()
 
-        manager.layout.spawn_split(spawn_test_window_cmd, "y")
+        manager.layout.spawn_split(spawn_test_window_cmd(), "y")
         wait()
 
-        manager.layout.spawn_split(spawn_test_window_cmd, "x")
+        manager.layout.spawn_split(spawn_test_window_cmd(), "x")
         wait()
 
         manager.layout.toggle_branch_select_mode()
         manager.layout.select_branch_out()
 
-        manager.layout.spawn_split(spawn_test_window_cmd, "y")
+        manager.layout.spawn_split(spawn_test_window_cmd(), "y")
         wait()
 
         assert tree_repr_matches_repr(
@@ -284,19 +284,19 @@ class TestBranchSelectMode:
         )
 
     def test_subtab_on_sc(self, manager, spawn_test_window_cmd):
-        manager.layout.spawn_tab(spawn_test_window_cmd)
+        manager.layout.spawn_tab(spawn_test_window_cmd())
         wait()
 
-        manager.layout.spawn_split(spawn_test_window_cmd, "y")
+        manager.layout.spawn_split(spawn_test_window_cmd(), "y")
         wait()
 
-        manager.layout.spawn_split(spawn_test_window_cmd, "x")
+        manager.layout.spawn_split(spawn_test_window_cmd(), "x")
         wait()
 
         manager.layout.toggle_branch_select_mode()
         manager.layout.select_branch_out()
 
-        manager.layout.spawn_tab(spawn_test_window_cmd, new_level=True)
+        manager.layout.spawn_tab(spawn_test_window_cmd(), new_level=True)
         wait()
 
         assert tree_repr_matches_repr(
@@ -320,7 +320,7 @@ class TestBranchSelectMode:
     def test_when_a_new_window_is_added_implicitly_then_interaction_mode_reverts_to_normal_mode(
         self, manager, spawn_test_window_cmd, make_window
     ):
-        manager.layout.spawn_tab(spawn_test_window_cmd)
+        manager.layout.spawn_tab(spawn_test_window_cmd())
         wait()
 
         manager.layout.toggle_branch_select_mode()

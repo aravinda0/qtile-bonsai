@@ -177,4 +177,7 @@ def make_window():
 
 @pytest.fixture()
 def spawn_test_window_cmd():
-    return "python scripts/spawn_test_window.py"
+    def _spawn_test_window_cmd(title: str = "test window"):
+        return f"python scripts/spawn_test_window.py {title}"
+
+    return _spawn_test_window_cmd
