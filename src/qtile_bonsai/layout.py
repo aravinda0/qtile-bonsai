@@ -1197,6 +1197,10 @@ class Bonsai(Layout):
             "name": "bonsai",
             "tree": self._tree.as_dict(),
             "interaction_mode": self.interaction_mode.name,
+            "focused_pane_id": self.focused_pane.id if self.focused_pane else None,
+            "focused_window_id": (
+                self.focused_window.wid if self.focused_window else None
+            ),
         }
 
     @expose_command
