@@ -66,6 +66,15 @@ footer {
   font-size: 0.75rem;
 }
 
+.example-focus_nth_window_2 :nth-child(2 of .command-label) {
+  font-size: 0.7rem;
+  padding-left: 3rem;
+}
+.example-focus_nth_window_3 :nth-child(2 of .command-label) {
+  font-size: 0.7rem;
+  padding-left: 3rem;
+}
+
 .example-advanced_1 .command-label {
   font-size: 0.7rem;
   margin-bottom: 1rem;

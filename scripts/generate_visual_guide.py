@@ -37,8 +37,10 @@ class ExampleTree(Tree):
     Notes:
         The examples primarily use all the functionality from the core Tree class to
         generate examples. Except for a few things.
+
         The branch-selection mode is a UI-driven feature implemented in the qtile layer,
         outside the core Tree. So we kind of fake its behavior in a simple manner here.
+        Same goes for `focus_nth_tab()`/`focus_nth_window()`
     """
 
     def __init__(self, *args, **kwargs):
@@ -540,6 +542,126 @@ class EgBranchSelectMode3(Example):
         rhs2.tab(rhs2.node(lp3.parent.parent.id), new_level=True)
         # rhs2.focus(rhs2.node(lp3.id))
         rhs2.command = "spawn_tab(program, new_level=True)"
+
+        return {
+            "lhs": lhs,
+            "rhs_items": [rhs1, rhs2],
+        }
+
+
+class EgFocusNthTab1(Example):
+    section = "Focus nth Tab"
+
+    def build_context_fragment(self):
+        lhs = make_tree()
+        lp1 = lhs.tab()
+        _ = lhs.tab()
+        lp3 = lhs.tab()
+        lhs.focus(lp1)
+
+        rhs = lhs.clone()
+        rhs.focus(rhs.node(lp3.id))
+        rhs.command = "focus_nth_tab(3)"
+
+        return {
+            "lhs": lhs,
+            "rhs_items": [rhs],
+        }
+
+
+class EgFocusNthTab2(Example):
+    section = "Focus nth Tab"
+
+    def build_context_fragment(self):
+        lhs = make_tree()
+        lp1 = lhs.tab()
+        lp2 = lhs.split(lp1, "x")
+        lp3 = lhs.split(lp2, "y")
+        lp4 = lhs.tab(lp3, new_level=True)
+        lp5 = lhs.tab(lp4)
+        lp6 = lhs.tab(lp1, level=1)
+        lhs.focus(lp3)
+
+        rhs1 = lhs.clone()
+        rhs1.focus(rhs1.node(lp4.id))
+        rhs1.command = "focus_nth_tab(2) / focus_nth_tab(2, level=-1)"
+
+        rhs2 = lhs.clone()
+        rhs2.focus(rhs2.node(lp6.id))
+        rhs2.command = "focus_nth_tab(2, level=1)"
+
+        return {
+            "lhs": lhs,
+            "rhs_items": [rhs1, rhs2],
+        }
+
+
+class EgFocusNthWindow1(Example):
+    section = "Focus nth Window"
+
+    def build_context_fragment(self):
+        lhs = make_tree()
+        lp1 = lhs.tab()
+        lp2 = lhs.split(lp1, "x")
+        lp3 = lhs.split(lp2, "y")
+        lhs.focus(lp1)
+
+        rhs = lhs.clone()
+        rhs.focus(rhs.node(lp3.id))
+        rhs.command = "focus_nth_window(3)"
+
+        return {
+            "lhs": lhs,
+            "rhs_items": [rhs],
+        }
+
+
+class EgFocusNthWindow2(Example):
+    section = "Focus nth Window"
+
+    def build_context_fragment(self):
+        lhs = make_tree()
+        _ = lhs.tab()
+        lp2 = lhs.tab()
+        lp3 = lhs.split(lp2, "x")
+        lp4 = lhs.split(lp3, "y")
+        lhs.focus(lp2)
+
+        rhs1 = lhs.clone()
+        rhs1.focus(rhs1.node(lp3.id))
+        rhs1.command = "focus_nth_window(3)"
+
+        rhs2 = lhs.clone()
+        rhs2.focus(rhs2.node(lp4.id))
+        rhs2.command = "focus_nth_window(3, ignore_inactive_tabs_at_levels=[1])"
+
+        return {
+            "lhs": lhs,
+            "rhs_items": [rhs1, rhs2],
+        }
+
+
+class EgFocusNthWindow3(Example):
+    section = "Focus nth Window"
+
+    def build_context_fragment(self):
+        lhs = make_tree()
+        lp1 = lhs.tab()
+        lp2 = lhs.split(lp1, "x")
+        lp3 = lhs.split(lp2, "y")
+        lp4 = lhs.tab(lp3, new_level=True)
+        lp5 = lhs.tab(lp4)
+        _ = lhs.tab(lp1, level=1)
+        lhs.focus(lp5)
+        lhs.focus(lp1)
+
+        rhs1 = lhs.clone()
+        rhs1.focus(rhs1.node(lp3.id))
+        rhs1.command = "focus_nth_window(3)"
+
+        rhs2 = lhs.clone()
+        rhs2.focus(rhs2.node(lp5.id))
+        rhs2.command = "focus_nth_window(3, ignore_inactive_tabs_at_levels=[1,2])"
 
         return {
             "lhs": lhs,
