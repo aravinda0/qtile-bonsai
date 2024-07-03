@@ -1,0 +1,2 @@
+A new `BonsaiBar` widget is available for use on the qtile bar. It can act as a replacement for the `Bonsai` layout's built-in tab-bar for the outermost/top-level tabs. It also has an indicator for when `branch-select-mode` is active.
+  - A [new documentation section](https://github.com/aravinda0/qtile-bonsai?tab=readme-ov-file#bonsaibar-widget) has been added for it.

@@ -1,0 +1,5 @@
+Two new commands - `focus_nth_tab()`, `focus_nth_window()` - are now available that
+allow faster access to tabs/windows via keybindings. They provide params that allow
+contextual nth selections.
+  - Two new sections have been [added in the visual guide](https://aravinda0.github.io/qtile-bonsai/static/visual_guide/#Focus nth Tab) to demonstrate them.
+  - Check the [commands docs](https://github.com/aravinda0/qtile-bonsai?tab=readme-ov-file#layout-commands) for details.

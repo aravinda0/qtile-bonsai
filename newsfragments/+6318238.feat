@@ -1,0 +1,2 @@
+When there are no windows open yet, and `spawn_split()` is invoked, it now conveniently
+creates the first window. Previously you had to start things off with a `spawn_tab()`.

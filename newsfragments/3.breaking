@@ -1,0 +1,3 @@
+The `tab_bar.tab.min_width` has been dropped in favor of `tab_bar.tab.width` which can
+take an integer or the key `"auto"`. So tabs can either be of fixed width or have an
+automatic flex-width based on available space. Check the docs for more details.
