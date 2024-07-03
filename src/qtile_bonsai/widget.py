@@ -156,7 +156,7 @@ class BonsaiBar(base._Widget):
             margin=tab_margin,
         )
         if tab_box.border_rect.has_coord(x, y):
-            bonsai.focus_tab(i, level=1)
+            bonsai.focus_nth_tab(i + 1, level=1)
 
     def _configure(self, qtile, bar):
         super()._configure(qtile, bar)
