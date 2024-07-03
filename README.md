@@ -49,7 +49,7 @@ https://github.com/aravinda0/qtile-bonsai/assets/960763/0e77b61e-1830-4972-9098-
 
 Assuming you already have
 [qtile up and running](https://docs.qtile.org/en/latest/manual/install/), you
-can install _qtile-bonsai_ from PyPI.
+can install qtile-bonsai from PyPI.
 
 ```bash
 pip install qtile-bonsai --break-system-packages
@@ -60,12 +60,11 @@ pip install qtile-bonsai --break-system-packages
 > safer and not potentially modify some dependency that your system's Python
 > software may depend on.
 > 
-> For _qtile-bonsai_, this should be safe and will allow _qtile_ and
-> _qtile-bonsai_ to see each other.
+> For qtile-bonsai, this should be safe and will allow it and qtile to see each
+> other.
 > 
-> An alternative approach would be to have installed _qtile_ via [pipx](https://github.com/pypa/pipx) 
-> and then 'inject' _qtile-bonsai_ into the same virtualenv where _qtile_
-> resides:
+> An alternative approach would be to have installed qtile via [pipx](https://github.com/pypa/pipx) 
+> and then 'inject' qtile-bonsai into the same virtualenv where qtile resides:
 > 
 > ```
 > pipx install qtile
