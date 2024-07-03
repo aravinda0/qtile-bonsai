@@ -116,6 +116,21 @@ keys = [
     EzKey("M-j", lazy.layout.down()),
     EzKey("M-d", lazy.layout.prev_tab()),
     EzKey("M-f", lazy.layout.next_tab()),
+    
+    # Precise motions to move directly to specific tabs at the nearest tab level
+    EzKey("M-1", lazy.layout.focus_nth_tab(1, level=-1)),
+    EzKey("M-2", lazy.layout.focus_nth_tab(2, level=-1)),
+    EzKey("M-3", lazy.layout.focus_nth_tab(3, level=-1)),
+    EzKey("M-4", lazy.layout.focus_nth_tab(4, level=-1)),
+    EzKey("M-5", lazy.layout.focus_nth_tab(5, level=-1)),
+    
+    # Precise motions to move to specific windows. The options provided here let
+    # us pick the nth window from only under currently active tabs/subtabs.
+    EzKey("C-1", lazy.layout.focus_nth_window(1, ignore_inactive_tabs_at_levels=[1,2])),
+    EzKey("C-2", lazy.layout.focus_nth_window(2, ignore_inactive_tabs_at_levels=[1,2])),
+    EzKey("C-3", lazy.layout.focus_nth_window(3, ignore_inactive_tabs_at_levels=[1,2])),
+    EzKey("C-4", lazy.layout.focus_nth_window(4, ignore_inactive_tabs_at_levels=[1,2])),
+    EzKey("C-5", lazy.layout.focus_nth_window(5, ignore_inactive_tabs_at_levels=[1,2])),
 
     # Resize operations
     EzKey("M-C-h", lazy.layout.resize("left", 100)),
