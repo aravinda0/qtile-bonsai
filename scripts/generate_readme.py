@@ -49,7 +49,7 @@ def get_config_options(qtile_entity_cls) -> list:
                 "name": option.name,
                 "default": option.default_value_label or option.default_value,
                 "description": rewrap(
-                    option.description, width=60, dedent=True, html_whitespace=True
+                    option.description, width=40, dedent=True, html_whitespace=True
                 ),
             }
         )
@@ -80,7 +80,7 @@ def get_exposed_comands(layout_cls: type[Layout]) -> list:
                 {
                     "name": node.name,
                     "docstring": rewrap(
-                        docstring, width=80, dedent=True, html_whitespace=True
+                        docstring, width=75, dedent=True, html_whitespace=True
                     ),
                 }
             )

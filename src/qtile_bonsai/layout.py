@@ -781,7 +781,7 @@ class Bonsai(Layout):
             Examples:
                 - `layout.focus_nth_window(1)`
                 - `layout.focus_nth_window(3, ignore_inactive_tabs_at_levels=[1])`
-                - `layout.focus_nth_window(2, ignore_inactive_tabs_at_levels=[1, 2])`
+                - layout.focus_nth_window(2, ignore_inactive_tabs_at_levels=[1, 2])
         """
         if n < 1:
             logger.debug("`n` is out of range.")
