@@ -26,9 +26,13 @@ Then generate the README with `python scripts/generate_readme.py`
 
 _Qtile Bonsai_ provides a flexible layout for the
 [qtile](https://github.com/qtile/qtile) tiling window manager that allows you to
-arrange windows as tabs, splits and even subtabs inside splits.
+arrange windows as tabs, splits and even subtabs inside splits. 
 
-For a quick feeler, take a look at the demo video below, or the [visual guide](#visual-guide) further below.
+It also provides an API with window-management operations that allow for quick
+access and rearrangements of tabs/windows.
+
+For a quick feeler, look at the demo below, or the [visual guide](#visual-guide)
+further below.
 
 <br>
 
@@ -45,25 +49,28 @@ https://github.com/aravinda0/qtile-bonsai/assets/960763/0e77b61e-1830-4972-9098-
 
 Assuming you already have
 [qtile up and running](https://docs.qtile.org/en/latest/manual/install/), you
-can just install qtile-bonsai from PyPI.
+can install _qtile-bonsai_ from PyPI.
 
 ```bash
-pip install qtile-bonsai
+pip install qtile-bonsai --break-system-packages
 ```
 
 > [!NOTE]
-> If you've installed qtile using your distro's package manager, you'll have to
-> run:
+> The `--break-system-packages` is needed nowadays as `pip` tries to play it
+> safer and not potentially modify some dependency that your system's Python
+> software may depend on.
 > 
-> `pip install qtile-bonsai --break-system-packages`.
+> For _qtile-bonsai_, this should be safe and will allow _qtile_ and
+> _qtile-bonsai_ to see each other.
 > 
-> That will allow the system-installed qtile and qtile-bonsai to 'see' each
-> other.
+> An alternative approach would be to have installed _qtile_ via [pipx](https://github.com/pypa/pipx) 
+> and then 'inject' _qtile-bonsai_ into the same virtualenv where _qtile_
+> resides:
 > 
-> The alternative would be to have installed qtile via [pipx](https://github.com/pypa/pipx) and 
-> then 'inject' `qtile-bonsai` into the same virtualenv where qtile resides:
-> 
-> `pipx inject qtile qtile-bonsai`
+> ```
+> pipx install qtile
+> pipx inject qtile qtile-bonsai
+> ```
 
 
 ### Configuration
@@ -76,14 +83,14 @@ from qtile_bonsai import Bonsai
 
 layouts = [
     Bonsai(**{
-      # Specify any desired options here. These examples are defaults.
+      # Specify your options here. These examples are defaults.
       "window.border_size": 1,
       "tab_bar.height": 20,
       
       # You can specify subtab level specific options if desired by prefixing
       # the option key with the appropriate level, eg. L1, L2, L3 etc.
       # For example, the following options affect only 2nd level subtabs and
-      # their windows. eg:
+      # their windows:
       # "L2.window.border_color": "#ff0000",
       # "L2.window.margin": 5,
     }),
@@ -125,7 +132,7 @@ keys = [
     EzKey("M-5", lazy.layout.focus_nth_tab(5, level=-1)),
     
     # Precise motions to move to specific windows. The options provided here let
-    # us pick the nth window from only under currently active tabs/subtabs.
+    # us pick the nth window counting only from under currently active [sub]tabs
     EzKey("C-1", lazy.layout.focus_nth_window(1, ignore_inactive_tabs_at_levels=[1,2])),
     EzKey("C-2", lazy.layout.focus_nth_window(2, ignore_inactive_tabs_at_levels=[1,2])),
     EzKey("C-3", lazy.layout.focus_nth_window(3, ignore_inactive_tabs_at_levels=[1,2])),
@@ -226,10 +233,12 @@ keys = [
 ]
 ```
 
-#### (Optional) 3. Add the BonsaiBar widget to your qtile bar
+#### 3. [Optional] Add the BonsaiBar widget to your qtile bar
 
-qtile-bonsai comes with an optional `BonsaiBar` widget that can let you hide the
-top-level tab bar and display it as a widget on the qtile screen bar instead.
+_qtile-bonsai_ comes with an optional `BonsaiBar` widget that lets you view all
+your top-level tabs on the qtile-bar. This lets you hide away the
+top-level/outermost tab-bar that is part of the `Bonsai` layout itself and save
+some screen space (or simply for aesthetics).
 
 
 ```python
@@ -274,9 +283,16 @@ Click on the image to open a web view with the full guide.
 
 > [!TIP]
 > Most options have subtab-level support! ie. you can have one setting for top
-> level windows (eg. `"window.margin" = 10`) and another setting for windows
-> under 2nd level subtabs (eg. `"L2.window.margin" = 5`). Just prefix the option
-> with `L<subtab-level>.`
+> level windows and another setting for windows under 2nd level subtabs. eg:
+> 
+> ```python
+> Bonsai({
+>   "window.margin": 10,
+>   "L2.window.margin": 5,
+> })
+> ```
+> 
+> The format is `L<subtab-level>.<option-name> = <value>`
 
 <br>
 
