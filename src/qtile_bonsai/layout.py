@@ -208,7 +208,7 @@ class Bonsai(Layout):
         ConfigOption(
             "tab_bar.tab.font_family", "Mono", "Font family to use for tab titles"
         ),
-        ConfigOption("tab_bar.tab.font_size", 15, "Font size to use for tab titles"),
+        ConfigOption("tab_bar.tab.font_size", 13, "Font size to use for tab titles"),
         ConfigOption(
             "tab_bar.tab.active.bg_color",
             Gruvbox.vivid_yellow,
