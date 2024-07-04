@@ -1244,7 +1244,6 @@ class Bonsai(Layout):
             return
         if self.interaction_mode != Bonsai.InteractionMode.branch_select:
             return
-
         if self._tree.selected_node is None:
             return
 
@@ -1252,8 +1251,12 @@ class Bonsai(Layout):
             ancestor = self._tree.selected_node.get_first_ancestor(
                 (SplitContainer, TabContainer)
             )
+            if isinstance(ancestor, SplitContainer) and ancestor.has_single_child:
+                # If we're a top-level SC under a TC, skip directly to the TC
+                ancestor = ancestor.get_first_ancestor(TabContainer)
         except ValueError:
             return
+
         if ancestor is self._tree.root:
             return
 
