@@ -1,5 +1,0 @@
-A new interaction mode called `container-select-mode` is now available that lets you
-visually select parents/containers of windows and invoke split/tab operations over
-larger areas.
-  - A new section has been [added in the visual guide](https://aravinda0.github.io/qtile-bonsai/static/visual_guide/#Container Select Mode) to demonstrate this.
-  - Check the [commands docs](https://github.com/aravinda0/qtile-bonsai?tab=readme-ov-file#layout-commands) for details on the 3 new commands added for this mode.

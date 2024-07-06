@@ -1,4 +1,0 @@
-A new config option `tab_bar.tab.title_provider` is available that lets you control the
-title on tabs via a callback function. For example, you could configure it to have the
-title of the focused window under the tab. Check the docs for the signature and a sample
-implementation.
