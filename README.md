@@ -242,7 +242,7 @@ keys = [
 
 #### 3. [Optional] Add the BonsaiBar widget to your qtile bar
 
-_qtile-bonsai_ comes with an optional `BonsaiBar` widget that lets you view all
+qtile-bonsai comes with an optional `BonsaiBar` widget that lets you view all
 your top-level tabs on the qtile-bar. This lets you hide away the
 top-level/outermost tab-bar that is part of the `Bonsai` layout itself and save
 some screen space (or simply for aesthetics).
