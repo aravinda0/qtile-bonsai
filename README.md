@@ -52,16 +52,20 @@ Assuming you already have
 can install qtile-bonsai from PyPI.
 
 ```bash
-pip install qtile-bonsai --break-system-packages
+pip install qtile-bonsai 
 ```
 
 > [!NOTE]
-> The `--break-system-packages` is needed nowadays as `pip` tries to play it
-> safer and not potentially modify some dependency that your system's Python
-> software may depend on.
+> If you have qtile installed globally (eg. via your distro's package manager),
+> you likely have to do:
 > 
-> For qtile-bonsai, this should be safe and will allow it and qtile to see each
-> other.
+> ```bash
+> pip install qtile-bonsai --break-system-packages
+> ```
+> 
+> Nowadays `pip` tries to play it safe and not potentially modify some
+> dependency that your system's Python-software may depend on. For qtile-bonsai,
+> using this flag should be safe.
 > 
 > An alternative approach would be to have installed qtile via [pipx](https://github.com/pypa/pipx) 
 > and then 'inject' qtile-bonsai into the same virtualenv where qtile resides:
