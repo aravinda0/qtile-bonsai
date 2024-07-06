@@ -297,12 +297,12 @@ class BonsaiTree(Tree):
     ):
         super().__init__(width, height, config)
 
-        self._branch_selection: BranchSelection = BranchSelection(self, qtile)
+        self._container_selection: ContainerSelection = ContainerSelection(self, qtile)
         self._on_click_tab_bar = on_click_tab_bar
 
     @property
     def selected_node(self) -> Node | None:
-        return self._branch_selection.focused_node
+        return self._container_selection.focused_node
 
     def create_pane(
         self,
@@ -339,10 +339,10 @@ class BonsaiTree(Tree):
                 node.render(screen_rect)
             else:
                 node.hide()
-        self._branch_selection.render(screen_rect)
+        self._container_selection.render(screen_rect)
 
     def finalize(self):
-        self._branch_selection.finalize()
+        self._container_selection.finalize()
         for node in self.iter_walk():
             node.finalize()
 
@@ -351,13 +351,13 @@ class BonsaiTree(Tree):
             node.hide()
 
     def activate_selection(self, node: Node):
-        self._branch_selection.focused_node = node
+        self._container_selection.focused_node = node
 
     def clear_selection(self):
-        self._branch_selection.focused_node = None
+        self._container_selection.focused_node = None
 
 
-class BranchSelection:
+class ContainerSelection:
     """Manages a UI rect representing a 'selection' of a BonsaiNode subtree in the form
     of a border around them.
 
@@ -390,8 +390,8 @@ class BranchSelection:
             self._win_l.hide()
             return
 
-        border_size: int = self._tree.get_config("branch_select_mode.border_size")
-        border_color: str = self._tree.get_config("branch_select_mode.border_color")
+        border_size: int = self._tree.get_config("container_select_mode.border_size")
+        border_color: str = self._tree.get_config("container_select_mode.border_color")
 
         rect = self.focused_node.principal_rect
         is_x = hasattr(self._drawer_t, "_check_xcb")  # See notes in BonsaiTabContainer

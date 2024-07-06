@@ -152,9 +152,9 @@ keys = [
     EzKey("A-S-d", lazy.layout.swap_tabs("previous")),
     EzKey("A-S-f", lazy.layout.swap_tabs("next")),
     
-    # Manipulate selections after entering branch-select mode
-    EzKey("M-o", lazy.layout.select_branch_out()),
-    EzKey("M-i", lazy.layout.select_branch_in()),
+    # Manipulate selections after entering container-select mode
+    EzKey("M-o", lazy.layout.select_container_outer()),
+    EzKey("M-i", lazy.layout.select_container_inner()),
 
     # It's kinda nice to have more advanced window management commands under a
     # qtile key chord.
@@ -168,9 +168,9 @@ keys = [
             EzKey("t", lazy.layout.spawn_tab(rofi_run_cmd)),
             EzKey("S-t", lazy.layout.spawn_tab(rofi_run_cmd, new_level=True)),
             
-            # Toggle branch-selection mode to split/tab over containers of
-            # multiple windows. Manipulate using select_branch_out()/select_branch_in()
-            EzKey("C-v", lazy.layout.toggle_branch_select_mode()),
+            # Toggle container-selection mode to split/tab over containers of
+            # multiple windows. Manipulate using select_container_outer()/select_container_inner()
+            EzKey("C-v", lazy.layout.toggle_container_select_mode()),
             
             EzKey("o", lazy.layout.pull_out()),
             EzKey("u", lazy.layout.pull_out_to_tab()),
@@ -315,12 +315,12 @@ Click on the image to open a web view with the full guide.
 |`tab_bar.tab.bg_color` | Gruvbox.dull_yellow | Background color of individual tabs |
 |`tab_bar.tab.fg_color` | Gruvbox.fg1 | Foreground text color of individual tabs |
 |`tab_bar.tab.font_family` | Mono | Font family to use for tab titles |
-|`tab_bar.tab.font_size` | 15 | Font size to use for tab titles |
+|`tab_bar.tab.font_size` | 13 | Font size to use for tab titles |
 |`tab_bar.tab.active.bg_color` | Gruvbox.vivid_yellow | Background color of active tabs |
 |`tab_bar.tab.active.fg_color` | Gruvbox.bg0_hard | Foreground text color of the active tab |
 |`tab_bar.tab.title_provider` | None | A callback that generates the title for<br>a tab. The callback accepts 3 parameters<br>and returns the final title string. The<br>params are:<br>1. `index`:<br>&nbsp;&nbsp;&nbsp;&nbsp;The index of the current tab in the<br>&nbsp;&nbsp;&nbsp;&nbsp;list of tabs.<br>2. `active_pane`:<br>&nbsp;&nbsp;&nbsp;&nbsp;The active `Pane` instance under<br>&nbsp;&nbsp;&nbsp;&nbsp;this tab. A `Pane` is just a<br>&nbsp;&nbsp;&nbsp;&nbsp;container for a window and can be<br>&nbsp;&nbsp;&nbsp;&nbsp;accessed via `pane.window`.<br>3. `tab`:<br>&nbsp;&nbsp;&nbsp;&nbsp;The current `Tab` instance.<br><br>For example, here's a callback that<br>returns the active window's title:<br>def my_title_provider(index,<br>active_pane, tab):<br>&nbsp;&nbsp;&nbsp;&nbsp;return active_pane.window.name |
-|`branch_select_mode.border_size` | 3 | Size of the border around the active<br>selection when `branch_select_mode` is<br>active. |
-|`branch_select_mode.border_color` | Gruvbox.dark_purple | Color of the border around the active<br>selection when `branch_select_mode` is<br>active. |
+|`container_select_mode.border_size` | 3 | Size of the border around the active<br>selection when `container_select_mode`<br>is active. |
+|`container_select_mode.border_color` | Gruvbox.dark_purple | Color of the border around the active<br>selection when `container_select_mode`<br>is active. |
 |`auto_cwd_for_terminals` | True | (Experimental)<br><br>If `True`, when spawning new windows by<br>specifying a `program` that happens to<br>be a well-known terminal emulator, will<br>try to open the new terminal window in<br>same working directory as the last<br>focused window. |
 |`restore.threshold_seconds` | 4 | You likely don't need to tweak this.<br>Controls the time within which a<br>persisted state file is considered to be<br>from a recent qtile config-<br>reload/restart event. If the persisted<br>file is this many seconds old, we<br>restore our window tree from it. |
 
@@ -333,7 +333,7 @@ Click on the image to open a web view with the full guide.
 | ---          | ---         |
 |`spawn_split` | Launch the provided `program` into a new window that splits the currently<br>focused window along the specified `axis`.<br><br>Args:<br>&nbsp;&nbsp;&nbsp;&nbsp;`program`:<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;The program to launch.<br>&nbsp;&nbsp;&nbsp;&nbsp;`axis`:<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;The axis along which to split the currently focused window. Can be<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'x' or 'y'.<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;An `x` split will end up with two left/right windows.<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;A `y` split will end up with two top/bottom windows.<br>&nbsp;&nbsp;&nbsp;&nbsp;`ratio`:<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;The ratio of sizes by which to split the current window.<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;If a window has a width of 100, then splitting on the x-axis with a<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ratio = 0.3 will result in a left window of width 30 and a right<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;window of width 70.<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Defaults to 0.5.<br>&nbsp;&nbsp;&nbsp;&nbsp;`normalize`:<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;If `True`, overrides `ratio` and leads to the new window and all<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;sibling windows becoming of equal size along the corresponding<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;split axis.<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Defaults to `True`.<br>&nbsp;&nbsp;&nbsp;&nbsp;`position`:<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Whether the new split content appears after or before the currently<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;focused window.<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Can be `"next"` or `"previous"`. Defaults to `"next"`.<br><br>Examples:<br>&nbsp;&nbsp;&nbsp;&nbsp;- `layout.spawn_split(my_terminal, "x")`<br>&nbsp;&nbsp;&nbsp;&nbsp;- `layout.spawn_split(my_terminal, "y", ratio=0.2, normalize=False)`<br>&nbsp;&nbsp;&nbsp;&nbsp;- `layout.spawn_split(my_terminal, "x", position="previous")` |
 |`spawn_tab` | Launch the provided `program` into a new window as a new tab.<br><br>Args:<br>&nbsp;&nbsp;&nbsp;&nbsp;`program`:<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;The program to launch.<br>&nbsp;&nbsp;&nbsp;&nbsp;`new_level`:<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;If `True`, create a new sub-tab level with 2 tabs. The first sub-<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;tab being the currently focused window, the second sub-tab being<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;the newly launched program.<br>&nbsp;&nbsp;&nbsp;&nbsp;`level`:<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;If provided, launch the new window as a tab at the provided `level`<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;of tabs in the currently focused window's tab hierarchy.<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Level 1 is the topmost level.<br><br>Examples:<br>&nbsp;&nbsp;&nbsp;&nbsp;- `layout.spawn_tab(my_terminal)`<br>&nbsp;&nbsp;&nbsp;&nbsp;- `layout.spawn_tab(my_terminal, new_level=True)`<br>&nbsp;&nbsp;&nbsp;&nbsp;- `layout.spawn_tab("qutebrowser", level=1)` |
-|`move_focus` | Move focus to the window in the specified direction relative to the<br>currently focused window. If there are multiple candidates, the most<br>recently focused of them will be chosen.<br>When `branch_select_mode` is active, will similarly pick neighboring nodes,<br>which may consist of multiple windows under it.<br><br>Args:<br>&nbsp;&nbsp;&nbsp;&nbsp;`direction`:<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;The direction in which a neighbor is found to move focus to. Can be<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"up"/"down"/"left"/"right".<br>&nbsp;&nbsp;&nbsp;&nbsp;`wrap`:<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;If `True`, will wrap around the edge and select items from the<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;other end of the screen. Defaults to `True`. |
+|`move_focus` | Move focus to the window in the specified direction relative to the<br>currently focused window. If there are multiple candidates, the most<br>recently focused of them will be chosen.<br>When `container_select_mode` is active, will similarly pick neighboring<br>nodes, which may consist of multiple windows under it.<br><br>Args:<br>&nbsp;&nbsp;&nbsp;&nbsp;`direction`:<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;The direction in which a neighbor is found to move focus to. Can be<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"up"/"down"/"left"/"right".<br>&nbsp;&nbsp;&nbsp;&nbsp;`wrap`:<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;If `True`, will wrap around the edge and select items from the<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;other end of the screen. Defaults to `True`. |
 |`left` | Same as `move_focus("left")`. For compatibility with API of other built-in<br>layouts. |
 |`right` | Same as `move_focus("right")`. For compatibility with API of other built-in<br>layouts. |
 |`up` | Same as `move_focus("up")`. For compatibility with API of other built-in<br>layouts. |
@@ -354,9 +354,9 @@ Click on the image to open a web view with the full guide.
 |`normalize` | Starting from the focused window's container, make all windows in the<br>container of equal size.<br><br>Args:<br>&nbsp;&nbsp;&nbsp;&nbsp;`recurse`:<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;If `True`, then nested nodes are also normalized similarly. |
 |`normalize_tab` | Starting from the focused window's tab, make all windows in the tab of<br>equal size under their respective containers.<br><br>Args:<br>&nbsp;&nbsp;&nbsp;&nbsp;`recurse`:<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;If `True`, then nested nodes are also normalized similarly.<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Defaults to `True`. |
 |`normalize_all` | Make all windows under all tabs be of equal size under their respective<br>containers. |
-|`toggle_branch_select_mode` | Enable branch-select mode where we can select not just a window, but even<br>their container nodes.<br><br>This will activate a special border around the active selection. You can<br>move its focus around using the same bindings as for switching window<br>focus. You can also select upper/parent or lower/child nodes with the<br>`select_branch_out()` and `select_branch_in()` commands.<br><br>Handy for cases where you want to split over a collection of windows or<br>make a new subtab level over a collection of windows.<br><br>Aside from focus-switching motions, the only operations supported are<br>`spawn_split()` and `spawn_tab()`. Triggering other commands will simply<br>exit branch-select mode. |
-|`select_branch_in` | When in branch-select mode, it will narrow the active selection by<br>selecting the first descendent node. |
-|`select_branch_out` | When in branch-select mode, it will expand the active selection by<br>selecting the next ancestor node. |
+|`toggle_container_select_mode` | Enable container-select mode where we can select not just a window, but<br>even their container nodes.<br><br>This will activate a special border around the active selection. You can<br>move its focus around using the same bindings as for switching window<br>focus. You can also select upper/parent or lower/child nodes with the<br>`select_container_outer()` and `select_container_inner()` commands.<br><br>Handy for cases where you want to split over a collection of windows or<br>make a new subtab level over a collection of windows.<br><br>Aside from focus-switching motions, the only operations supported are<br>`spawn_split()` and `spawn_tab()`. Triggering other commands will simply<br>exit container-select mode. |
+|`select_container_inner` | When in container-select mode, it will narrow the active selection by<br>selecting the first descendent node. |
+|`select_container_outer` | When in container-select mode, it will expand the active selection by<br>selecting the next ancestor node. |
 |`tree_repr` | Returns a YAML-like text representation of the internal tree hierarchy. |
 
 
@@ -377,8 +377,8 @@ Click on the image to open a web view with the full guide.
 |`tab.fg_color` | Gruvbox.fg1 | Foreground color of the inactive tabs |
 |`tab.active.bg_color` | Gruvbox.vivid_yellow | Background color of active tab |
 |`tab.active.fg_color` | Gruvbox.bg0_hard | Foreground color of active tab |
-|`branch_select_mode.indicator.bg_color` | Gruvbox.bg0_hard | Background color of active tab when in<br>branch_select_mode. |
-|`branch_select_mode.indicator.fg_color` | Gruvbox.bg0_hard | Foreground color of active tab when in<br>branch_select_mode. |
+|`container_select_mode.indicator.bg_color` | Gruvbox.bg0_hard | Background color of active tab when in<br>container_select_mode. |
+|`container_select_mode.indicator.fg_color` | Gruvbox.bg0_hard | Foreground color of active tab when in<br>container_select_mode. |
 
 
 

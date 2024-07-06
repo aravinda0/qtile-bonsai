@@ -38,9 +38,9 @@ class ExampleTree(Tree):
         The examples primarily use all the functionality from the core Tree class to
         generate examples. Except for a few things.
 
-        The branch-selection mode is a UI-driven feature implemented in the qtile layer,
-        outside the core Tree. So we kind of fake its behavior in a simple manner here.
-        Same goes for `focus_nth_tab()`/`focus_nth_window()`
+        The container-selection mode is a UI-driven feature implemented in the qtile
+        layer, outside the core Tree. So we kind of fake its behavior in a simple manner
+        here. Same goes for `focus_nth_tab()`/`focus_nth_window()`
     """
 
     def __init__(self, *args, **kwargs):
@@ -473,8 +473,8 @@ class EgMergeTabs(Example):
         }
 
 
-class EgBranchSelectMode1(Example):
-    section = "Branch Select Mode"
+class EgContainerSelectMode1(Example):
+    section = "Container Select Mode"
 
     def build_context_fragment(self):
         lhs = make_tree()
@@ -486,7 +486,7 @@ class EgBranchSelectMode1(Example):
         rhs = lhs.clone()
         rhs.focus(rhs.node(lp3.id))
         rhs.activate_selection(rhs.node(lp3.id))
-        rhs.command = "toggle_branch_select_mode()"
+        rhs.command = "toggle_container_select_mode()"
 
         return {
             "lhs": lhs,
@@ -494,8 +494,8 @@ class EgBranchSelectMode1(Example):
         }
 
 
-class EgBranchSelectMode2(Example):
-    section = "Branch Select Mode"
+class EgContainerSelectMode2(Example):
+    section = "Container Select Mode"
 
     def build_context_fragment(self):
         lhs = make_tree()
@@ -509,12 +509,12 @@ class EgBranchSelectMode2(Example):
         rhs1 = lhs.clone()
         rhs1.focus(rhs1.node(lp3.id))
         rhs1.activate_selection(rhs1.node(lp3.parent.parent.id))
-        rhs1.command = "select_branch_out()"
+        rhs1.command = "select_container_outer()"
 
         rhs2 = lhs.clone()
         rhs2.focus(rhs2.node(lp3.id))
         rhs2.activate_selection(rhs2.node(lp3.id))
-        rhs2.command = "select_branch_in()"
+        rhs2.command = "select_container_inner()"
 
         return {
             "lhs": lhs,
@@ -522,8 +522,8 @@ class EgBranchSelectMode2(Example):
         }
 
 
-class EgBranchSelectMode3(Example):
-    section = "Branch Select Mode"
+class EgContainerSelectMode3(Example):
+    section = "Container Select Mode"
 
     def build_context_fragment(self):
         lhs = make_tree()
@@ -670,7 +670,7 @@ class EgFocusNthWindow3(Example):
 
 
 class EgAdvanced1(Example):
-    section = "Advanced Options for Branch Selection"
+    section = "Advanced Options for Container Selection"
 
     def build_context_fragment(self):
         lhs = make_tree()
@@ -729,7 +729,7 @@ class EgAdvanced1(Example):
 
 
 class EgAdvanced2(Example):
-    section = "Advanced Options for Branch Selection"
+    section = "Advanced Options for Container Selection"
 
     def build_context_fragment(self):
         lhs = make_tree()
@@ -779,7 +779,7 @@ class EgAdvanced2(Example):
 
 
 class EgAdvanced3(Example):
-    section = "Advanced Options for Branch Selection"
+    section = "Advanced Options for Container Selection"
 
     def build_context_fragment(self):
         lhs = make_tree()

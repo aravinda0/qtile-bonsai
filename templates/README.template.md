@@ -152,9 +152,9 @@ keys = [
     EzKey("A-S-d", lazy.layout.swap_tabs("previous")),
     EzKey("A-S-f", lazy.layout.swap_tabs("next")),
     
-    # Manipulate selections after entering branch-select mode
-    EzKey("M-o", lazy.layout.select_branch_out()),
-    EzKey("M-i", lazy.layout.select_branch_in()),
+    # Manipulate selections after entering container-select mode
+    EzKey("M-o", lazy.layout.select_container_outer()),
+    EzKey("M-i", lazy.layout.select_container_inner()),
 
     # It's kinda nice to have more advanced window management commands under a
     # qtile key chord.
@@ -168,9 +168,9 @@ keys = [
             EzKey("t", lazy.layout.spawn_tab(rofi_run_cmd)),
             EzKey("S-t", lazy.layout.spawn_tab(rofi_run_cmd, new_level=True)),
             
-            # Toggle branch-selection mode to split/tab over containers of
-            # multiple windows. Manipulate using select_branch_out()/select_branch_in()
-            EzKey("C-v", lazy.layout.toggle_branch_select_mode()),
+            # Toggle container-selection mode to split/tab over containers of
+            # multiple windows. Manipulate using select_container_outer()/select_container_inner()
+            EzKey("C-v", lazy.layout.toggle_container_select_mode()),
             
             EzKey("o", lazy.layout.pull_out()),
             EzKey("u", lazy.layout.pull_out_to_tab()),

@@ -56,7 +56,7 @@ class Bonsai(Layout):
 
     class InteractionMode(enum.Enum):
         normal = 1
-        branch_select = 2
+        container_select = 2
 
     level_specific_config_format = re.compile(r"^L(\d+)\.(.+)")
 
@@ -241,18 +241,18 @@ class Bonsai(Layout):
             """,
         ),
         ConfigOption(
-            "branch_select_mode.border_size",
+            "container_select_mode.border_size",
             3,
             """
-            Size of the border around the active selection when `branch_select_mode` is
+            Size of the border around the active selection when `container_select_mode` is
             active.
             """,
         ),
         ConfigOption(
-            "branch_select_mode.border_color",
+            "container_select_mode.border_color",
             Gruvbox.dark_purple,
             """
-            Color of the border around the active selection when `branch_select_mode` is
+            Color of the border around the active selection when `container_select_mode` is
             active.
             """,
             default_value_label="Gruvbox.dark_purple",
@@ -313,7 +313,7 @@ class Bonsai(Layout):
 
     @property
     def actionable_node(self) -> Node | None:
-        if self.interaction_mode == Bonsai.InteractionMode.branch_select:
+        if self.interaction_mode == Bonsai.InteractionMode.container_select:
             return self._tree.selected_node
         return self.focused_pane
 
@@ -326,7 +326,7 @@ class Bonsai(Layout):
         self._interaction_mode = value
 
         if (
-            value == Bonsai.InteractionMode.branch_select
+            value == Bonsai.InteractionMode.container_select
             and self.focused_pane is not None
         ):
             self._tree.activate_selection(self.focused_pane)
@@ -600,8 +600,8 @@ class Bonsai(Layout):
         Move focus to the window in the specified direction relative to the currently
         focused window. If there are multiple candidates, the most recently focused of
         them will be chosen.
-        When `branch_select_mode` is active, will similarly pick neighboring nodes, which
-        may consist of multiple windows under it.
+        When `container_select_mode` is active, will similarly pick neighboring nodes,
+        which may consist of multiple windows under it.
 
         Args:
             `direction`:
@@ -614,7 +614,7 @@ class Bonsai(Layout):
         if self._tree.is_empty:
             return
 
-        if self.interaction_mode == Bonsai.InteractionMode.branch_select:
+        if self.interaction_mode == Bonsai.InteractionMode.container_select:
             if self._tree.selected_node is not None:
                 next_node = self._tree.adjacent_node(
                     self._tree.selected_node, direction, wrap=wrap
@@ -684,7 +684,7 @@ class Bonsai(Layout):
         """
         if self._tree.is_empty:
             return
-        if self._cancel_if_unsupported_branch_select_mode_op():
+        if self._cancel_if_unsupported_container_select_mode_op():
             return
 
         next_pane = self._tree.next_tab(self.actionable_node, wrap=wrap)
@@ -698,7 +698,7 @@ class Bonsai(Layout):
         """
         if self._tree.is_empty:
             return
-        if self._cancel_if_unsupported_branch_select_mode_op():
+        if self._cancel_if_unsupported_container_select_mode_op():
             return
 
         next_pane = self._tree.prev_tab(self.actionable_node, wrap=wrap)
@@ -852,7 +852,7 @@ class Bonsai(Layout):
         """
         if self._tree.is_empty:
             return
-        if self._cancel_if_unsupported_branch_select_mode_op():
+        if self._cancel_if_unsupported_container_select_mode_op():
             return
 
         other_pane = self._tree.adjacent_pane(
@@ -992,7 +992,7 @@ class Bonsai(Layout):
         """
         if self._tree.is_empty:
             return
-        if self._cancel_if_unsupported_branch_select_mode_op():
+        if self._cancel_if_unsupported_container_select_mode_op():
             return
 
         try:
@@ -1042,7 +1042,7 @@ class Bonsai(Layout):
         """
         if self._tree.is_empty:
             return
-        if self._cancel_if_unsupported_branch_select_mode_op():
+        if self._cancel_if_unsupported_container_select_mode_op():
             return
 
         try:
@@ -1090,7 +1090,7 @@ class Bonsai(Layout):
         """
         if self._tree.is_empty:
             return
-        if self._cancel_if_unsupported_branch_select_mode_op():
+        if self._cancel_if_unsupported_container_select_mode_op():
             return
 
         try:
@@ -1117,7 +1117,7 @@ class Bonsai(Layout):
         """
         if self._tree.is_empty:
             return
-        if self._cancel_if_unsupported_branch_select_mode_op():
+        if self._cancel_if_unsupported_container_select_mode_op():
             return
 
         try:
@@ -1179,40 +1179,40 @@ class Bonsai(Layout):
         self._request_relayout()
 
     @expose_command
-    def toggle_branch_select_mode(self):
+    def toggle_container_select_mode(self):
         """
-        Enable branch-select mode where we can select not just a window, but even their
+        Enable container-select mode where we can select not just a window, but even their
         container nodes.
 
         This will activate a special border around the active selection. You can move
         its focus around using the same bindings as for switching window focus. You can
-        also select upper/parent or lower/child nodes with the `select_branch_out()` and
-        `select_branch_in()` commands.
+        also select upper/parent or lower/child nodes with the
+        `select_container_outer()` and `select_container_inner()` commands.
 
         Handy for cases where you want to split over a collection of windows or make a
         new subtab level over a collection of windows.
 
         Aside from focus-switching motions, the only operations supported are
         `spawn_split()` and `spawn_tab()`. Triggering other commands will simply exit
-        branch-select mode.
+        container-select mode.
         """
         if self._tree.is_empty:
             return
 
         if self.interaction_mode == Bonsai.InteractionMode.normal:
-            self.interaction_mode = Bonsai.InteractionMode.branch_select
+            self.interaction_mode = Bonsai.InteractionMode.container_select
         else:
             self.interaction_mode = Bonsai.InteractionMode.normal
 
     @expose_command
-    def select_branch_in(self):
+    def select_container_inner(self):
         """
-        When in branch-select mode, it will narrow the active selection by selecting the
-        first descendent node.
+        When in container-select mode, it will narrow the active selection by selecting
+        the first descendent node.
         """
         if self._tree.is_empty:
             return
-        if self.interaction_mode != Bonsai.InteractionMode.branch_select:
+        if self.interaction_mode != Bonsai.InteractionMode.container_select:
             return
 
         if self._tree.selected_node is None:
@@ -1235,14 +1235,14 @@ class Bonsai(Layout):
         self._request_relayout()
 
     @expose_command
-    def select_branch_out(self):
+    def select_container_outer(self):
         """
-        When in branch-select mode, it will expand the active selection by selecting the
-        next ancestor node.
+        When in container-select mode, it will expand the active selection by selecting
+        the next ancestor node.
         """
         if self._tree.is_empty:
             return
-        if self.interaction_mode != Bonsai.InteractionMode.branch_select:
+        if self.interaction_mode != Bonsai.InteractionMode.container_select:
             return
         if self._tree.selected_node is None:
             return
@@ -1518,9 +1518,9 @@ class Bonsai(Layout):
         active_pane = self._tree.find_mru_pane(start_node=tab)
         self._request_focus(active_pane)
 
-    def _cancel_if_unsupported_branch_select_mode_op(self) -> bool:
-        if self.interaction_mode == Bonsai.InteractionMode.branch_select:
-            logger.warn("This operation isn't yet supported in branch-select mode.")
+    def _cancel_if_unsupported_container_select_mode_op(self) -> bool:
+        if self.interaction_mode == Bonsai.InteractionMode.container_select:
+            logger.warn("This operation isn't yet supported in container-select mode.")
             self.interaction_mode = Bonsai.InteractionMode.normal
             return True
         return False

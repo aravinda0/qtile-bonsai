@@ -304,7 +304,7 @@ class TestStateRestoration:
         )
 
 
-class TestBranchSelectMode:
+class TestContainerSelectMode:
     def test_split_on_sc(self, manager, spawn_test_window_cmd):
         manager.layout.spawn_tab(spawn_test_window_cmd())
         wait()
@@ -315,8 +315,8 @@ class TestBranchSelectMode:
         manager.layout.spawn_split(spawn_test_window_cmd(), "x")
         wait()
 
-        manager.layout.toggle_branch_select_mode()
-        manager.layout.select_branch_out()
+        manager.layout.toggle_container_select_mode()
+        manager.layout.select_container_outer()
 
         manager.layout.spawn_split(spawn_test_window_cmd(), "y")
         wait()
@@ -345,8 +345,8 @@ class TestBranchSelectMode:
         manager.layout.spawn_split(spawn_test_window_cmd(), "x")
         wait()
 
-        manager.layout.toggle_branch_select_mode()
-        manager.layout.select_branch_out()
+        manager.layout.toggle_container_select_mode()
+        manager.layout.select_container_outer()
 
         manager.layout.spawn_tab(spawn_test_window_cmd(), new_level=True)
         wait()
@@ -375,7 +375,7 @@ class TestBranchSelectMode:
         manager.layout.spawn_tab(spawn_test_window_cmd())
         wait()
 
-        manager.layout.toggle_branch_select_mode()
+        manager.layout.toggle_container_select_mode()
 
         make_window()
 

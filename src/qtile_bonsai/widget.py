@@ -85,15 +85,15 @@ class BonsaiBar(base._Widget):
             default_value_label="Gruvbox.bg0_hard",
         ),
         ConfigOption(
-            "branch_select_mode.indicator.bg_color",
+            "container_select_mode.indicator.bg_color",
             Gruvbox.dark_purple,
-            "Background color of active tab when in branch_select_mode.",
+            "Background color of active tab when in container_select_mode.",
             default_value_label="Gruvbox.bg0_hard",
         ),
         ConfigOption(
-            "branch_select_mode.indicator.fg_color",
+            "container_select_mode.indicator.fg_color",
             Gruvbox.fg1,
-            "Foreground color of active tab when in branch_select_mode.",
+            "Foreground color of active tab when in container_select_mode.",
             default_value_label="Gruvbox.bg0_hard",
         ),
     ]
@@ -188,8 +188,9 @@ class BonsaiBar(base._Widget):
         tab_padding: int = getattr(self, "tab.padding")
         font_family: str = getattr(self, "font_family")
         font_size: int = getattr(self, "font_size")
-        is_branch_select_mode = (
-            bonsai_info["interaction_mode"] == Bonsai.InteractionMode.branch_select.name
+        is_container_select_mode = (
+            bonsai_info["interaction_mode"]
+            == Bonsai.InteractionMode.container_select.name
         )
 
         one_char_w, _ = self.drawer.max_layout_size(["x"], font_family, font_size)
@@ -198,9 +199,9 @@ class BonsaiBar(base._Widget):
         )
         for i, n in enumerate(root["children"]):
             if n["id"] == root["active_child"]:
-                if is_branch_select_mode:
-                    bg: str = getattr(self, "branch_select_mode.indicator.bg_color")
-                    fg: str = getattr(self, "branch_select_mode.indicator.fg_color")
+                if is_container_select_mode:
+                    bg: str = getattr(self, "container_select_mode.indicator.bg_color")
+                    fg: str = getattr(self, "container_select_mode.indicator.fg_color")
                 else:
                     bg = getattr(self, "tab.active.bg_color")
                     fg = getattr(self, "tab.active.fg_color")
