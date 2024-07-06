@@ -114,6 +114,10 @@ keys = [
     EzKey("M-x", lazy.layout.spawn_split(terminal, "y")),
     EzKey("M-t", lazy.layout.spawn_tab(terminal)),
     EzKey("M-S-t", lazy.layout.spawn_tab(terminal, new_level=True)),
+    
+    # Sometimes it's handy to have a split open in the 'previous' position
+    EzKey("M-S-v", lazy.layout.spawn_split(terminal, "x", position="previous")),
+    EzKey("M-S-x", lazy.layout.spawn_split(terminal, "y", position="previous")),
 
     # Motions to move focus. The names are compatible with built-in layouts.
     EzKey("M-h", lazy.layout.left()),
