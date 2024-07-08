@@ -13,6 +13,7 @@ import tempfile
 from datetime import datetime
 from typing import Any, Callable, ClassVar, Sequence
 
+from libqtile import hook
 from libqtile.backend.base.window import Window
 from libqtile.command.base import expose_command
 from libqtile.config import ScreenRect
@@ -485,6 +486,7 @@ class Bonsai(Layout):
         self._handle_delayed_release_of_removed_nodes()
 
     def finalize(self):
+        self._finalize_hooks()
         self._persist_tree_state()
         self._handle_delayed_release_of_removed_nodes()
         self._tree.finalize()
@@ -1315,7 +1317,19 @@ class Bonsai(Layout):
 
         self._next_window_handler = _handle_next_window
 
+        self._setup_hooks()
+
         self._handle_initial_restoration_check()
+
+    def _setup_hooks(self):
+        if self._tree.get_config("tab_bar.tab.title_provider"):
+            # For now, the only time we're interested in this hook is when the user has
+            # some custom tab-title rendering going on.
+            hook.subscribe.client_name_updated(self._handle_hook_client_name_updated)
+
+    def _finalize_hooks(self):
+        if self._tree.get_config("tab_bar.tab.title_provider"):
+            hook.unsubscribe.client_name_updated(self._handle_hook_client_name_updated)
 
     def parse_multi_level_config(self) -> BonsaiTree.MultiLevelConfig:
         options_map = {option.name: option for option in self.options}
@@ -1524,3 +1538,12 @@ class Bonsai(Layout):
             self.interaction_mode = Bonsai.InteractionMode.normal
             return True
         return False
+
+    def _handle_hook_client_name_updated(self, client: Window):
+        # We get notified when ANY window name changes - even if it's not part of the
+        # current group. We could re-render only for windows in this layout instance's
+        # group - but let's keep it simple for now. Who knows what wild logic end users
+        # may want to configure for tab titles :D
+        # But we will only re-render when the layout is active.
+        if self.group.layout is self:
+            self._request_relayout()
