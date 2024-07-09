@@ -9,11 +9,11 @@
 
 from typing import Any, ClassVar
 
-from libqtile import hook
+from libqtile import bar, hook
 from libqtile.backend.base.drawer import Drawer, TextLayout
 from libqtile.widget import base
 
-from qtile_bonsai.core.geometry import Box, Rect
+from qtile_bonsai.core.geometry import Box, Perimeter, Rect
 from qtile_bonsai.layout import Bonsai
 from qtile_bonsai.theme import Gruvbox
 from qtile_bonsai.utils.config import ConfigOption
@@ -104,6 +104,7 @@ class BonsaiBar(base._Widget):
     def __init__(self, length=default_length, **config):
         super().__init__(length, **config)
         self.add_defaults(self.defaults)
+        self._last_width: int = 0
 
         self.text_layout: TextLayout | None = None
 
@@ -115,6 +116,13 @@ class BonsaiBar(base._Widget):
         return isinstance(self.qtile.current_group.layout, Bonsai)
 
     def draw(self):
+        width = self.width
+
+        if self._should_redraw_whole_bar_instead():
+            self._last_width = width
+            self.bar.draw()
+            return
+
         self.drawer.clear(self.bg_color or self.bar.background)
 
         if self.is_bonsai_active:
@@ -125,9 +133,15 @@ class BonsaiBar(base._Widget):
         self.drawer.draw(
             offsetx=self.offsetx,
             offsety=self.offsety,
-            width=self.width,
+            width=width,
             height=self.height,
         )
+        self._last_width = width
+
+    def _should_redraw_whole_bar_instead(self) -> bool:
+        if self.length_type == bar.CALCULATED and self._last_width != self.width:
+            return True
+        return False
 
     def finalize(self):
         self._remove_hooks()
@@ -143,8 +157,8 @@ class BonsaiBar(base._Widget):
         if root is None:
             return
 
-        tab_width: int = getattr(self, "tab.width")
-        tab_margin: int = getattr(self, "tab.margin")
+        tab_width: int = self._get_per_tab_width(root)
+        tab_margin = Perimeter(getattr(self, "tab.margin"))
 
         # (x, y) are conveniently in object-space.
         i = x // tab_width
@@ -158,8 +172,46 @@ class BonsaiBar(base._Widget):
         if tab_box.border_rect.has_coord(x, y):
             bonsai.focus_nth_tab(i + 1, level=1)
 
-    def _configure(self, qtile, bar):
-        super()._configure(qtile, bar)
+    def calculate_length(self) -> int:
+        """Mandatory override for `Widget.calculate_length` to handle special values for
+        `widget.length`.
+
+        Notes:
+            - `self.length` seems to delegate to this - but only when it is set to
+                `bar.CALCULATED`.
+                - For `bar.STATIC`, the original configured fixed length is simply
+                returned.
+                - For `bar.STRETCH`, the length is set at some point by the bar, and
+                that length gets used instead, without coming here.
+            - So for `bar.CALCULATED`, we need to calculate required space based on the
+                `tab.width` config. `tab.width == 'auto'` cannot work in this case. We
+                raise a config error in that situation anyway.
+        """
+        # NOTE: `self.length` delegates to this `self.calculate_length()` - but only in
+        # the case of length_type == bar.CALCULATED | bar.STRETCH.
+
+        if not self.bar.horizontal:
+            raise NotImplementedError(
+                "This widget isn't yet supported on vertical bars."
+            )
+
+        tab_width_config = getattr(self, "tab.width")
+        if self.length_type != bar.CALCULATED and tab_width_config == "auto":
+            return self.length
+
+        bonsai = self.qtile.current_group.layout
+        root = bonsai.info()["tree"]["root"]
+        if root is None:
+            return 0
+        return min(tab_width_config * len(root["children"]), self.bar.width)
+
+    def _configure(self, qtile, bar_instance):
+        super()._configure(qtile, bar_instance)
+
+        if self.length_type == bar.CALCULATED and getattr(self, "tab.width") == "auto":
+            raise ValueError(
+                "`tab.width` can't be 'auto' when widget length is `bar.bar.CALCULATED"
+            )
 
         # Make text layout with some dummy initials. Actuals set later.
         self.text_layout = self.drawer.textlayout("", "000000", "mono", 15, None)
@@ -168,12 +220,22 @@ class BonsaiBar(base._Widget):
 
     def _setup_hooks(self):
         hook.subscribe.client_focus(self._handle_client_focus)
+        hook.subscribe.client_killed(self._handle_client_killed)
 
     def _remove_hooks(self):
-        hook.unsubscribe.client_focus(self._handle_client_focus)
+        hook.unsubscribe.client_killed(self._handle_client_killed)
+        hook.unsubscribe.client_remove(self._handle_client_focus)
 
     def _handle_client_focus(self, client):
         self.draw()
+
+    def _handle_client_killed(self, client):
+        # When the bar isn't static, we need to trigger a full bar re-render when no
+        # windows are left.
+        # Re-rendering the widget is primarily driven by the focus hook. But we're left
+        # with an edge case of when there are no windows left, so we handle that here.
+        if self.length_type != bar.STATIC and not self.qtile.current_group.windows:
+            self.bar.draw()
 
     def _draw_when_bonsai_active(self):
         bonsai = self.qtile.current_group.layout
@@ -183,9 +245,9 @@ class BonsaiBar(base._Widget):
             return
 
         # TODO: make vertical compatible
-        tab_width: int = getattr(self, "tab.width")
-        tab_margin: int = getattr(self, "tab.margin")
-        tab_padding: int = getattr(self, "tab.padding")
+        tab_width: int = self._get_per_tab_width(root)
+        tab_margin = Perimeter(getattr(self, "tab.margin"))
+        tab_padding = Perimeter(getattr(self, "tab.padding"))
         font_family: str = getattr(self, "font_family")
         font_size: int = getattr(self, "font_size")
         is_container_select_mode = (
@@ -195,7 +257,12 @@ class BonsaiBar(base._Widget):
 
         one_char_w, _ = self.drawer.max_layout_size(["x"], font_family, font_size)
         per_tab_max_chars = int(
-            (tab_width - tab_margin * 2 - tab_padding * 2) / one_char_w
+            (
+                tab_width
+                - (tab_margin.left + tab_margin.right)
+                - (tab_padding.left + tab_padding.right)
+            )
+            / one_char_w
         )
         for i, n in enumerate(root["children"]):
             if n["id"] == root["active_child"]:
@@ -247,3 +314,10 @@ class BonsaiBar(base._Widget):
 
     def _draw_when_bonsai_inactive(self):
         pass
+
+    def _get_per_tab_width(self, tree_root) -> int:
+        tab_width_config: int | str = getattr(self, "tab.width")
+
+        if tab_width_config == "auto":
+            return self.length // len(tree_root["children"])
+        return int(tab_width_config)
