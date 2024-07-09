@@ -313,13 +313,13 @@ Click on the image to open a web view with the full guide.
 |`window.default_add_mode` | tab | (Experimental)<br><br>Determines how windows get added if they<br>are not explicitly spawned as a split or<br>a tab.<br>Can be one of "tab" or "match_previous".<br>If "match_previous", then then new<br>window will get added in the same way<br>the previous window was. eg. if the<br>previous window was added as a y-split,<br>so will the new window.<br><br>NOTE:<br>Setting this to "tab" may seem<br>convenient, since externally spawned GUI<br>apps get added as background tabs<br>instead of messing up the current split<br>layout.<br>But due to how the window creation flow<br>happens, when many splits are requested<br>in quick succession, this may cause some<br>windows requested as a split to open up<br>as a tab instead. |
 |`tab_bar.height` | 20 | Height of tab bars |
 |`tab_bar.hide_when` | single_tab | When to hide the tab bar. Allowed values<br>are 'never', 'always', 'single_tab'.<br><br>When 'single_tab' is configured, the bar<br>is not shown whenever there is a lone<br>tab remaining, but shows up again when<br>another tab is added.<br><br>For nested tab levels, configuring<br>'always' or 'single_tab' actually means<br>that when only a single tab remains, its<br>contents get 'merged' upwards,<br>eliminating the sub-tab level. |
-|`tab_bar.margin` | 0 | Size of the margin space around tab<br>bars.<br><br>Can be an int or a list of ints in [top,<br>right, bottom, left] ordering. |
+|`tab_bar.margin` | 0 | Size of the margin space around tab<br>bars.<br>Can be an int or a list of ints in [top,<br>right, bottom, left] ordering. |
 |`tab_bar.border_size` | 0 | Size of the border around tab bars |
 |`tab_bar.border_color` | Gruvbox.dark_yellow | Color of border around tab bars |
 |`tab_bar.bg_color` | Gruvbox.bg0 | Background color of tab bars, beind<br>their tabs |
 |`tab_bar.tab.width` | 50 | Width of a tab on a tab bar.<br><br>Can be an int or `auto`. If `auto`, the<br>tabs take up as much of the available<br>screen space as possible.<br><br>Note that this width follows the 'margin<br>box'/'principal box' model, so it<br>includes any configured margin amount. |
-|`tab_bar.tab.margin` | 0 | Size of the space on either outer side<br>of individual tabs. |
-|`tab_bar.tab.padding` | 0 | Size of the space on either inner side<br>of individual tabs. |
+|`tab_bar.tab.margin` | 0 | Size of the space on either outer side<br>of individual tabs.<br>Can be an int or a list of ints in [top,<br>right, bottom, left] ordering. |
+|`tab_bar.tab.padding` | 0 | Size of the space on either inner side<br>of individual tabs.<br>Can be an int or a list of ints in [top,<br>right, bottom, left] ordering. |
 |`tab_bar.tab.bg_color` | Gruvbox.dull_yellow | Background color of individual tabs |
 |`tab_bar.tab.fg_color` | Gruvbox.fg1 | Foreground text color of individual tabs |
 |`tab_bar.tab.font_family` | Mono | Font family to use for tab titles |
@@ -379,8 +379,8 @@ Click on the image to open a web view with the full guide.
 |`font_family` | Mono | Font family to use for tab titles |
 |`font_size` | 15 | Size of the font to use for tab titles |
 |`tab.width` | 50 | Width of a tab on a tab bar. |
-|`tab.margin` | 0 | Size of the space on either outer side<br>of individual tabs. |
-|`tab.padding` | 0 | Size of the space on either inner side<br>of individual tabs. |
+|`tab.margin` | 0 | Size of the space on either outer side<br>of individual tabs.<br>Can be an int or a list of ints in [top,<br>right, bottom, left] ordering. |
+|`tab.padding` | 0 | Size of the space on either inner side<br>of individual tabs.<br>Can be an int or a list of ints in [top,<br>right, bottom, left] ordering. |
 |`tab.bg_color` | Gruvbox.dull_yellow | Background color of the inactive tabs |
 |`tab.fg_color` | Gruvbox.fg1 | Foreground color of the inactive tabs |
 |`tab.active.bg_color` | Gruvbox.vivid_yellow | Background color of active tab |
