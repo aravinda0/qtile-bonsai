@@ -723,8 +723,8 @@ class Bonsai(Layout):
                 `level=-1` (default) indicates the innermost/nearest tabs.
 
         Examples:
-            - `layout.focus_nth_tab(2)  # Pick the 2nd top-level tab`
-            - `layout.focus_nth_tab(3, level=-1)`  # Pick 3rd from nearest tabs
+            - `layout.focus_nth_tab(2) # 2nd top-level tab`
+            - `layout.focus_nth_tab(3, level=-1) # 3rd from nearest tabs`
         """
         if self._tree.is_empty:
             return
@@ -782,7 +782,7 @@ class Bonsai(Layout):
 
             Examples:
                 - `layout.focus_nth_window(1)`
-                - `layout.focus_nth_window(3, ignore_inactive_tabs_at_levels=[1])`
+                - layout.focus_nth_window(3, ignore_inactive_tabs_at_levels=[1])
                 - layout.focus_nth_window(2, ignore_inactive_tabs_at_levels=[1, 2])
         """
         if n < 1:
@@ -948,8 +948,8 @@ class Bonsai(Layout):
     ):
         """
         Merge the currently focused window (or an ancestor node) with a neighboring
-        node in the specified `direction`, so that they both come under a (possibly new)
-        subtab.
+        node in the specified `direction`, so that they both come under a (possibly
+        new) subtab.
 
         Args:
             `direction`:
@@ -1183,8 +1183,8 @@ class Bonsai(Layout):
     @expose_command
     def toggle_container_select_mode(self):
         """
-        Enable container-select mode where we can select not just a window, but even their
-        container nodes.
+        Enable container-select mode where we can select not just a window, but even
+        their container nodes.
 
         This will activate a special border around the active selection. You can move
         its focus around using the same bindings as for switching window focus. You can
