@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import typing
 from typing import Literal
+from collections.abc import Sequence
 
 from strenum import StrEnum
 
@@ -211,24 +212,22 @@ class Perimeter:
 
     def __init__(
         self,
-        top_or_all: int,
+        top_or_all: int | list[int],
         right: int | None = None,
         bottom: int | None = None,
         left: int | None = None,
     ):
-        right, bottom, left = all_or_none(right, bottom, left)
-        if [right, bottom, left] == [None] * 3:
-            right, bottom, left = [top_or_all] * 3
+        if isinstance(top_or_all, Sequence):
+            [self.top, self.right, self.bottom, self.left] = top_or_all
+        else:
+            right, bottom, left = all_or_none(right, bottom, left)
+            if [right, bottom, left] == [None] * 3:
+                right, bottom, left = [top_or_all] * 3
 
-        # Damn you, pyright
-        assert right is not None
-        assert bottom is not None
-        assert left is not None
-
-        self.top: int = top_or_all
-        self.right: int = right
-        self.bottom: int = bottom
-        self.left: int = left
+            self.top: int = top_or_all
+            self.right: int = right
+            self.bottom: int = bottom
+            self.left: int = left
 
     def as_list(self):
         """Return perimeter values as a 4-item list in CSS-esque ordering:
