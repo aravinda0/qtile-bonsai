@@ -53,12 +53,18 @@ class BonsaiBar(base._Widget):
         ConfigOption(
             "tab.margin",
             0,
-            "Size of the space on either outer side of individual tabs.",
+            """
+            Size of the space on either outer side of individual tabs.
+            Can be an int or a list of ints in [top, right, bottom, left] ordering.
+            """,
         ),
         ConfigOption(
             "tab.padding",
             0,
-            "Size of the space on either inner side of individual tabs.",
+            """
+            Size of the space on either inner side of individual tabs.
+            Can be an int or a list of ints in [top, right, bottom, left] ordering.
+            """,
         ),
         ConfigOption(
             "tab.bg_color",
