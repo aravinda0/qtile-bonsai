@@ -234,7 +234,7 @@ class BonsaiBar(base._Widget):
 
         if self.length_type == bar.CALCULATED and getattr(self, "tab.width") == "auto":
             raise ValueError(
-                "`tab.width` can't be 'auto' when widget length is `bar.bar.CALCULATED"
+                "`tab.width` can't be 'auto' when widget length is `bar.CALCULATED"
             )
 
         # Make text layout with some dummy initials. Actuals set later.
