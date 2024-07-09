@@ -193,9 +193,6 @@ class BonsaiBar(base._Widget):
                 `tab.width` config. `tab.width == 'auto'` cannot work in this case. We
                 raise a config error in that situation anyway.
         """
-        # NOTE: `self.length` delegates to this `self.calculate_length()` - but only in
-        # the case of length_type == bar.CALCULATED | bar.STRETCH.
-
         if not self.bar.horizontal:
             raise NotImplementedError(
                 "This widget isn't yet supported on vertical bars."
