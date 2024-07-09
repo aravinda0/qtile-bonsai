@@ -149,7 +149,6 @@ class Bonsai(Layout):
             0,
             """
             Size of the margin space around tab bars.
-
             Can be an int or a list of ints in [top, right, bottom, left] ordering.
             """,
         ),
@@ -187,12 +186,18 @@ class Bonsai(Layout):
         ConfigOption(
             "tab_bar.tab.margin",
             0,
-            "Size of the space on either outer side of individual tabs.",
+            """
+            Size of the space on either outer side of individual tabs.
+            Can be an int or a list of ints in [top, right, bottom, left] ordering.
+            """,
         ),
         ConfigOption(
             "tab_bar.tab.padding",
             0,
-            "Size of the space on either inner side of individual tabs.",
+            """
+            Size of the space on either inner side of individual tabs.
+            Can be an int or a list of ints in [top, right, bottom, left] ordering.
+            """,
         ),
         ConfigOption(
             "tab_bar.tab.bg_color",

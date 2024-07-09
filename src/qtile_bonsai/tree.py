@@ -8,7 +8,7 @@ from libqtile.backend.base.window import Internal, Window
 from libqtile.config import ScreenRect
 from libqtile.core.manager import Qtile
 
-from qtile_bonsai.core.geometry import Box, PerimieterParams, Rect
+from qtile_bonsai.core.geometry import Box, Perimeter, PerimieterParams, Rect
 from qtile_bonsai.core.nodes import Node, Pane, SplitContainer, Tab, TabContainer
 from qtile_bonsai.core.tree import Tree
 
@@ -79,8 +79,8 @@ class BonsaiTabContainer(BonsaiNodeMixin, TabContainer):
         tab_bar_border_color: str = tree.get_config("tab_bar.border_color", level=level)
         tab_bar_bg_color: str = tree.get_config("tab_bar.bg_color", level=level)
 
-        tab_margin: int = tree.get_config("tab_bar.tab.margin", level=level)
-        tab_padding: int = tree.get_config("tab_bar.tab.padding", level=level)
+        tab_margin = Perimeter(tree.get_config("tab_bar.tab.margin", level=level))
+        tab_padding = Perimeter(tree.get_config("tab_bar.tab.padding", level=level))
         tab_font_family: str = tree.get_config("tab_bar.tab.font_family", level=level)
         tab_font_size: float = tree.get_config("tab_bar.tab.font_size", level=level)
         tab_bg_color: str = tree.get_config("tab_bar.tab.bg_color", level=level)
@@ -122,7 +122,12 @@ class BonsaiTabContainer(BonsaiNodeMixin, TabContainer):
             ["x"], tab_font_family, tab_font_size
         )
         per_tab_max_chars = int(
-            (per_tab_w - tab_margin * 2 - tab_padding * 2) / one_char_w
+            (
+                per_tab_w
+                - (tab_margin.left + tab_margin.right)
+                - (tab_padding.left + tab_padding.right)
+            )
+            / one_char_w
         )
 
         for i, tab in enumerate(self.children):
