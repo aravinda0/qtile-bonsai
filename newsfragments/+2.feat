@@ -1,0 +1,2 @@
+The `BonsaiBar` widget's `length` config now supports the special values
+`bar.CALCULATED` and `bar.STRETCH` like other qtile widgets.

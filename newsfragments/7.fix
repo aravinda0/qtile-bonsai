@@ -1,0 +1,2 @@
+Window-title changes are now correctly handled for updating tab titles. Previously it
+didn't used to trigger a re-render until you switched focus to a different window.

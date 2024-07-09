@@ -1,0 +1,3 @@
+Tabs in both the `Bonsai` layout and the `BonsaiBar` widget can now be configured with
+4-sided values for margin and padding. Values can be provided in the usual [top, right,
+bottom, left] sequence.
