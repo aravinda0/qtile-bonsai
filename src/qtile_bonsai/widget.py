@@ -37,7 +37,12 @@ class BonsaiBar(base._Widget):
         ConfigOption(
             "length",
             default_length,
-            """The standard `length` property of qtile widgets.""",
+            """
+            The standard `length` property of qtile widgets.
+
+            As usual, it can be a fixed integer, or one of the 'special' bar constants:
+            `bar.CALCULATED` or `bar.STRETCH`.
+            """,
         ),
         ConfigOption(
             "bg_color",
@@ -49,7 +54,23 @@ class BonsaiBar(base._Widget):
         ),
         ConfigOption("font_family", "Mono", "Font family to use for tab titles"),
         ConfigOption("font_size", 15, "Size of the font to use for tab titles"),
-        ConfigOption("tab.width", 50, "Width of a tab on a tab bar."),
+        ConfigOption(
+            "tab.width",
+            50,
+            """
+            Width of a tab on the bar. 
+
+            Can be an int or `auto`. If `auto`, the tabs take up as much of the
+            available space on the bar as possible.
+
+            Note that if the `length` option is set to `bar.CALCULATED`, then you cannot
+            provide `auto` here, as we would need fixed tab width values to perform the
+            `bar.CALCULATED` computation.
+
+            Note that this width follows the 'margin box'/'principal box' model, so it
+            includes any configured margin amount.
+            """,
+        ),
         ConfigOption(
             "tab.margin",
             0,

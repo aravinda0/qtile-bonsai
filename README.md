@@ -374,11 +374,11 @@ Click on the image to open a web view with the full guide.
 
 | Option Name | Default Value | Description |
 | ---         | ---           | ---         |
-|`length` | 500 | The standard `length` property of qtile<br>widgets. |
+|`length` | 500 | The standard `length` property of qtile<br>widgets.<br><br>As usual, it can be a fixed integer, or<br>one of the 'special' bar constants:<br>`bar.CALCULATED` or `bar.STRETCH`. |
 |`bg_color` | None | Background color of the bar.<br>If None, the qtile-bar's' background<br>color is used. |
 |`font_family` | Mono | Font family to use for tab titles |
 |`font_size` | 15 | Size of the font to use for tab titles |
-|`tab.width` | 50 | Width of a tab on a tab bar. |
+|`tab.width` | 50 | Width of a tab on the bar.<br><br>Can be an int or `auto`. If `auto`, the<br>tabs take up as much of the available<br>space on the bar as possible.<br><br>Note that if the `length` option is set<br>to `bar.CALCULATED`, then you cannot<br>provide `auto` here, as we would need<br>fixed tab width values to perform the<br>`bar.CALCULATED` computation.<br><br>Note that this width follows the 'margin<br>box'/'principal box' model, so it<br>includes any configured margin amount. |
 |`tab.margin` | 0 | Size of the space on either outer side<br>of individual tabs.<br>Can be an int or a list of ints in [top,<br>right, bottom, left] ordering. |
 |`tab.padding` | 0 | Size of the space on either inner side<br>of individual tabs.<br>Can be an int or a list of ints in [top,<br>right, bottom, left] ordering. |
 |`tab.bg_color` | Gruvbox.dull_yellow | Background color of the inactive tabs |
