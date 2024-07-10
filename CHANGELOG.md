@@ -1,4 +1,4 @@
-## qtile-bonsai v0.3.0 (2024-07-10)
+## v0.3.0 [2024-07-10]
                                    
 
 ### Features & Improvements
