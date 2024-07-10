@@ -72,6 +72,7 @@ format_check = "ruff format --check {args}"
 [tool.coverage.run]
 branch = true
 parallel = true
+concurrency = ["multiprocessing"]
 omit = []
 
 [tool.coverage.report]
