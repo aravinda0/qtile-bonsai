@@ -49,7 +49,9 @@ https://github.com/aravinda0/qtile-bonsai/assets/960763/b74e559a-30c0-4de7-86f4-
 
 Assuming you already have
 [qtile up and running](https://docs.qtile.org/en/latest/manual/install/), you
-can install qtile-bonsai from PyPI.
+have the following options for installation.
+
+#### PyPI
 
 ```bash
 pip install qtile-bonsai 
@@ -75,6 +77,14 @@ pip install qtile-bonsai
 > pipx inject qtile qtile-bonsai
 > ```
 
+#### AUR
+
+For arch-based distros, you can install it from the AUR either manually or with
+your favorite AUR-helper. For example:
+
+```
+yay -S qtile-bonsai
+```
 
 ### Configuration
 
