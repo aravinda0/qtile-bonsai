@@ -43,6 +43,6 @@ jobs:
         run: |
           pdm run cov
       - name: Upload coverage reports to codecov
-        uses: codecov/codecov-action@v4
+        uses: codecov/codecov-action@v4.2.0
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
