@@ -1,2 +1,0 @@
-The `BonsaiBar` widget now supports `tab.width = "auto"` just like the `Bonsai` layout's
-`tab_bar.tab.width`. Tabs will fit to take up as much available space as possible.

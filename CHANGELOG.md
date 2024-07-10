@@ -1,3 +1,21 @@
+## qtile-bonsai v0.3.0 (2024-07-10)
+                                   
+
+### Features & Improvements
+
+- The `BonsaiBar` widget now supports `tab.width = "auto"` just like the `Bonsai` layout's `tab_bar.tab.width`. Tabs will fit to take up as much available space as possible. (#8)
+- The `BonsaiBar` widget's `length` config now supports the special values `bar.CALCULATED` and `bar.STRETCH` like other qtile widgets. 
+- Tabs in both the `Bonsai` layout and the `BonsaiBar` widget can now be configured with 4-sided values for margin and padding. Values can be provided in the usual [top, right, bottom, left] sequence.
+
+### Fixes
+
+- Window-title changes are now correctly handled for updating tab titles. Previously it didn't used to trigger a re-render until you switched focus to a different window. (#7)
+
+### Miscellaneous
+
+- You can now install the package from the AUR with your favorite AUR-helper. For example: `yay -S qtile-bonsai` 
+
+
 ## v0.2.0 [2024-07-06]
                                    
 
