@@ -44,5 +44,7 @@ jobs:
           pdm run cov
       - name: Upload coverage reports to codecov
         uses: codecov/codecov-action@v4
-        env:
-          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          # temp fix for https://github.com/codecov/codecov-action/issues/1487
+          version: v0.6.0
