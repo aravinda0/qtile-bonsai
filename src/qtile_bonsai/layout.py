@@ -534,9 +534,9 @@ class Bonsai(Layout):
                 Can be `"next"` or `"previous"`. Defaults to `"next"`.
 
         Examples:
-            - `layout.spawn_split(my_terminal, "x")`
-            - `layout.spawn_split(my_terminal, "y", ratio=0.2, normalize=False)`
-            - `layout.spawn_split(my_terminal, "x", position="previous")`
+        - `layout.spawn_split(my_terminal, "x")`
+        - `layout.spawn_split( my_terminal, "y", ratio=0.2, normalize=False)`
+        - `layout.spawn_split(my_terminal, "x", position="previous")`
         """
 
         def _handle_next_window():
@@ -987,11 +987,11 @@ class Bonsai(Layout):
                 in play, behaves like `mru_largest`.
 
         Examples:
-            - layout.merge_to_subtab(
+            layout.merge_to_subtab(
                 "right",
                 dest_selection="mru_subtab_else_deepest",
             )
-            - layout.merge_to_subtab(
+            layout.merge_to_subtab(
                 "up",
                 src_selection="mru_deepest",
                 dest_selection="mru_deepest",
@@ -1044,8 +1044,8 @@ class Bonsai(Layout):
                 container on the other end.
 
         Examples:
-            - `layout.push_in("right", dest_selection="mru_deepest")`
-            - `layout.push_in("down", dest_selection="mru_largest", wrap=False)`
+        - `layout.push_in("right", dest_selection="mru_deepest")`
+        - `layout.push_in("down", dest_selection="mru_largest", wrap=False)`
         """
         if self._tree.is_empty:
             return
