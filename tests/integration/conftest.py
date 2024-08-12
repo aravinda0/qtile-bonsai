@@ -79,7 +79,7 @@ def qtile_x11(qtile_config):
     # launch qtile and give it some time to start up
     qtile_process = multiprocessing.Process(target=run_qtile)
     qtile_process.start()
-    wait(seconds=2)
+    wait(seconds=1)
 
     yield
 
