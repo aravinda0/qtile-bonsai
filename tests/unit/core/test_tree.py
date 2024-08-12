@@ -2859,6 +2859,26 @@ class TestReset:
             assert p.box.border.as_list() == [5, 6, 7, 8]
             assert p.box.padding.as_list() == [9, 10, 11, 12]
 
+    def test_when_a_state_dict_is_provided_then_single_window_config_are_respected_from_tree_config(
+        self, tree: Tree
+    ):
+        state = tests.data.tree_state.make_tree_state_with_single_window()
+
+        tree.set_config("window.margin", [0, 0, 0, 0])
+        tree.set_config("window.border_size", [0, 0, 0, 0])
+        tree.set_config("window.padding", [0, 0, 0, 0])
+
+        tree.set_config("window.single.margin", [1, 2, 3, 4])
+        tree.set_config("window.border_size", [5, 6, 7, 8])
+        tree.set_config("window.padding", [9, 10, 11, 12])
+
+        tree.reset(from_state=state)
+
+        p = tree.node(4)
+        assert p.box.margin.as_list() == [1, 2, 3, 4]
+        assert p.box.border.as_list() == [5, 6, 7, 8]
+        assert p.box.padding.as_list() == [9, 10, 11, 12]
+
     def test_when_a_state_dict_is_provided_then_tab_bars_are_restored_but_use_tree_config(
         self, tree: Tree
     ):
@@ -5979,20 +5999,32 @@ class TestConfig:
         assert p1.box.margin.as_list() == [12, 12, 12, 12]
         assert p2.box.margin.as_list() == [12, 12, 12, 12]
 
-    def test_fall_back_to_default(self, tree: Tree):
+    def test_fall_back_to_base_level(self, tree: Tree):
         tree.set_config("window.margin", 10)
 
         assert (
-            tree.get_config("window.margin", level=1, fall_back_to_default=True) == 10
+            tree.get_config("window.margin", level=1, fall_back_to_base_level=True)
+            == 10
         )
         assert (
-            tree.get_config("window.margin", level=3, fall_back_to_default=True) == 10
+            tree.get_config("window.margin", level=3, fall_back_to_base_level=True)
+            == 10
         )
 
         with pytest.raises(KeyError):
-            tree.get_config("window.margin", level=3, fall_back_to_default=False)
+            tree.get_config("window.margin", level=3, fall_back_to_base_level=False)
         with pytest.raises(KeyError):
-            tree.get_config("window.margin", level=1, fall_back_to_default=False)
+            tree.get_config("window.margin", level=1, fall_back_to_base_level=False)
+
+    def test_when_default_is_provided_then_it_is_returned_as_fallback(self, tree: Tree):
+        tree.set_config("window.margin", 10)
+
+        assert (
+            tree.get_config(
+                "window.margin", level=2, fall_back_to_base_level=False, default=100
+            )
+            == 100
+        )
 
     class TestWindowConfig:
         def test_margin_with_int(self, tree: Tree):
@@ -6021,6 +6053,30 @@ class TestConfig:
             assert p2.box.margin.as_list() == [5, 6, 7, 8]
             assert p3.box.margin.as_list() == [5, 6, 7, 8]
 
+        def test_single_window_margin(self, tree: Tree):
+            tree.set_config("window.single.margin", [10, 11, 12, 13])
+
+            p1 = tree.tab()
+
+            assert p1.box.margin.as_list() == [10, 11, 12, 13]
+
+            p2 = tree.split(p1, "x")
+
+            assert p1.box.margin.as_list() == [0, 0, 0, 0]
+
+            _ = tree.remove(p1)
+
+            assert p2.box.margin.as_list() == [10, 11, 12, 13]
+
+        def test_when_single_window_margin_is_not_set_then_it_reads_from_regular_window_margin_config(
+            self, tree: Tree
+        ):
+            tree.set_config("window.margin", 10)
+
+            p1 = tree.tab()
+
+            assert p1.box.margin.as_list() == [10, 10, 10, 10]
+
         def test_border_size_with_int(self, tree: Tree):
             tree.set_config("window.border_size", 10, level=1)
             tree.set_config("window.border_size", 11, level=2)
@@ -6047,6 +6103,30 @@ class TestConfig:
             assert p2.box.border.as_list() == [5, 6, 7, 8]
             assert p3.box.border.as_list() == [5, 6, 7, 8]
 
+        def test_single_window_border_size(self, tree: Tree):
+            tree.set_config("window.single.border_size", [10, 11, 12, 13])
+
+            p1 = tree.tab()
+
+            assert p1.box.border.as_list() == [10, 11, 12, 13]
+
+            p2 = tree.split(p1, "x")
+
+            assert p1.box.border.as_list() == [1, 1, 1, 1]
+
+            _ = tree.remove(p1)
+
+            assert p2.box.border.as_list() == [10, 11, 12, 13]
+
+        def test_when_single_window_border_is_not_set_then_it_reads_from_regular_window_border_config(
+            self, tree: Tree
+        ):
+            tree.set_config("window.border_size", 10)
+
+            p1 = tree.tab()
+
+            assert p1.box.border.as_list() == [10, 10, 10, 10]
+
         def test_padding_with_int(self, tree: Tree):
             tree.set_config("window.padding", 10, level=1)
             tree.set_config("window.padding", 11, level=2)
@@ -6072,6 +6152,30 @@ class TestConfig:
             assert p1.box.padding.as_list() == [1, 2, 3, 4]
             assert p2.box.padding.as_list() == [5, 6, 7, 8]
             assert p3.box.padding.as_list() == [5, 6, 7, 8]
+
+        def test_single_window_padding(self, tree: Tree):
+            tree.set_config("window.single.padding", [10, 11, 12, 13])
+
+            p1 = tree.tab()
+
+            assert p1.box.padding.as_list() == [10, 11, 12, 13]
+
+            p2 = tree.split(p1, "x")
+
+            assert p1.box.padding.as_list() == [0, 0, 0, 0]
+
+            _ = tree.remove(p1)
+
+            assert p2.box.padding.as_list() == [10, 11, 12, 13]
+
+        def test_when_single_window_padding_is_not_set_then_it_reads_from_regular_window_padding_config(
+            self, tree: Tree
+        ):
+            tree.set_config("window.padding", 10)
+
+            p1 = tree.tab()
+
+            assert p1.box.padding.as_list() == [10, 10, 10, 10]
 
     class TestTabBarConfig:
         def test_height(self, tree: Tree):

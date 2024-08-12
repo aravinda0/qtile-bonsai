@@ -126,6 +126,16 @@ class Tree:
     def make_default_config(self) -> collections.defaultdict[int, dict[str, Any]]:
         config = collections.defaultdict(dict)
         config[self._default_config_level_key] = {
+            # The following are valid config that can be customized for the
+            # single-pane-under-L1-tab scenario. They are not set by default since when
+            # not set, we fall back to looking at the corresponding non-single window
+            # config.
+            # eg. `window.single.margin` is unset? => look at `window.margin`
+            # ----------
+            # "window.single.margin": 0,
+            # "window.single.border_size": 1,
+            # "window.single.padding": 0,
+            # ----------
             "window.margin": 0,
             "window.border_size": 1,
             "window.padding": 0,
@@ -158,17 +168,20 @@ class Tree:
         key: str,
         *,
         level: int | None = None,
-        fall_back_to_default: bool = True,
+        fall_back_to_base_level: bool = True,
+        default: Any = None,
     ) -> Any:
         level = level if level is not None else self._default_config_level_key
         if level < self._default_config_level_key:
             raise ValueError("`level` must be a positive number")
 
-        if fall_back_to_default and (
+        if fall_back_to_base_level and (
             level not in self._config or key not in self._config[level]
         ):
             level = self._default_config_level_key
 
+        if default is not None:
+            return self._config[level].get(key, default)
         return self._config[level][key]
 
     def create_pane(
@@ -417,6 +430,8 @@ class Tree:
 
         if from_state is not None:
             self._root = self._parse_state(from_state)
+            if self._root is not None:
+                self._reevaluate_dynamic_attributes(self._root)
             added_nodes = list(self.iter_walk())
             self._notify_subscribers(TreeEvent.node_added, added_nodes)
 
@@ -1116,6 +1131,7 @@ class Tree:
                 new_content.parent = container
                 container.children.insert(new_index, new_content)
 
+        self._reevaluate_dynamic_attributes(container.parent)
         if normalize:
             self.normalize(container)
 
@@ -1156,6 +1172,8 @@ class Tree:
                 self.normalize(container)
             elif isinstance(container, TabContainer):
                 container.active_child = container.children[br_rm_pos - 1]
+
+        self._reevaluate_dynamic_attributes(br_rm.parent)
 
         return (br_rm, br_rm_pos, br_sib, br_rm_nodes)
 
@@ -1199,10 +1217,12 @@ class Tree:
         # Max sized rect to start things off
         tc_rect = Rect(0, 0, self.width, self.height)
 
+        # Make sure to set root here, so any tab-level reads in `_add_tab` have a
+        # reference point.
+        self._root = tc
+
         t, _added_nodes = self._add_tab(tc, tc_rect=tc_rect)
         added_nodes.extend(_added_nodes)
-
-        self._root = tc
 
         return t, added_nodes
 
@@ -1243,7 +1263,7 @@ class Tree:
                 "must be provided."
             )
 
-        self._ensure_tab_bar_restored(tc)
+        # self._ensure_tab_bar_restored(tc)
 
         tc_rect = Rect.from_rect(tc.principal_rect) if tc_rect is None else tc_rect
         bar_rect = tc.tab_bar.box.principal_rect
@@ -1254,7 +1274,6 @@ class Tree:
         def _transform_tab(t: Tab):
             t.transform(Axis.x, tc_content_rect.x, tc_content_rect.w)
             t.transform(Axis.y, tc_content_rect.y, tc_content_rect.h)
-            self._reevaluate_level_dependent_attributes(start_node=t)
 
         added_nodes = []
 
@@ -1296,6 +1315,7 @@ class Tree:
         sc.children.append(content)
 
         _transform_tab(t)
+        self._reevaluate_dynamic_attributes(start_node=tc)
 
         return (t, added_nodes)
 
@@ -1373,70 +1393,53 @@ class Tree:
             padding=self.get_config("tab_bar.padding", level=tab_level),
         )
 
-    def _reevaluate_level_dependent_attributes(self, start_node: Node):
-        """Walks down the provided `start_node` and re-applies any level dependent
+    def _reevaluate_dynamic_attributes(self, start_node: Node):
+        """Walks down the provided `start_node` and re-applies any dynamic
         configuration.
+        eg. tab-level-dependent config, tab-bar hide/show scenarios, etc.
 
-        Used in cases like when a subtree is added under an existing node. The moved
-        nodes may now be at a different tab level than before.
+        💭 This has evolved into something of a general purpose 'second pass' over the
+        tree to re-calculate some properties. It is now invoked after various tree
+        operations. This is opposed to in-place checking and tweaking of various
+        attributes in places that might impact them - which was starting to get unweildy
+        as codebase grew.
+        💭 I wonder if the post-removal tree-pruning operations could also be part of
+        this 2nd pass.
         """
         for node in self.iter_walk(start=start_node):
             tab_level = node.tab_level
             if isinstance(node, TabContainer):
-                tab_bar = node.tab_bar
-                node_rect = node.principal_rect
-
-                tab_bar.box.margin = self.get_config("tab_bar.margin", level=tab_level)
-                tab_bar.box.border = self.get_config(
-                    "tab_bar.border_size", level=tab_level
-                )
-                tab_bar.box.padding = self.get_config(
-                    "tab_bar.padding", level=tab_level
-                )
-
-                # Update bar height based on new tab level. Then adjust the heights of
-                # the underlying tabs as well.
-                tab_bar_rect = tab_bar.box.principal_rect
-                tab_bar.box.principal_rect = Rect(
-                    tab_bar_rect.x,
-                    tab_bar_rect.y,
-                    tab_bar_rect.w,
-                    self.get_config("tab_bar.height", level=tab_level),
-                )
-                for child in node.children:
-                    new_height = node_rect.h - tab_bar.box.principal_rect.h
-                    child.transform(Axis.y, tab_bar.box.principal_rect.y2, new_height)
+                self._handle_hide_when_config(node)
             elif isinstance(node, Pane):
-                node.box.margin = self.get_config("window.margin", level=tab_level)
-                node.box.border = self.get_config("window.border_size", level=tab_level)
-                node.box.padding = self.get_config("window.padding", level=tab_level)
+                margin = self.get_config("window.margin", level=tab_level)
+                border = self.get_config("window.border_size", level=tab_level)
+                padding = self.get_config("window.padding", level=tab_level)
+                if node.tab_level == 1 and node.is_sole_child:
+                    margin = self.get_config("window.single.margin", default=margin)
+                    border = self.get_config(
+                        "window.single.border_size", default=border
+                    )
+                    padding = self.get_config("window.single.padding", default=padding)
+                node.box.margin = margin
+                node.box.border = border
+                node.box.padding = padding
 
-    def _ensure_tab_bar_restored(self, tc: TabContainer):
-        """Depending on the `tab_bar.hide_when` config, we may require that a tab bar
-        that was previously hidden be made visible again.
-        """
-        if not tc.children:
-            # Nothing to do if we're dealing with a TC that is being prepped for the
-            # first time.
-            return
-        if len(tc.children) > 2:
-            # If tab bar restoration was required, we'd have already done it when the
-            # 2nd tab was added.
-            return
+    def _handle_hide_when_config(self, tc: TabContainer):
+        hide_when: str = self.get_config("tab_bar.hide_when", level=tc.tab_level)
+        tab_bar = tc.tab_bar
+        tc_rect = tc.principal_rect
+        if hide_when == "always" or (
+            hide_when == "single_tab" and len(tc.children) == 1
+        ):
+            tab_bar.box.principal_rect.h = 0
+            for tab in tc.children:
+                tab.transform(Axis.y, tc_rect.y, tc_rect.h)
 
-        tab_level = tc.tab_level
-        bar_hide_when = self.get_config("tab_bar.hide_when", level=tab_level)
-        bar_rect = tc.tab_bar.box.principal_rect
-        if bar_hide_when != "always" and bar_rect.h == 0:
-            bar_height = self.get_config("tab_bar.height", level=tab_level)
-            bar_rect.h = bar_height
-
-            # We need to adjust the contents of the first tab after the bar takes up its
-            # space.
-            first_tab = tc.children[0]
-            first_tab.transform(
-                Axis.y, bar_rect.y2, first_tab.principal_rect.h - bar_height
-            )
+        else:
+            bar_height: int = self.get_config("tab_bar.height", level=tc.tab_level)
+            tab_bar.box.principal_rect.h = bar_height
+            for tab in tc.children:
+                tab.transform(Axis.y, tc_rect.y + bar_height, tc_rect.h - bar_height)
 
     def _maybe_invert_top_level_sc(self, node: Node, requested_axis: Axis):
         if not isinstance(node, SplitContainer):
@@ -1742,16 +1745,16 @@ class Tree:
 
     def _validate_tab_bar_config(self, level: int):
         bar_height = self.get_config(
-            "tab_bar.height", level=level, fall_back_to_default=True
+            "tab_bar.height", level=level, fall_back_to_base_level=True
         )
         bar_margin = self.get_config(
-            "tab_bar.margin", level=level, fall_back_to_default=True
+            "tab_bar.margin", level=level, fall_back_to_base_level=True
         )
         bar_border_size = self.get_config(
-            "tab_bar.border_size", level=level, fall_back_to_default=True
+            "tab_bar.border_size", level=level, fall_back_to_base_level=True
         )
         bar_padding = self.get_config(
-            "tab_bar.padding", level=level, fall_back_to_default=True
+            "tab_bar.padding", level=level, fall_back_to_base_level=True
         )
         try:
             Box(

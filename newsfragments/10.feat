@@ -1,0 +1,2 @@
+New config options `window.single.margin` and `window.single.border_size` allow specifying margin, border for single windows under top-level tabs.
+

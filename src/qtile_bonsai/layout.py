@@ -73,6 +73,17 @@ class Bonsai(Layout):
             """,
         ),
         ConfigOption(
+            "window.single.margin",
+            ConfigOption.UNSET,
+            """
+            Size of the margin space around a window when it is the single window
+            remaining under a top-level tab.
+            Can be an int or a list of ints in [top, right, bottom, left] ordering.
+            If not specified, will fall back to reading from `window.margin`.
+            """,
+            default_value_label="(unset)",
+        ),
+        ConfigOption(
             "window.border_size",
             1,
             """
@@ -80,6 +91,17 @@ class Bonsai(Layout):
             that's what qtile allows for window borders.
             """,
             validator=validation.validate_border_size,
+        ),
+        ConfigOption(
+            "window.single.border_size",
+            ConfigOption.UNSET,
+            """
+            Size of the border around a window when it is the single window remaining
+            under a top-level tab. 
+            Can be an int or a list of ints in [top, right, bottom, left] ordering.
+            If not specified, will fall back to reading from `window.border_size`.
+            """,
+            default_value_label="(unset)",
         ),
         ConfigOption(
             "window.border_color",

@@ -272,8 +272,8 @@ class BonsaiBar(base._Widget):
         tab_width: int = self._get_per_tab_width(root)
         tab_margin = Perimeter(getattr(self, "tab.margin"))
         tab_padding = Perimeter(getattr(self, "tab.padding"))
-        font_family: str = getattr(self, "font_family")
-        font_size: int = getattr(self, "font_size")
+        font_family: str = self.font_family
+        font_size: int = self.font_size
         is_container_select_mode = (
             bonsai_info["interaction_mode"]
             == Bonsai.InteractionMode.container_select.name

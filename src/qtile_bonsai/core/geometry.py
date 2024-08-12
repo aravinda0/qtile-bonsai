@@ -5,8 +5,8 @@
 from __future__ import annotations
 
 import typing
-from typing import Literal
 from collections.abc import Sequence
+from typing import Literal
 
 from strenum import StrEnum
 

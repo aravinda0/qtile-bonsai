@@ -316,7 +316,9 @@ Click on the image to open a web view with the full guide.
 | Option Name | Default Value | Description |
 | ---         | ---           | ---         |
 |`window.margin` | 0 | Size of the margin space around windows.<br>Can be an int or a list of ints in [top,<br>right, bottom, left] ordering. |
+|`window.single.margin` | (unset) | Size of the margin space around a window<br>when it is the single window remaining<br>under a top-level tab.<br>Can be an int or a list of ints in [top,<br>right, bottom, left] ordering.<br>If not specified, will fall back to<br>reading from `window.margin`. |
 |`window.border_size` | 1 | Width of the border around windows. Must<br>be a single integer value since that's<br>what qtile allows for window borders. |
+|`window.single.border_size` | (unset) | Size of the border around a window when<br>it is the single window remaining under<br>a top-level tab.<br>Can be an int or a list of ints in [top,<br>right, bottom, left] ordering.<br>If not specified, will fall back to<br>reading from `window.border_size`. |
 |`window.border_color` | Gruvbox.dull_yellow | Color of the border around windows |
 |`window.active.border_color` | Gruvbox.vivid_yellow | Color of the border around an active<br>window |
 |`window.normalize_on_remove` | True | Whether or not to normalize the<br>remaining windows after a window is<br>removed.<br>If `True`, the remaining sibling windows<br>will all become of equal size.<br>If `False`, the next (right/down) window<br>will take up the free space. |

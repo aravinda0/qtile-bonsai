@@ -458,3 +458,70 @@ def make_tree_state_with_subtab():
             },
         },
     }
+
+
+def make_tree_state_with_single_window():
+    return {
+        "width": 400,
+        "height": 300,
+        "root": {
+            "type": "tc",
+            "id": 1,
+            "children": [
+                {
+                    "type": "t",
+                    "id": 2,
+                    "children": [
+                        {
+                            "type": "sc",
+                            "id": 3,
+                            "children": [
+                                {
+                                    "type": "p",
+                                    "id": 4,
+                                    "children": [],
+                                    "box": {
+                                        "principal_rect": {
+                                            "x": 0,
+                                            "y": 20,
+                                            "w": 400,
+                                            "h": 280,
+                                        },
+                                        "margin": {
+                                            "top": 0,
+                                            "right": 0,
+                                            "bottom": 0,
+                                            "left": 0,
+                                        },
+                                        "border": {
+                                            "top": 1,
+                                            "right": 1,
+                                            "bottom": 1,
+                                            "left": 1,
+                                        },
+                                        "padding": {
+                                            "top": 0,
+                                            "right": 0,
+                                            "bottom": 0,
+                                            "left": 0,
+                                        },
+                                    },
+                                }
+                            ],
+                            "axis": "x",
+                        }
+                    ],
+                    "title": "",
+                }
+            ],
+            "active_child": 2,
+            "tab_bar": {
+                "box": {
+                    "principal_rect": {"x": 0, "y": 0, "w": 400, "h": 20},
+                    "margin": {"top": 0, "right": 0, "bottom": 0, "left": 0},
+                    "border": {"top": 0, "right": 0, "bottom": 0, "left": 0},
+                    "padding": {"top": 0, "right": 0, "bottom": 0, "left": 0},
+                }
+            },
+        },
+    }
