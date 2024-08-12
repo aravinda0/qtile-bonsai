@@ -98,7 +98,8 @@ class Bonsai(Layout):
             """
             Size of the border around a window when it is the single window remaining
             under a top-level tab. 
-            Can be an int or a list of ints in [top, right, bottom, left] ordering.
+            Must be a single integer value since that's what qtile allows for window
+            borders.
             If not specified, will fall back to reading from `window.border_size`.
             """,
             default_value_label="(unset)",
@@ -428,6 +429,7 @@ class Bonsai(Layout):
         qtile calls `Layout.add_client()`. We keep this up until all existing windows
         are processed, after which we switch from 'restoration' to 'normal' mode.
         """
+        print("addy waddy")
         if self._add_client_mode == Bonsai.AddClientMode.restoration_in_progress:
             pane = self._handle_add_client__restoration_in_progress(window)
         else:
@@ -440,6 +442,7 @@ class Bonsai(Layout):
         self.interaction_mode = Bonsai.InteractionMode.normal
 
     def remove(self, window: Window) -> Window | None:
+        print("removio")
         pane = self._windows_to_panes[window]
         normalize_on_remove = self._tree.get_config(
             "window.normalize_on_remove", level=pane.tab_level
