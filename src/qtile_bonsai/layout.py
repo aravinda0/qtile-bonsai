@@ -286,7 +286,9 @@ class Bonsai(Layout):
         ),
     ]
     defaults: ClassVar[list[tuple[str, Any, str]]] = [
-        (option.name, option.default_value, option.description) for option in options
+        (option.name, option.default_value, option.description)
+        for option in options
+        if option.default_value is not ConfigOption.UNSET
     ]
 
     def __init__(self, **config) -> None:
@@ -1339,7 +1341,11 @@ class Bonsai(Layout):
     def parse_multi_level_config(self) -> BonsaiTree.MultiLevelConfig:
         options_map = {option.name: option for option in self.options}
         merged_user_config = itertools.chain(
-            ((option.name, option.default_value) for option in self.options),
+            (
+                (option.name, option.default_value)
+                for option in self.options
+                if option.default_value is not ConfigOption.UNSET
+            ),
             ((k, v) for k, v in self._user_config.items()),
         )
 

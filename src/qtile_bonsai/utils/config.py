@@ -3,11 +3,13 @@
 
 
 import dataclasses
-from typing import Any, Callable
+from typing import Any, Callable, ClassVar
 
 
 @dataclasses.dataclass
 class ConfigOption:
+    UNSET: ClassVar[object] = object()
+
     name: str
     default_value: Any
     description: str
