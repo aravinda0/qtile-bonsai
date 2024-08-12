@@ -36,13 +36,12 @@ jobs:
       - name: Check formatting
         run: |
           pdm run format_check .
-      - name: Run tests
-        run: |
-          pdm run pytest
-      - name: Generate coverage report
+      - name: Run tests and generate coverage report
         run: |
           pdm run cov
       - name: Upload coverage reports to codecov
         uses: codecov/codecov-action@v4
         with:
-          token: ${{ secrets.CODECOV_TOKEN }}
+          verbose: true
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
