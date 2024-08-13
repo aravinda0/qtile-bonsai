@@ -152,10 +152,14 @@ def manager(request):
 def make_window():
     window_processes = []
 
-    def _make_window():
+    def _make_window(*, floating: bool = False):
         def run_qt_app():
             app = QApplication([])
             window = QWidget()
+            if floating:
+                # Set fixed aspect ratio so qtile's default `floating_layout` will
+                # capture it without adding it to a tiled layout.
+                window.setFixedSize(300, 200)
             window.show()
             app.exec()
 
