@@ -429,7 +429,6 @@ class Bonsai(Layout):
         qtile calls `Layout.add_client()`. We keep this up until all existing windows
         are processed, after which we switch from 'restoration' to 'normal' mode.
         """
-        print("addy waddy")
         if self._add_client_mode == Bonsai.AddClientMode.restoration_in_progress:
             pane = self._handle_add_client__restoration_in_progress(window)
         else:
@@ -442,8 +441,21 @@ class Bonsai(Layout):
         self.interaction_mode = Bonsai.InteractionMode.normal
 
     def remove(self, window: Window) -> Window | None:
-        print("removio")
-        pane = self._windows_to_panes[window]
+        pane = self._windows_to_panes.get(window)
+        if pane is None:
+            # There seems to be some edge cases where `Layout.remove()` can be invoked
+            # even though the window was not added to the layout. The built-in layouts
+            # also seem to have this protection. Known scenarios:
+            # 1. When a program starts out as floating, and then is made fullscreen, and
+            #   then we quit it. The window never got added to a tiled layout, but
+            #   `Layout.remove(win)` is still invoked for it.
+            #   NOTE: It was hard to create an integration test for this. Some weird
+            #   issue where when we made a floating window into fullscreen, then
+            #   `core.Core._xpoll` caused a re-invocation of the `window.fullscreen`
+            #   setter, messing our test. Happens only during integration test - not
+            #   during manual test.
+            return None
+
         normalize_on_remove = self._tree.get_config(
             "window.normalize_on_remove", level=pane.tab_level
         )
