@@ -178,7 +178,11 @@ class Bonsai(Layout):
         ConfigOption(
             "tab_bar.border_size",
             0,
-            "Size of the border around tab bars",
+            """
+            Size of the border around tab bars.
+            Must be a single integer value since that's what qtile allows for window
+            borders.
+            """,
             validator=validation.validate_border_size,
         ),
         ConfigOption(

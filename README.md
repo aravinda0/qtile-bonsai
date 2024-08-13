@@ -326,7 +326,7 @@ Click on the image to open a web view with the full guide.
 |`tab_bar.height` | 20 | Height of tab bars |
 |`tab_bar.hide_when` | single_tab | When to hide the tab bar. Allowed values<br>are 'never', 'always', 'single_tab'.<br><br>When 'single_tab' is configured, the bar<br>is not shown whenever there is a lone<br>tab remaining, but shows up again when<br>another tab is added.<br><br>For nested tab levels, configuring<br>'always' or 'single_tab' actually means<br>that when only a single tab remains, its<br>contents get 'merged' upwards,<br>eliminating the sub-tab level. |
 |`tab_bar.margin` | 0 | Size of the margin space around tab<br>bars.<br>Can be an int or a list of ints in [top,<br>right, bottom, left] ordering. |
-|`tab_bar.border_size` | 0 | Size of the border around tab bars |
+|`tab_bar.border_size` | 0 | Size of the border around tab bars.<br>Must be a single integer value since<br>that's what qtile allows for window<br>borders. |
 |`tab_bar.border_color` | Gruvbox.dark_yellow | Color of border around tab bars |
 |`tab_bar.bg_color` | Gruvbox.bg0 | Background color of tab bars, beind<br>their tabs |
 |`tab_bar.tab.width` | 50 | Width of a tab on a tab bar.<br><br>Can be an int or `auto`. If `auto`, the<br>tabs take up as much of the available<br>screen space as possible.<br><br>Note that this width follows the 'margin<br>box'/'principal box' model, so it<br>includes any configured margin amount. |
