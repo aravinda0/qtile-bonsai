@@ -1,0 +1,1 @@
+Fullscreening windows should work properly now. Earlier, we were inadvertantly interfering with their rendering.

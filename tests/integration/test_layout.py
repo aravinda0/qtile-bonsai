@@ -139,6 +139,45 @@ class TestSpawnSplit:
         )
 
 
+class TestFullScreen:
+    def test_when_a_layout_captured_window_is_made_fullscreen_then_we_hide_away_all_other_windows_except_the_fullscreen_one(
+        self, manager, spawn_test_window_cmd
+    ):
+        manager.layout.spawn_tab(spawn_test_window_cmd())
+        wait()
+
+        manager.layout.spawn_tab(spawn_test_window_cmd())
+        wait()
+
+        manager.layout.spawn_split(spawn_test_window_cmd(), "x")
+        wait()
+
+        manager.layout.spawn_split(spawn_test_window_cmd(), "y")
+        wait()
+
+        wid = manager.window.info()["id"]
+
+        manager.window.enable_fullscreen()
+
+        state = manager.layout.info()
+
+        def _walk_and_check(node):
+            """Makes sure all windows (regular, and internal tab bars) are hidden except
+            for the window that is fullscreen.
+            """
+            if node["type"] == "p":
+                if node["wid"] == wid:
+                    assert node["is_window_visible"]
+                else:
+                    assert not node["is_window_visible"]
+            elif node["type"] == "tc":
+                assert not node["tab_bar"]["is_window_visible"]
+            for child in node["children"]:
+                _walk_and_check(child)
+
+        _walk_and_check(state["tree"]["root"])
+
+
 class TestConfigOptions:
     class TestWindowDefaultAddMode:
         @pytest.mark.parametrize(

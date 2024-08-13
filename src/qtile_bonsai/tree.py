@@ -177,6 +177,11 @@ class BonsaiTabContainer(BonsaiNodeMixin, TabContainer):
         self.bar_drawer.finalize()
         self.bar_window.kill()
 
+    def as_dict(self) -> dict:
+        state = super().as_dict()
+        state["tab_bar"]["is_window_visible"] = self.bar_window.is_visible()
+        return state
+
     def _handle_click_bar(self, x: int, y: int, button: int):
         if self._on_click_tab_bar is None:
             return
@@ -288,6 +293,7 @@ class BonsaiPane(BonsaiNodeMixin, Pane):
     def as_dict(self) -> dict:
         state = super().as_dict()
         state["wid"] = self.window.wid
+        state["is_window_visible"] = self.window.is_visible()
         return state
 
 

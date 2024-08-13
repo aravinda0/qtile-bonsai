@@ -399,6 +399,29 @@ class Bonsai(Layout):
         for each window, as there are other elements such as tab-bar panels to process
         as well.
         """
+        # qtile handles fullscreened windows by itself in a special way. But such
+        # windows are not 'removed' from tiled layouts and they are not passed here in
+        # `layout()`.
+        # We just need to ensure that we don't interfere with their rendering when qtile
+        # is managing them - eg. we should not invoke `window.hide()` on them - that
+        # leaves us in limbo. We simply ensure the fullscreened windows are unhidden and
+        # hide away everything else on the layout.
+        # There ought to be just one fullscreen window at a time, but we look for a list
+        # just in case programs misbehave. qtile will likely put one of them as the
+        # topmost.
+        # The `p.window is not None` check is to handle the case where we're in the
+        # middle of state restoration.
+        fullscreened_panes = [
+            p
+            for p in self._tree.iter_panes()
+            if p.window is not None and p.window.fullscreen
+        ]
+        if fullscreened_panes:
+            self._tree.hide()
+            for p in fullscreened_panes:
+                p.window.unhide()
+            return
+
         self._sync_with_screen_rect(screen_rect)
         self._tree.render(screen_rect)
 
