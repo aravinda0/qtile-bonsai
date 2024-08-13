@@ -490,20 +490,36 @@ class Bonsai(Layout):
         _, _, next_focus_pane = self._tree.remove(pane, normalize=normalize_on_remove)
         del self._windows_to_panes[window]
 
-        # Set to None immediately so as not to use stale references in the time between
-        # remove() and the next focus() invocation. eg. float/unfloat
-        self._focused_window = None
-
         # Prefer to safely revert back to normal mode on any removals to the tree
         self.interaction_mode = Bonsai.InteractionMode.normal
 
         if next_focus_pane is not None:
+            # 💢 We're going to explicitly ask qtile to focus this next pane's window.
+            # There is some seemingly quirky handling of focus by qtile where sometimes
+            # it's handled by logic in `Group` vs other times by logic in `Window`. So
+            # the 'next focus window' that we return from here is not always respected.
+            #
+            # One example that leaves us in such limbo is:
+            # Open tabs T1, T2, T3, T4. Such that T4 was spawned from T2. Say T2 is a
+            # program that remains in the foreground and spawns T4 as a separate window.
+            # If we switch back to T2 and `ctrl-c` it and kill T4 in the background, we
+            # should remain on T2.
+            # But in this case, qtile does not respect our 'next focus window' of T2
+            # returned from `Layout.remove()` here. It instead does not invoke
+            # `Layout.focus(T2)` via and instead this time delegates to `Window.focus()`
+            # which uses its own internal focus history records and picks T3 to get
+            # focus.
+            # Our layout isn't given info about this (via Layout.focus() as usual) and
+            # leaves us out-of-sync.
+            #
+            # Explicitly triggering a focus seems to help here without any side effects.
+            # Built in layouts also make use of this API.
+            self._request_focus(next_focus_pane)
             return next_focus_pane.window
 
         # We only need this re-rendering in the case when there is no subsequent window
         # to focus
         self._request_relayout()
-
         return None
 
     def focus(self, window: Window):
