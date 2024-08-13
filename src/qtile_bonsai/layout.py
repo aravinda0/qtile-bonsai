@@ -514,7 +514,10 @@ class Bonsai(Layout):
             #
             # Explicitly triggering a focus seems to help here without any side effects.
             # Built in layouts also make use of this API.
-            self._request_focus(next_focus_pane)
+            # But don't do it for stuff removed as floating - as they will be focused
+            # separately. Hmm, starting to get weird now.
+            if not window.floating:
+                self._request_focus(next_focus_pane)
             return next_focus_pane.window
 
         # We only need this re-rendering in the case when there is no subsequent window
