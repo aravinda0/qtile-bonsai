@@ -492,6 +492,8 @@ class Bonsai(Layout):
 
         _, _, next_focus_pane = self._tree.remove(pane, normalize=normalize_on_remove)
         del self._windows_to_panes[window]
+        if self._focused_window is window:
+            self._focused_window = None
 
         # Prefer to safely revert back to normal mode on any removals to the tree.
         # Note that this may trigger a relayout.
