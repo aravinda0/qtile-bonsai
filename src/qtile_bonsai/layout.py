@@ -358,6 +358,9 @@ class Bonsai(Layout):
 
     @interaction_mode.setter
     def interaction_mode(self, value: "Bonsai.InteractionMode"):
+        if value == self._interaction_mode:
+            return
+
         self._interaction_mode = value
 
         if (
@@ -490,7 +493,8 @@ class Bonsai(Layout):
         _, _, next_focus_pane = self._tree.remove(pane, normalize=normalize_on_remove)
         del self._windows_to_panes[window]
 
-        # Prefer to safely revert back to normal mode on any removals to the tree
+        # Prefer to safely revert back to normal mode on any removals to the tree.
+        # Note that this may trigger a relayout.
         self.interaction_mode = Bonsai.InteractionMode.normal
 
         if next_focus_pane is not None:
