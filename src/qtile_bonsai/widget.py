@@ -248,7 +248,7 @@ class BonsaiBar(base._Widget):
 
     def _remove_hooks(self):
         hook.unsubscribe.client_killed(self._handle_client_killed)
-        hook.unsubscribe.client_remove(self._handle_client_focus)
+        hook.unsubscribe.client_focus(self._handle_client_focus)
 
     def _handle_client_focus(self, client):
         self.draw()
