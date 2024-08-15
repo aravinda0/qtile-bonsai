@@ -278,6 +278,7 @@ screens = [
     Screen(top=bar.Bar([
         BonsaiBar(**{
             # "length": 500,
+            # "sync_with": "bonsai_on_same_screen",
             # "tab.width": 50,
             # ...
         }),
