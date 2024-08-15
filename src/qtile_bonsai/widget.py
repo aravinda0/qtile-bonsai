@@ -52,11 +52,11 @@ class BonsaiBar(base._Widget):
             The Bonsai layout whose state should be rendered on this widget.
 
             Can be one of the following:
-                - "bonsai_with_focus":
+                - `bonsai_with_focus`:
                     The Bonsai layout of the window that is currently focused. This is
                     relevant in a multi-screen setup - the widget will keep updating
                     based on which screen's Bonsai layout has focus.
-                - "bonsai_on_same_screen":
+                - `bonsai_on_same_screen`:
                     The widget will stick to displaying the state of the Bonsai layout
                     that is on the same screen as the widget's bar.
             """,
