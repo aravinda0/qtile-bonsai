@@ -1,0 +1,1 @@
+Introduce new option `sync_with` on the `BonsaiBar` widget to control which (screen's) `Bonsai` layout state is rendered on the widget.

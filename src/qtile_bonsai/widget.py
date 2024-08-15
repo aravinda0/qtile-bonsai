@@ -11,6 +11,7 @@ from typing import Any, ClassVar
 
 from libqtile import bar, hook
 from libqtile.backend.base.drawer import Drawer, TextLayout
+from libqtile.command.base import expose_command
 from libqtile.widget import base
 
 from qtile_bonsai.core.geometry import Box, Perimeter, Rect
@@ -42,6 +43,22 @@ class BonsaiBar(base._Widget):
 
             As usual, it can be a fixed integer, or one of the 'special' bar constants:
             `bar.CALCULATED` or `bar.STRETCH`.
+            """,
+        ),
+        ConfigOption(
+            "sync_with",
+            "bonsai_on_same_screen",
+            """
+            The Bonsai layout whose state should be rendered on this widget.
+
+            Can be one of the following:
+                - "bonsai_with_focus":
+                    The Bonsai layout of the window that is currently focused. This is
+                    relevant in a multi-screen setup - the widget will keep updating
+                    based on which screen's Bonsai layout has focus.
+                - "bonsai_on_same_screen":
+                    The widget will stick to displaying the state of the Bonsai layout
+                    that is on the same screen as the widget's bar.
             """,
         ),
         ConfigOption(
@@ -139,8 +156,25 @@ class BonsaiBar(base._Widget):
         self.drawer: Drawer
 
     @property
-    def is_bonsai_active(self) -> bool:
-        return isinstance(self.qtile.current_group.layout, Bonsai)
+    def target_bonsai(self) -> Bonsai | None:
+        if self.sync_with == "bonsai_on_same_screen":
+            active_layout = self.bar.screen.group.layout
+        else:
+            active_layout = self.qtile.current_group.layout
+
+        if isinstance(active_layout, Bonsai):
+            return active_layout
+
+        return None
+
+    @expose_command
+    def info(self) -> dict:
+        info = super().info()
+        if self.target_bonsai is not None:
+            info["target_bonsai"] = self.target_bonsai.info()
+        else:
+            info["target_bonsai"] = None
+        return info
 
     def draw(self):
         width = self.width
@@ -152,7 +186,7 @@ class BonsaiBar(base._Widget):
 
         self.drawer.clear(self.bg_color or self.bar.background)
 
-        if self.is_bonsai_active:
+        if self.target_bonsai is not None:
             self._draw_when_bonsai_active()
         else:
             self._draw_when_bonsai_inactive()
@@ -165,21 +199,16 @@ class BonsaiBar(base._Widget):
         )
         self._last_width = width
 
-    def _should_redraw_whole_bar_instead(self) -> bool:
-        if self.length_type == bar.CALCULATED and self._last_width != self.width:
-            return True
-        return False
-
     def finalize(self):
         self._remove_hooks()
 
         self.text_layout.finalize()
 
     def button_press(self, x: int, y: int, button: int):
-        if not self.is_bonsai_active:
+        if self.target_bonsai is None:
             return
 
-        bonsai = self.qtile.current_group.layout
+        bonsai = self.target_bonsai
         root = bonsai.info()["tree"]["root"]
         if root is None:
             return
@@ -223,7 +252,9 @@ class BonsaiBar(base._Widget):
         if self.length_type != bar.CALCULATED and tab_width_config == "auto":
             return self.length
 
-        bonsai = self.qtile.current_group.layout
+        bonsai = self.target_bonsai
+        if bonsai is None:
+            return 0
         root = bonsai.info()["tree"]["root"]
         if root is None:
             return 0
@@ -250,6 +281,11 @@ class BonsaiBar(base._Widget):
         hook.unsubscribe.client_killed(self._handle_client_killed)
         hook.unsubscribe.client_focus(self._handle_client_focus)
 
+    def _should_redraw_whole_bar_instead(self) -> bool:
+        if self.length_type == bar.CALCULATED and self._last_width != self.width:
+            return True
+        return False
+
     def _handle_client_focus(self, client):
         self.draw()
 
@@ -258,12 +294,16 @@ class BonsaiBar(base._Widget):
         # windows are left.
         # Re-rendering the widget is primarily driven by the focus hook. But we're left
         # with an edge case of when there are no windows left, so we handle that here.
-        if self.length_type != bar.STATIC and not self.qtile.current_group.windows:
+        bonsai = self.target_bonsai
+        if (
+            self.length_type != bar.STATIC
+            and bonsai is not None
+            and not bonsai.group.windows
+        ):
             self.bar.draw()
 
     def _draw_when_bonsai_active(self):
-        bonsai = self.qtile.current_group.layout
-        bonsai_info = bonsai.info()
+        bonsai_info = self.target_bonsai.info()
         root = bonsai_info["tree"]["root"]
         if root is None:
             return
