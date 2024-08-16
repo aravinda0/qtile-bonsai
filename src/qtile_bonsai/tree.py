@@ -293,8 +293,10 @@ class BonsaiPane(BonsaiNodeMixin, Pane):
 
     def as_dict(self) -> dict:
         state = super().as_dict()
-        state["wid"] = self.window.wid
-        state["is_window_visible"] = self.window.is_visible()
+        state["wid"] = self.window.wid if self.window is not None else None
+        state["is_window_visible"] = (
+            self.window.is_visible() if self.window is not None else None
+        )
         return state
 
 
