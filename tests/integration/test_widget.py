@@ -14,7 +14,7 @@ from tests.integration.utils import (
     "qtile_config",
     [
         make_config_with_bar(
-            **{
+            widget_config={
                 "tab.width": 50,
             }
         )
@@ -53,7 +53,7 @@ class TestConfig:
             "qtile_config",
             [
                 make_config_with_bar_and_multiple_screen(
-                    **{
+                    widget_config={
                         "sync_with": "bonsai_on_same_screen",
                         "tab.width": 50,
                     }
@@ -97,7 +97,7 @@ class TestConfig:
             "qtile_config",
             [
                 make_config_with_bar_and_multiple_screen(
-                    **{
+                    widget_config={
                         "sync_with": "bonsai_with_focus",
                         "tab.width": 50,
                     }
