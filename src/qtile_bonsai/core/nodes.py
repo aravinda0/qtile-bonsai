@@ -484,6 +484,18 @@ class TabContainer(Node):
         index = parent.children.index(self)
         return (parent, self, index + 1 if position == Direction1D.next else index)
 
+    def expand_tab_bar(self, bar_height: int):
+        rect = self.principal_rect
+        self.tab_bar.box.principal_rect.h = bar_height
+        for tab in self.children:
+            tab.transform(Axis.y, rect.y + bar_height, rect.h - bar_height)
+
+    def collapse_tab_bar(self):
+        rect = self.principal_rect
+        self.tab_bar.box.principal_rect.h = 0
+        for tab in self.children:
+            tab.transform(Axis.y, rect.y, rect.h)
+
     def as_dict(self) -> dict:
         return {
             **super().as_dict(),

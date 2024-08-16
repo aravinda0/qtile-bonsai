@@ -431,7 +431,7 @@ class Tree:
         if from_state is not None:
             self._root = self._parse_state(from_state)
             if self._root is not None:
-                self._reevaluate_dynamic_attributes(self._root)
+                self.reevaluate_dynamic_attributes(self._root)
             added_nodes = list(self.iter_walk())
             self._notify_subscribers(TreeEvent.node_added, added_nodes)
 
@@ -1027,6 +1027,45 @@ class Tree:
         clone.reset(from_state=current_state)
         return clone
 
+    def reevaluate_dynamic_attributes(self, start_node: Node):
+        """Walks down the provided `start_node` and re-applies any dynamic
+        configuration.
+        eg. tab-level-dependent config, tab-bar hide/show scenarios, etc.
+
+        💭 This has evolved into something of a general purpose 'second pass' over the
+        tree to re-calculate some properties. It is now invoked after various tree
+        operations. This is opposed to in-place checking and tweaking of various
+        attributes in places that might impact them - which was starting to get unweildy
+        as codebase grew.
+        💭 I wonder if the post-removal tree-pruning operations could also be part of
+        this 2nd pass.
+        """
+        for node in self.iter_walk(start=start_node):
+            tab_level = node.tab_level
+            if isinstance(node, TabContainer):
+                self.handle_bar_hiding_config(node)
+            elif isinstance(node, Pane):
+                margin: int = self.get_config("window.margin", level=tab_level)
+                border: int = self.get_config("window.border_size", level=tab_level)
+                padding: int = self.get_config("window.padding", level=tab_level)
+                if node.tab_level == 1 and node.is_sole_child:
+                    margin = self.get_config("window.single.margin", default=margin)
+                    border = self.get_config(
+                        "window.single.border_size", default=border
+                    )
+                    padding = self.get_config("window.single.padding", default=padding)
+                node.box.margin = margin
+                node.box.border = border
+                node.box.padding = padding
+
+    def handle_bar_hiding_config(self, tc: TabContainer):
+        hide_when: str = self.get_config("tab_bar.hide_when", level=tc.tab_level)
+        if hide_when == "always" or (hide_when == "single_tab" and tc.has_single_child):
+            tc.collapse_tab_bar()
+        else:
+            bar_height: int = self.get_config("tab_bar.height", level=tc.tab_level)
+            tc.expand_tab_bar(bar_height)
+
     def as_dict(self) -> dict:
         return {
             "width": self.width,
@@ -1131,7 +1170,7 @@ class Tree:
                 new_content.parent = container
                 container.children.insert(new_index, new_content)
 
-        self._reevaluate_dynamic_attributes(container.parent)
+        self.reevaluate_dynamic_attributes(container.parent)
         if normalize:
             self.normalize(container)
 
@@ -1173,7 +1212,7 @@ class Tree:
             elif isinstance(container, TabContainer):
                 container.active_child = container.children[br_rm_pos - 1]
 
-        self._reevaluate_dynamic_attributes(br_rm.parent)
+        self.reevaluate_dynamic_attributes(br_rm.parent)
 
         return (br_rm, br_rm_pos, br_sib, br_rm_nodes)
 
@@ -1315,7 +1354,7 @@ class Tree:
         sc.children.append(content)
 
         _transform_tab(t)
-        self._reevaluate_dynamic_attributes(start_node=tc)
+        self.reevaluate_dynamic_attributes(start_node=tc)
 
         return (t, added_nodes)
 
@@ -1392,54 +1431,6 @@ class Tree:
             border=self.get_config("tab_bar.border_size", level=tab_level),
             padding=self.get_config("tab_bar.padding", level=tab_level),
         )
-
-    def _reevaluate_dynamic_attributes(self, start_node: Node):
-        """Walks down the provided `start_node` and re-applies any dynamic
-        configuration.
-        eg. tab-level-dependent config, tab-bar hide/show scenarios, etc.
-
-        💭 This has evolved into something of a general purpose 'second pass' over the
-        tree to re-calculate some properties. It is now invoked after various tree
-        operations. This is opposed to in-place checking and tweaking of various
-        attributes in places that might impact them - which was starting to get unweildy
-        as codebase grew.
-        💭 I wonder if the post-removal tree-pruning operations could also be part of
-        this 2nd pass.
-        """
-        for node in self.iter_walk(start=start_node):
-            tab_level = node.tab_level
-            if isinstance(node, TabContainer):
-                self._handle_hide_when_config(node)
-            elif isinstance(node, Pane):
-                margin = self.get_config("window.margin", level=tab_level)
-                border = self.get_config("window.border_size", level=tab_level)
-                padding = self.get_config("window.padding", level=tab_level)
-                if node.tab_level == 1 and node.is_sole_child:
-                    margin = self.get_config("window.single.margin", default=margin)
-                    border = self.get_config(
-                        "window.single.border_size", default=border
-                    )
-                    padding = self.get_config("window.single.padding", default=padding)
-                node.box.margin = margin
-                node.box.border = border
-                node.box.padding = padding
-
-    def _handle_hide_when_config(self, tc: TabContainer):
-        hide_when: str = self.get_config("tab_bar.hide_when", level=tc.tab_level)
-        tab_bar = tc.tab_bar
-        tc_rect = tc.principal_rect
-        if hide_when == "always" or (
-            hide_when == "single_tab" and len(tc.children) == 1
-        ):
-            tab_bar.box.principal_rect.h = 0
-            for tab in tc.children:
-                tab.transform(Axis.y, tc_rect.y, tc_rect.h)
-
-        else:
-            bar_height: int = self.get_config("tab_bar.height", level=tc.tab_level)
-            tab_bar.box.principal_rect.h = bar_height
-            for tab in tc.children:
-                tab.transform(Axis.y, tc_rect.y + bar_height, tc_rect.h - bar_height)
 
     def _maybe_invert_top_level_sc(self, node: Node, requested_axis: Axis):
         if not isinstance(node, SplitContainer):
@@ -1622,12 +1613,9 @@ class Tree:
         So only geometry adjustments are made to consume the space of the hidden tab
         bar.
         """
-        hide_when = self.get_config("tab_bar.hide_when", level=n3.tab_level)
+        hide_when: str = self.get_config("tab_bar.hide_when", level=n3.tab_level)
         if hide_when == "single_tab":
-            bar_rect = n2.tab_bar.box.principal_rect
-            bar_height = bar_rect.h
-            bar_rect.h = 0
-            n3.transform(Axis.y, bar_rect.y, n3.principal_rect.h + bar_height)
+            n2.collapse_tab_bar()
         return []
 
     def _parse_state(self, state: dict) -> TabContainer | None:
