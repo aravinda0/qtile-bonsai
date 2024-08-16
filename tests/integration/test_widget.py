@@ -6,7 +6,7 @@ import pytest
 from tests.integration.conftest import wait
 from tests.integration.utils import (
     make_config_with_bar,
-    make_config_with_bar_and_multiple_screen,
+    make_config_with_bar_and_multiple_screens,
 )
 
 
@@ -52,7 +52,7 @@ class TestConfig:
         @pytest.mark.parametrize(
             "qtile_config",
             [
-                make_config_with_bar_and_multiple_screen(
+                make_config_with_bar_and_multiple_screens(
                     widget_config={
                         "sync_with": "bonsai_on_same_screen",
                         "tab.width": 50,
@@ -96,7 +96,7 @@ class TestConfig:
         @pytest.mark.parametrize(
             "qtile_config",
             [
-                make_config_with_bar_and_multiple_screen(
+                make_config_with_bar_and_multiple_screens(
                     widget_config={
                         "sync_with": "bonsai_with_focus",
                         "tab.width": 50,

@@ -14,7 +14,7 @@ def make_config_with_bar(widget_config: dict | None = None):
     return BonsaiBarTestConfig()
 
 
-def make_config_with_bar_and_multiple_screen(
+def make_config_with_bar_and_multiple_screens(
     layout_config: dict | None = None, widget_config: dict | None = None
 ):
     layout_config = layout_config or {}
