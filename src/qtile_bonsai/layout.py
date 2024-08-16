@@ -10,8 +10,9 @@ import os
 import pathlib
 import re
 import tempfile
+from collections.abc import Sequence
 from datetime import datetime
-from typing import Any, Callable, ClassVar, Sequence
+from typing import Any, Callable, ClassVar
 
 from libqtile import hook
 from libqtile.backend.base.window import Window
