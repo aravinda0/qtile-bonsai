@@ -253,9 +253,11 @@ keys = [
 #### 3. [Optional] Add the BonsaiBar widget to your qtile bar
 
 qtile-bonsai comes with an optional `BonsaiBar` widget that lets you view all
-your top-level tabs on the qtile-bar. This lets you hide away the
-top-level/outermost tab-bar that is part of the `Bonsai` layout itself and save
-some screen space (or simply for aesthetics).
+your top-level tabs on the qtile-bar. 
+
+The default behavior is to automatically hide the top-level/outermost tab-bar if
+there is a `BonsaiBar` widget on the relevant screen. If there isn't, the tab
+bar is shown as usual. 
 
 
 ```python
@@ -263,16 +265,8 @@ some screen space (or simply for aesthetics).
 from libqtile import bar
 from libqtile.config import Screen
 
-from qtile_bonsai import Bonsai, BonsaiBar
+from qtile_bonsai import BonsaiBar
 
-
-# Hide away only the top level of the default tab bar that is available on the
-# layout itself. Subtab bars will remain visible.
-layouts = [
-    Bonsai(**{
-      "L1.tab_bar.hide_when": "always",
-    }),
-]
 
 screens = [
     Screen(top=bar.Bar([
