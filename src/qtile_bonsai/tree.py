@@ -373,6 +373,27 @@ class BonsaiTree(Tree):
     def clear_selection(self):
         self._container_selection.focused_node = None
 
+    def handle_bar_hiding_config(self, tc: BonsaiTabContainer):
+        """ """
+        if (
+            tc.tab_level == 1
+            and not self.is_empty
+            and self.get_config("tab_bar.hide_L1_when_bonsai_bar_on_screen")
+        ):
+            bonsai_widgets_on_same_screen = [
+                w
+                for (wname, w) in self._group.qtile.widgets_map.items()
+                # qtile will rename keys if there are multiple of the same widget kind
+                # at play
+                if wname.partition("_")[0] == "bonsaibar"
+                and w.bar.screen is self._group.screen
+            ]
+            if bonsai_widgets_on_same_screen:
+                tc.collapse_tab_bar()
+                return
+
+        super().handle_bar_hiding_config(tc)
+
 
 class ContainerSelection:
     """Manages a UI rect representing a 'selection' of a BonsaiNode subtree in the form

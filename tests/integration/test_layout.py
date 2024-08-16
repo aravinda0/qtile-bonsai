@@ -5,6 +5,7 @@ import pytest
 from conftest import wait
 
 from qtile_bonsai.core.tree import tree_repr_matches_repr
+from tests.integration.utils import make_config_with_bar_and_multiple_screens
 
 
 @pytest.fixture()
@@ -264,6 +265,97 @@ class TestConfigOptions:
                             - p:4 | {x: 0, y: 0, w: 400, h: 600}
                             - p:5 | {x: 400, y: 0, w: 400, h: 600}
                 """,
+            )
+
+    class TestTabBarHideL1WhenBonsaiBarOnScreen:
+        @pytest.mark.a
+        @pytest.mark.parametrize(
+            "qtile_config",
+            [
+                make_config_with_bar_and_multiple_screens(
+                    layout_config={
+                        "tab_bar.hide_L1_when_bonsai_bar_on_screen": True,
+                        "tab_bar.height": 20,
+                    }
+                )
+            ],
+            indirect=True,
+        )
+        def test_when_true(self, qtile_config, manager, make_window):
+            # Put group `a` on the first screen, which has the widget. The L1 bar should
+            # be collapsed.
+            manager.group["a"].toscreen(0)
+            manager.to_screen(0)
+            make_window()
+            make_window()
+
+            assert (
+                manager.layout.info()["tree"]["root"]["tab_bar"]["box"][
+                    "principal_rect"
+                ]["h"]
+                == 0
+            )
+
+            # Move group `a` to the 2nd screen, which does not have our widget. The L1
+            # bar should now appear.
+            manager.group["a"].toscreen(1)
+            manager.to_screen(1)
+
+            assert (
+                manager.layout.info()["tree"]["root"]["tab_bar"]["box"][
+                    "principal_rect"
+                ]["h"]
+                == 20
+            )
+
+            # Back to screen 1 and it should disappear again.
+            manager.group["a"].toscreen(0)
+            manager.to_screen(0)
+
+            assert (
+                manager.layout.info()["tree"]["root"]["tab_bar"]["box"][
+                    "principal_rect"
+                ]["h"]
+                == 0
+            )
+
+        @pytest.mark.parametrize(
+            "qtile_config",
+            [
+                make_config_with_bar_and_multiple_screens(
+                    layout_config={
+                        "tab_bar.hide_L1_when_bonsai_bar_on_screen": False,
+                        "tab_bar.height": 20,
+                    }
+                )
+            ],
+            indirect=True,
+        )
+        def test_when_false(self, qtile_config, manager, make_window):
+            # Put group `a` on the first screen, which has the widget. The L1 bar should
+            # still be shown despite the widget being present.
+            manager.group["a"].toscreen(0)
+            manager.to_screen(0)
+            make_window()
+            make_window()
+
+            assert (
+                manager.layout.info()["tree"]["root"]["tab_bar"]["box"][
+                    "principal_rect"
+                ]["h"]
+                == 20
+            )
+
+            # Move group `a` to the 2nd screen, which does not have our widget. The L1
+            # bar should continue to appear.
+            manager.group["a"].toscreen(1)
+            manager.to_screen(1)
+
+            assert (
+                manager.layout.info()["tree"]["root"]["tab_bar"]["box"][
+                    "principal_rect"
+                ]["h"]
+                == 20
             )
 
 

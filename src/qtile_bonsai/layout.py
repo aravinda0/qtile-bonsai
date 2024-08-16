@@ -169,6 +169,22 @@ class Bonsai(Layout):
             """,
         ),
         ConfigOption(
+            "tab_bar.hide_L1_when_bonsai_bar_on_screen",
+            True,
+            """
+            For L1 (top level) tab bars only. If `True`, the L1 tab bar is hidden away
+            if there is a `BonsaiBar` widget on the screen this layout's group is on.
+            Otherwise the the L1 tab bar is shown (depending on `tab_bar.hide_when`).
+
+            This is dynamic and essentially makes it so the L1 tab bar shows up 'when
+            required'.
+            Handy in multi-screen setups if some screens aren't configured to have a
+            qtile-bar, but the main screen does and has a `BonsaiBar` widget as well.
+
+            Note that this takes precedence over `tab_bar.hide_when` for L1 bars.
+            """,
+        ),
+        ConfigOption(
             "tab_bar.margin",
             0,
             """
@@ -581,6 +597,15 @@ class Bonsai(Layout):
 
         # Use this opportunity for some cleanup
         self._handle_delayed_release_of_removed_nodes()
+
+    def show(self, screen_rect: ScreenRect):
+        # When a group (and its layout) is 'shown' on some screen, there are some
+        # dynamic screen-dependent properties that affect our tree, so reevaluate them.
+        self._tree.reevaluate_dynamic_attributes()
+
+        # We'll have to trigger a relayout since `Layout.show()` happens after the usual
+        # `Layout.layout()`
+        self._request_relayout()
 
     def finalize(self):
         self._finalize_hooks()
@@ -1392,7 +1417,7 @@ class Bonsai(Layout):
         self._tree = BonsaiTree(
             100,
             100,
-            qtile=group.qtile,
+            group=group,
             config=config,
             on_click_tab_bar=self._handle_click_tab_bar,
         )

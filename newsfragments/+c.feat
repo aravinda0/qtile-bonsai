@@ -1,0 +1,2 @@
+New layout option `tab_bar.hide_L1_when_bonsai_bar_on_screen` makes multi-screen setups smoother. 
+  - The L1 (top level) tab bar can be hidden away if there is a `BonsaiBar` widget available on a screen, and the bar would be shown if there was not a widget present.

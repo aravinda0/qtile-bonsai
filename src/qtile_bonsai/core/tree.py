@@ -1027,7 +1027,7 @@ class Tree:
         clone.reset(from_state=current_state)
         return clone
 
-    def reevaluate_dynamic_attributes(self, start_node: Node):
+    def reevaluate_dynamic_attributes(self, start_node: Node | None = None):
         """Walks down the provided `start_node` and re-applies any dynamic
         configuration.
         eg. tab-level-dependent config, tab-bar hide/show scenarios, etc.
