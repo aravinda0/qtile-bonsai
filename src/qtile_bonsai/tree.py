@@ -7,6 +7,7 @@ from libqtile.backend.base.drawer import Drawer, TextLayout
 from libqtile.backend.base.window import Internal, Window
 from libqtile.config import ScreenRect
 from libqtile.core.manager import Qtile
+from libqtile.group import _Group
 
 from qtile_bonsai.core.geometry import Box, Perimeter, PerimieterParams, Rect
 from qtile_bonsai.core.nodes import Node, Pane, SplitContainer, Tab, TabContainer
@@ -302,13 +303,18 @@ class BonsaiTree(Tree):
         self,
         width: int,
         height: int,
-        qtile: Qtile,
+        group: _Group,
         config: Tree.MultiLevelConfig | None = None,
         on_click_tab_bar: BonsaiTabContainer.TabBarClickHandler | None = None,
     ):
         super().__init__(width, height, config)
 
-        self._container_selection: ContainerSelection = ContainerSelection(self, qtile)
+        # Invariant: A layout instance's linked group does not change.
+        self._group = group
+
+        self._container_selection: ContainerSelection = ContainerSelection(
+            self, group.qtile
+        )
         self._on_click_tab_bar = on_click_tab_bar
 
     @property
