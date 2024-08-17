@@ -1,3 +1,20 @@
+## v0.4.0 [2024-08-17]
+
+### Features & Improvements
+
+- New layout options `window.single.margin` and `window.single.border_size` allow specifying margin, border for single windows under top-level tabs. (#10)
+- New widget option `sync_with` on `BonsaiBar` to control which (screen's) `Bonsai` layout state is rendered on the widget. (#9)
+- New layout option `tab_bar.hide_L1_when_bonsai_bar_on_screen` makes multi-screen setups smoother. 
+    - The L1 (top level) tab bar can be hidden away if there is a `BonsaiBar` widget available on a screen, and the bar would be shown if there was not a widget present.
+    - This also makes the `BonsaiBar` widget usage simpler - we no longer need to configure `L1.tab_bar.hide_when = "always"` on our layout to explicitly hide away the L1 bar.
+
+### Fixes
+
+- Fullscreening windows should work properly now. (#11)
+- Fix a typo that was causing the BonsaiBar widget to not clean up properly on reload/restart
+- Fixed an obscure bug where in some rare cases, killing a background window would not focus the correct MRU window.
+
+
 ## v0.3.0 [2024-07-10]
                                    
 

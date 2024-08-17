@@ -1,1 +1,0 @@
-Fixed an obscure bug where in some rare cases, killing a background window would not focus the correct MRU window.

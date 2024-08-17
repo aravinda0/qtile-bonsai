@@ -1,1 +1,0 @@
-Fix a typo that was causing the BonsaiBar widget to not clean up properly on reload/restart
