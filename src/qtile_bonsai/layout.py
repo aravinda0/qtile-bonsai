@@ -796,27 +796,35 @@ class Bonsai(Layout):
         self.move_focus(Direction.down, wrap=wrap)
 
     @expose_command
-    def next_tab(self, *, wrap: bool = True):
+    def next_tab(self, *, level: int = -1, wrap: bool = True):
         """
         Switch focus to the next tab. The window that was previously active there will
         be focused.
 
         Args:
+            `level`:
+                When subtabs are involved, specifies at which (1-based) tab-level the
+                tab-activation should take place.
+                Defaults to `-1`, meaning the nearest tab.
             `wrap`:
                 If `True`, will cycle back to the fist tab if invoked on the last tab.
                 Defaults to `True`.
+
+        Examples:
+            - `layout.next_tab()
+            - `layout.next_tab(level=1)  # Explicitly activate the next top-most tab.
         """
         if self._tree.is_empty:
             return
         if self._cancel_if_unsupported_container_select_mode_op():
             return
 
-        next_pane = self._tree.next_tab(self.actionable_node, wrap=wrap)
+        next_pane = self._tree.next_tab(self.actionable_node, level=level, wrap=wrap)
         if next_pane is not None:
             self._request_focus(next_pane)
 
     @expose_command
-    def prev_tab(self, *, wrap: bool = True):
+    def prev_tab(self, *, level: int = -1, wrap: bool = True):
         """
         Same as `next_tab()` but switches focus to the previous tab.
         """
@@ -825,7 +833,7 @@ class Bonsai(Layout):
         if self._cancel_if_unsupported_container_select_mode_op():
             return
 
-        next_pane = self._tree.prev_tab(self.actionable_node, wrap=wrap)
+        next_pane = self._tree.prev_tab(self.actionable_node, level=level, wrap=wrap)
         if next_pane is not None:
             self._request_focus(next_pane)
 

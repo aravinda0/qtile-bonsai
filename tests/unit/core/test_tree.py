@@ -3808,6 +3808,33 @@ class TestTabMotions:
             p = tree.next_tab(p2, wrap=False)
             assert p is None
 
+        def test_when_level_is_provided(self, tree: Tree):
+            p1 = tree.tab()
+            p2 = tree.split(p1, "x")
+            p3 = tree.tab(p2, new_level=True)
+            p4 = tree.tab(p1)
+            tree.focus(p2)
+
+            p = tree.next_tab(p2, level=2)
+            assert p is p3
+
+            p = tree.next_tab(p2, level=1)
+            assert p is p4
+
+        def test_when_invalid_level_is_provided_then_error_is_raised(self, tree: Tree):
+            p1 = tree.tab()
+            p2 = tree.split(p1, "x")
+            _p3 = tree.tab(p2, new_level=True)
+            _p4 = tree.tab(p1)
+            tree.focus(p2)
+
+            err_msg = (
+                "The provided `level` is invalid. It must be within `node.tab_level` "
+                "or be `-1`."
+            )
+            with pytest.raises(ValueError, match=err_msg):
+                _ = tree.next_tab(p2, level=3)
+
     class TestPrev:
         def test_when_any_node_is_provided_then_mru_pane_in_prev_tab_of_nearest_tc_is_returned(
             self, tree: Tree
@@ -3867,6 +3894,19 @@ class TestTabMotions:
 
             p = tree.prev_tab(p1, wrap=False)
             assert p is None
+
+        def test_when_level_is_provided(self, tree: Tree):
+            p1 = tree.tab()
+            p2 = tree.split(p1, "x")
+            p3 = tree.tab(p2, new_level=True)
+            p4 = tree.tab(p1)
+            tree.focus(p3)
+
+            p = tree.prev_tab(p3, level=2)
+            assert p is p2
+
+            p = tree.prev_tab(p3, level=1)
+            assert p is p4
 
 
 class TestSwap:

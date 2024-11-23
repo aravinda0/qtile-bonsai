@@ -510,11 +510,15 @@ class Tree:
 
         return adjacent
 
-    def next_tab(self, node: Node, *, wrap: bool = True) -> Pane | None:
-        return self._next_tab(node, 1, wrap=wrap)
+    def next_tab(
+        self, node: Node, *, level: int = -1, wrap: bool = True
+    ) -> Pane | None:
+        return self._next_tab(node, 1, level=level, wrap=wrap)
 
-    def prev_tab(self, node: Node, *, wrap: bool = True) -> Pane | None:
-        return self._next_tab(node, -1, wrap=wrap)
+    def prev_tab(
+        self, node: Node, *, level: int = -1, wrap: bool = True
+    ) -> Pane | None:
+        return self._next_tab(node, -1, level=level, wrap=wrap)
 
     def swap(self, p1: Pane, p2: Pane):
         """Swaps the two panes provided in the tree."""
@@ -1715,12 +1719,23 @@ class Tree:
             panes.extend(self._find_panes_along_border(inv_axis_child, direction))
         return panes
 
-    def _next_tab(self, node: Node, n: int, *, wrap: bool = True) -> Pane | None:
-        ancestor_tabs = node.get_ancestors(Tab, include_self=True)
+    def _next_tab(
+        self, node: Node, n: int, *, level: int = -1, wrap: bool = True
+    ) -> Pane | None:
+        ancestor_tabs = list(reversed(node.get_ancestors(Tab, include_self=True)))
         if not ancestor_tabs:
             raise ValueError("The provided node is not under a `TabContainer` node")
+        if not (level == -1 or 0 < level <= len(ancestor_tabs)):
+            raise ValueError(
+                "The provided `level` is invalid. It must be within `node.tab_level` "
+                "or be `-1`."
+            )
 
-        next_tab = ancestor_tabs[0].sibling(n, wrap=wrap)
+        if level == -1:
+            level = len(ancestor_tabs)
+        ancestor_tab = ancestor_tabs[level - 1]
+
+        next_tab = ancestor_tab.sibling(n, wrap=wrap)
         if next_tab is None:
             return None
 
