@@ -589,7 +589,7 @@ class Bonsai(Layout):
     def hide(self):
         # While other layouts are active, ensure that any new windows are captured
         # consistenty with the default tab layout here.
-        self._next_window_handler = self._handle_default_next_window
+        self._reset_next_window_handler()
 
         self._tree.hide()
 
@@ -656,12 +656,12 @@ class Bonsai(Layout):
         - `layout.spawn_split(my_terminal, "x", position="previous")`
         """
 
-        def _handle_next_window():
-            if self._tree.is_empty:
-                return self._tree.tab()
+        def _handle_next_window(tree: BonsaiTree):
+            if tree.is_empty:
+                return tree.tab()
 
-            target = self.actionable_node or self._tree.find_mru_pane()
-            return self._tree.split(
+            target = self.actionable_node or tree.find_mru_pane()
+            return tree.split(
                 target, axis, ratio=ratio, normalize=normalize, position=position
             )
 
@@ -702,18 +702,16 @@ class Bonsai(Layout):
         # in `_handle_next_window`.
         fall_back_to_default_tab_spawning = False
 
-        def _handle_next_window():
+        def _handle_next_window(tree: BonsaiTree):
             nonlocal fall_back_to_default_tab_spawning
 
             if not fall_back_to_default_tab_spawning:
                 fall_back_to_default_tab_spawning = True
-                return self._tree.tab(
-                    self.actionable_node, new_level=new_level, level=level
-                )
+                return tree.tab(self.actionable_node, new_level=new_level, level=level)
 
             # Subsequent implicitly created tabs are spawned at whatever level
             # `self.actionable_node` is in.
-            return self._tree.tab(self.actionable_node)
+            return tree.tab(self.actionable_node)
 
         self._next_window_handler = _handle_next_window
         self._spawn_program(program)
@@ -1414,8 +1412,22 @@ class Bonsai(Layout):
         """
         return repr(self._tree)
 
-    def _handle_default_next_window(self) -> BonsaiPane:
-        return self._tree.tab()
+    def _handle_next_window_as_tab(self, tree: BonsaiTree) -> BonsaiPane:
+        return tree.tab()
+
+    def _handle_next_window_as_split_x(self, tree: BonsaiTree) -> BonsaiPane:
+        if tree.is_empty:
+            return self._handle_next_window_as_tab(tree)
+
+        target = tree.root.children[0].children[0]
+        return tree.split(target, Axis.x, normalize=True)
+
+    def _handle_next_window_as_split_y(self, tree: BonsaiTree) -> BonsaiPane:
+        if tree.is_empty:
+            return self._handle_next_window_as_tab(tree)
+
+        target = tree.root.children[0].children[0]
+        return tree.split(target, Axis.y, normalize=True)
 
     def _init(self, group: _Group):
         config = self.parse_multi_level_config()
@@ -1442,13 +1454,8 @@ class Bonsai(Layout):
         self._focused_window = None
         self._windows_to_panes = {}
 
-        def _handle_next_window():
-            return self._tree.tab()
-
-        self._next_window_handler = _handle_next_window
-
+        self._reset_next_window_handler()
         self._setup_hooks()
-
         self._handle_initial_restoration_check()
 
     def _setup_hooks(self):
@@ -1610,12 +1617,23 @@ class Bonsai(Layout):
         return pane
 
     def _handle_add_client__normal(self, window: Window) -> BonsaiPane:
-        pane = self._next_window_handler()
-
-        if self._tree.get_config("window.default_add_mode") == "tab":
-            self._next_window_handler = self._handle_default_next_window
-
+        pane = self._next_window_handler(self._tree)
+        self._reset_next_window_handler()
         return pane
+
+    def _reset_next_window_handler(self):
+        default_add_mode = self._tree.get_config("window.default_add_mode")
+        if callable(default_add_mode):
+            self._next_window_handler = default_add_mode
+        if default_add_mode == "tab":
+            self._next_window_handler = self._handle_next_window_as_tab
+        elif default_add_mode == "split_x":
+            self._next_window_handler = self._handle_next_window_as_split_x
+        elif default_add_mode == "split_y":
+            self._next_window_handler = self._handle_next_window_as_split_y
+        else:
+            # no-op. ie. `match_previous`
+            pass
 
     def _get_windows_to_panes_mapping_from_state(self, state: dict) -> dict:
         windows_to_panes = {}
