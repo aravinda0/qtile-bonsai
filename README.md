@@ -86,6 +86,21 @@ your favorite AUR-helper. For example:
 yay -S qtile-bonsai
 ```
 
+#### NixOS
+
+It is available in [nixpgks](https://search.nixos.org/packages?channel=unstable&from=0&size=50&sort=relevance&type=packages&query=qtile-bonsai) as `qtile-bonsai`:
+
+```nix
+{
+  services.xserver.windowManager.qtile = {
+    enable = true;
+    extraPackages = python3Packages: with python3Packages; [
+      qtile-bonsai
+    ];
+  };
+}
+```
+
 ### Configuration
 
 #### 1. Make Bonsai available as a layout in your [qtile config](https://docs.qtile.org/en/latest/manual/config/default.html)
