@@ -870,8 +870,9 @@ class Bonsai(Layout):
                 `level=-1` (default) indicates the innermost/nearest tabs.
 
         Examples:
-            - `layout.focus_nth_tab(2) # 2nd top-level tab`
-            - `layout.focus_nth_tab(3, level=-1) # 3rd from nearest tabs`
+            - `layout.focus_nth_tab(4) # 4th tab
+            - `layout.focus_nth_tab(2, level=1) # 2nd topmost-level tab`
+            - `layout.focus_nth_tab(3, level=-1) # 3rd of the 'nearest' tabs`
         """
         if self._tree.is_empty:
             return
