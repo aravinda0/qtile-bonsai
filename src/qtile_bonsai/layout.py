@@ -863,9 +863,8 @@ class Bonsai(Layout):
             `n`:
                 The 1-based index of the tab that should be focused.
             `level`:
-                When there are subtab levels at play, specifies which `TabContainer's`
-                tabs among the hierarchy of active `TabContainers` is being acted upon.
-                Tab levels are 1-based.
+                When there are subtab levels at play, which level of tabs among the
+                hierarchy should be acted upon. Tab levels are 1-based.
                 `level=1` indicates outermost/top-level tabs.
                 `level=-1` (default) indicates the innermost/nearest tabs.
 
@@ -1015,11 +1014,18 @@ class Bonsai(Layout):
         self._request_relayout()
 
     @expose_command
-    def swap_tabs(self, direction: Direction1DParam, *, wrap: bool = True):
+    def swap_tabs(
+        self, direction: Direction1DParam, *, level: int = -1, wrap: bool = True
+    ):
         """
         Swaps the currently active tab with the previous tab.
 
         Args:
+            `level`:
+                When there are subtab levels at play, which level of tabs among the
+                hierarchy should be acted upon. Tab levels are 1-based.
+                `level=1` indicates outermost/top-level tabs.
+                `level=-1` (default) indicates the innermost/nearest tabs.
             `wrap`:
                 If `True`, will wrap around the edge of the tab bar and swap with the
                 last tab.
@@ -1030,7 +1036,14 @@ class Bonsai(Layout):
 
         direction = Direction1D(direction)
 
-        t1 = self.actionable_node.get_first_ancestor(Tab)
+        ancestor_tabs = list(reversed(self.actionable_node.get_ancestors(Tab)))
+        if not (level == -1 or 0 < level <= len(ancestor_tabs)):
+            logger.debug("`level` should be either -1 or a valid 1-indexed tab level.")
+            return
+        if level == -1:
+            level = len(ancestor_tabs)
+
+        t1 = ancestor_tabs[level - 1]
         t2 = t1.sibling(direction.axis_unit, wrap=wrap)
 
         if t1 is not t2 and t2 is not None:
