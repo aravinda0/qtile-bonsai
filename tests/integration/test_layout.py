@@ -179,6 +179,13 @@ class TestFullScreen:
         _walk_and_check(state["tree"]["root"])
 
 
+def _custom_default_add_mode_handler(tree):
+    if tree.is_empty:
+        return tree.tab()
+    sc = tree.root.children[0].children[0]
+    return tree.split(sc, "x", position="previous")
+
+
 class TestConfigOptions:
     class TestWindowDefaultAddMode:
         @pytest.mark.parametrize(
@@ -239,6 +246,86 @@ class TestConfigOptions:
 
         @pytest.mark.parametrize(
             "bonsai_layout",
+            [{"window.default_add_mode": "split_x"}],
+            indirect=True,
+        )
+        def test_when_value_is_split_x(
+            self, bonsai_layout, manager, spawn_test_window_cmd, make_window
+        ):
+            make_window()
+
+            manager.layout.spawn_split(spawn_test_window_cmd(), "y")
+            wait()
+
+            make_window()
+
+            assert tree_repr_matches_repr(
+                manager.layout.tree_repr(),
+                """
+                - tc:1
+                    - t:2
+                        - sc.x:6
+                            - sc.y:3
+                                - p:4 | {x: 0, y: 0, w: 400, h: 300}
+                                - p:5 | {x: 0, y: 300, w: 400, h: 300}
+                            - p:7 | {x: 400, y: 0, w: 400, h: 600}
+                """,
+            )
+
+        @pytest.mark.parametrize(
+            "bonsai_layout",
+            [{"window.default_add_mode": "split_y"}],
+            indirect=True,
+        )
+        def test_when_value_is_split_y(
+            self, bonsai_layout, manager, spawn_test_window_cmd, make_window
+        ):
+            make_window()
+
+            manager.layout.spawn_split(spawn_test_window_cmd(), "x")
+            wait()
+
+            make_window()
+
+            assert tree_repr_matches_repr(
+                manager.layout.tree_repr(),
+                """
+                - tc:1
+                    - t:2
+                        - sc.y:6
+                            - sc.x:3
+                                - p:4 | {x: 0, y: 0, w: 400, h: 300}
+                                - p:5 | {x: 400, y: 0, w: 400, h: 300}
+                            - p:7 | {x: 0, y: 300, w: 800, h: 300}
+                """,
+            )
+
+        @pytest.mark.parametrize(
+            "bonsai_layout",
+            [{"window.default_add_mode": _custom_default_add_mode_handler}],
+            indirect=True,
+        )
+        def test_when_value_is_callable(
+            self, bonsai_layout, manager, spawn_test_window_cmd, make_window
+        ):
+            make_window()
+            make_window()
+            make_window()
+
+            assert tree_repr_matches_repr(
+                manager.layout.tree_repr(),
+                """
+                - tc:1
+                    - t:2
+                        - sc.x:3
+                            - p:6 | {x: 0, y: 0, w: 400, h: 600}
+                            - p:5 | {x: 400, y: 0, w: 200, h: 600}
+                            - p:4 | {x: 600, y: 0, w: 200, h: 600}
+                """,
+            )
+
+        @pytest.mark.parametrize(
+            "bonsai_layout",
             [{"window.default_add_mode": "match_previous"}],
             indirect=True,
         )
@@ -268,7 +355,6 @@ class TestConfigOptions:
             )
 
     class TestTabBarHideL1WhenBonsaiBarOnScreen:
-        @pytest.mark.a
         @pytest.mark.parametrize(
             "qtile_config",
             [

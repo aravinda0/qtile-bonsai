@@ -50,7 +50,7 @@ from qtile_bonsai.utils.process import modify_terminal_cmd_with_cwd
 
 
 class Bonsai(Layout):
-    WindowHandler = Callable[[], BonsaiPane]
+    WindowHandler = Callable[[BonsaiTree], BonsaiPane]
 
     class AddClientMode(enum.Enum):
         restoration_in_progress = 1
@@ -132,19 +132,36 @@ class Bonsai(Layout):
             """
             (Experimental)
 
-            Determines how windows get added if they are not explicitly spawned as a
-            split or a tab.
-            Can be one of "tab" or "match_previous". 
-            If "match_previous", then then new window will get added in the same way the
-            previous window was. eg. if the previous window was added as a y-split, so
-            will the new window.
+            Determines how windows should be added to the layout if they weren't
+            explicitly spawned from a tab/split command. 
 
-            NOTE: 
-            Setting this to "tab" may seem convenient, since externally spawned GUI apps
-            get added as background tabs instead of messing up the current split layout.
-            But due to how the window creation flow happens, when many splits are
-            requested in quick succession, this may cause some windows requested as a
-            split to open up as a tab instead.
+            The following values are allowed:
+                1. "tab" (default): 
+                    Open as a top level tab.
+                    This is the default and may be convenient since externally spawned
+                    GUI apps would added as background tabs instead of messing up any
+                    active split layout.
+
+                2. "split_x":
+                    Open as a top-level split, on the right end.
+
+                3. "split_y": 
+                    Open as a top-level split, on the bottom end.
+
+                4. "match_previous": 
+                    Remember how the previous window was opened (tab/split), and open
+                    the new window in the same way.
+
+                5. (custom-function):
+                    A callback of the form `(tree: BonsaiTree) -> BonsaiPane`. 
+                    For advanced handling of implicitly-added windows. You are given the
+                    internal `BonsaiTree` object to manipulate however, and should
+                    return the Pane that should receive focus after the window is added.
+
+                    This callback could theoretically be used to drive more 'automatic'
+                    layouts. eg. one could re-implement all of the built-in qtile
+                    layouts with this. But you might as well subclass `BonsaiLayout` for
+                    elaborate customizations.
             """,
             validator=validation.validate_default_add_mode,
         ),
@@ -346,7 +363,9 @@ class Bonsai(Layout):
         self._windows_to_panes: dict[Window, BonsaiPane]
         self._add_client_mode: Bonsai.AddClientMode
         self._interaction_mode: Bonsai.InteractionMode
-        self._next_window_handler: Bonsai.WindowHandler
+        self._next_window_handler: Bonsai.WindowHandler = (
+            self._handle_next_window_as_tab
+        )
 
         self._restoration_window_id_to_pane_id: dict[int, int] = {}
 
@@ -589,7 +608,7 @@ class Bonsai(Layout):
     def hide(self):
         # While other layouts are active, ensure that any new windows are captured
         # consistenty with the default tab layout here.
-        self._next_window_handler = self._handle_default_next_window
+        self._reset_next_window_handler()
 
         self._tree.hide()
 
@@ -656,12 +675,12 @@ class Bonsai(Layout):
         - `layout.spawn_split(my_terminal, "x", position="previous")`
         """
 
-        def _handle_next_window():
-            if self._tree.is_empty:
-                return self._tree.tab()
+        def _handle_next_window(tree: BonsaiTree) -> BonsaiPane:
+            if tree.is_empty:
+                return tree.tab()
 
-            target = self.actionable_node or self._tree.find_mru_pane()
-            return self._tree.split(
+            target = self.actionable_node or tree.find_mru_pane()
+            return tree.split(
                 target, axis, ratio=ratio, normalize=normalize, position=position
             )
 
@@ -702,18 +721,16 @@ class Bonsai(Layout):
         # in `_handle_next_window`.
         fall_back_to_default_tab_spawning = False
 
-        def _handle_next_window():
+        def _handle_next_window(tree: BonsaiTree) -> BonsaiPane:
             nonlocal fall_back_to_default_tab_spawning
 
             if not fall_back_to_default_tab_spawning:
                 fall_back_to_default_tab_spawning = True
-                return self._tree.tab(
-                    self.actionable_node, new_level=new_level, level=level
-                )
+                return tree.tab(self.actionable_node, new_level=new_level, level=level)
 
             # Subsequent implicitly created tabs are spawned at whatever level
             # `self.actionable_node` is in.
-            return self._tree.tab(self.actionable_node)
+            return tree.tab(self.actionable_node)
 
         self._next_window_handler = _handle_next_window
         self._spawn_program(program)
@@ -1414,8 +1431,24 @@ class Bonsai(Layout):
         """
         return repr(self._tree)
 
-    def _handle_default_next_window(self) -> BonsaiPane:
-        return self._tree.tab()
+    def _handle_next_window_as_tab(self, tree: BonsaiTree) -> BonsaiPane:
+        return tree.tab()
+
+    def _handle_next_window_as_split_x(self, tree: BonsaiTree) -> BonsaiPane:
+        if tree.is_empty:
+            return self._handle_next_window_as_tab(tree)
+
+        # Add x-split at topmost level
+        sc = tree.root.children[0].children[0]
+        return tree.split(sc, Axis.x, normalize=True)
+
+    def _handle_next_window_as_split_y(self, tree: BonsaiTree) -> BonsaiPane:
+        if tree.is_empty:
+            return self._handle_next_window_as_tab(tree)
+
+        # Add y-split at topmost level
+        sc = tree.root.children[0].children[0]
+        return tree.split(sc, Axis.y, normalize=True)
 
     def _init(self, group: _Group):
         config = self.parse_multi_level_config()
@@ -1442,13 +1475,8 @@ class Bonsai(Layout):
         self._focused_window = None
         self._windows_to_panes = {}
 
-        def _handle_next_window():
-            return self._tree.tab()
-
-        self._next_window_handler = _handle_next_window
-
+        self._reset_next_window_handler()
         self._setup_hooks()
-
         self._handle_initial_restoration_check()
 
     def _setup_hooks(self):
@@ -1610,12 +1638,23 @@ class Bonsai(Layout):
         return pane
 
     def _handle_add_client__normal(self, window: Window) -> BonsaiPane:
-        pane = self._next_window_handler()
-
-        if self._tree.get_config("window.default_add_mode") == "tab":
-            self._next_window_handler = self._handle_default_next_window
-
+        pane = self._next_window_handler(self._tree)
+        self._reset_next_window_handler()
         return pane
+
+    def _reset_next_window_handler(self):
+        default_add_mode = self._tree.get_config("window.default_add_mode")
+        if callable(default_add_mode):
+            self._next_window_handler = default_add_mode
+        elif default_add_mode == "tab":
+            self._next_window_handler = self._handle_next_window_as_tab
+        elif default_add_mode == "split_x":
+            self._next_window_handler = self._handle_next_window_as_split_x
+        elif default_add_mode == "split_y":
+            self._next_window_handler = self._handle_next_window_as_split_y
+        else:
+            # no-op. ie. `match_previous`.
+            pass
 
     def _get_windows_to_panes_mapping_from_state(self, state: dict) -> dict:
         windows_to_panes = {}

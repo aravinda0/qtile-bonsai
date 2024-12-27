@@ -1,0 +1,1 @@
+`window.default_add_mode` now supports additional options: `split_x`, `split_y`, `<custom-callback>`. These provide more control for 'automatic' window addition workflows.
