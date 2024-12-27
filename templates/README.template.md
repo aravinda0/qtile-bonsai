@@ -28,11 +28,9 @@ _Qtile Bonsai_ provides a flexible layout for the
 [qtile](https://github.com/qtile/qtile) tiling window manager that allows you to
 arrange windows as tabs, splits and even subtabs inside splits. 
 
-It also provides an API with window-management operations that allow for quick
-access and rearrangements of tabs/windows.
+You also get an API for quick-access and rearrangements of your tabs and windows.
 
-For a quick feeler, look at the demo below, or the [visual guide](#visual-guide)
-further below.
+Check out the demo below, or the [visual guide](#visual-guide) further below.
 
 <br>
 
