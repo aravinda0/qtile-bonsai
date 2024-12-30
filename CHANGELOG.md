@@ -1,3 +1,19 @@
+## v0.5.0 [2024-12-30]
+
+### Features & Improvements
+
+- `window.default_add_mode` now supports additional options: `split_x`, `split_y`, `<custom-callback>`. These provide more control for 'automatic' window addition workflows. (#13)
+- The `next_tab()`, `prev_tab()` and `swap_tabs()` layout commands now support a `level` parameter. Allows for more control with keybinds when subtabs are in play.
+
+### Fixes
+
+- Fixed a packaging issue that prevented installation under Python 3.13 (#15)
+
+### Miscellaneous
+
+- The package is now available in [nixpgks](https://search.nixos.org/packages?channel=unstable&from=0&size=50&sort=relevance&type=packages&query=qtile-bonsai) as `qtile-bonsai`. Thanks @Gurjaka, @Sigmanificient, @saviola777 !
+
+
 ## v0.4.0 [2024-08-17]
 
 ### Features & Improvements

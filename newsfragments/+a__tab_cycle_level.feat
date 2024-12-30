@@ -1,1 +1,0 @@
-The `next_tab()`, `prev_tab()` and `swap_tabs()` layout commands now support a `level` parameter. Allows for more control with keybinds when subtabs are in play.
