@@ -153,7 +153,7 @@ class Bonsai(Layout):
                     the new window in the same way.
 
                 5. (custom-function):
-                    A callback of the form `(tree: BonsaiTree) -> BonsaiPane`. 
+                    A callback of the form `(BonsaiTree) -> BonsaiPane`. 
                     For advanced handling of implicitly-added windows. You are given the
                     internal `BonsaiTree` object to manipulate however, and should
                     return the Pane that should receive focus after the window is added.
