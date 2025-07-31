@@ -1,0 +1,1 @@
+Fixed an obscure rendering issue where the tab bar could render above floating windows when `window.move_up()`/`window.move_down()` commands were invoked on the floats.

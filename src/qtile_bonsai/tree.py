@@ -3,8 +3,11 @@
 
 from collections.abc import Callable
 
+import xcffib
+import xcffib.xproto
 from libqtile.backend.base.drawer import Drawer, TextLayout
 from libqtile.backend.base.window import Internal, Window
+from libqtile.backend.x11 import xcbq
 from libqtile.config import ScreenRect
 from libqtile.core.manager import Qtile
 from libqtile.group import _Group
@@ -68,6 +71,8 @@ class BonsaiTabContainer(BonsaiNodeMixin, TabContainer):
         self.bar_text_layout = self.bar_drawer.textlayout(
             "", "000000", "mono", 15, None
         )
+
+        self._configure_bar_layering(qtile)
 
     def render(self, screen_rect: ScreenRect):
         if self.tab_bar.is_hidden:
@@ -182,6 +187,32 @@ class BonsaiTabContainer(BonsaiNodeMixin, TabContainer):
         state = super().as_dict()
         state["tab_bar"]["is_window_visible"] = self.bar_window.is_visible()
         return state
+
+    def _configure_bar_layering(self, qtile: Qtile):
+        """Configures the 'internal' window that makes up the tab bar to be at the
+        bottom of the stack.
+
+        Otherwise, the bar sometimes renders above even floating windows when qtile's
+        `move_up()`/`move_down()` layering layout commands are used on floats.
+        See Issue #24.
+
+        This fix manipulates the underlying window directly, since qtile's
+        `window.Internal` utility class doesn't implement layering operations. Code
+        "inspired" by qtile source.
+
+        This fix still has a visual artefact where if a float is moved behind tiled
+        windows, it still always remains above the bar, hiding it always. That's fine -
+        who'd intentionally move floats behind tiled windows, despite qtile allowing it.
+        """
+        if qtile.core.name != "x11":
+            return
+
+        # Could also set `sibling`, but would need a reference to an existing window
+        # under the TC, which may not be present yet in some initial cases.
+        mask, values = xcbq.ConfigureMasks(stackmode=xcffib.xproto.StackMode.Below)
+        if float(".".join(xcffib.__xcb_proto_version__.split(".")[0:2])) < 1.12:
+            values = [i & 0xFFFFFFFF for i in values]
+        qtile.core.conn.conn.core.ConfigureWindow(self.bar_window.wid, mask, values)
 
     def _handle_click_bar(self, x: int, y: int, button: int):
         if self._on_click_tab_bar is None:
