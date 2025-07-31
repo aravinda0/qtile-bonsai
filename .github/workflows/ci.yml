@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - master
+      - to_uv
   pull_request:
 
 jobs:
@@ -29,7 +30,7 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt update
-          sudo apt install -y libpangocairo-1.0-0 libxkbcommon-dev libxcb-cursor0 xvfb libwayland-dev wayland-protocols xwayland qt6-base-dev
+          sudo apt install -y libpangocairo-1.0-0 libxkbcommon-dev libxcb-cursor0 xvfb libwayland-dev libwlroots-dev wayland-protocols xwayland qt6-base-dev
           pip install uv
           uv venv --python ${{ matrix.python-version }}
           uv pip install --no-cache --config-setting backend=wayland --reinstall-package qtile --group dev  # Needed to trigger ffi build in qtile
