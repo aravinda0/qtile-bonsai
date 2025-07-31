@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-24.04
     strategy:
       matrix:
-        python-version: ["3.10", "3.11", "3.12"]
+        python-version: ["3.10", "3.11", "3.12", "3.13"]
       fail-fast: false
     steps:
       - uses: actions/checkout@v4
@@ -24,21 +24,24 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('pdm.lock') }}
+          key: ${{ runner.os }}-pip-${{ hashFiles('uv.lock') }}
           restore-keys: ${{ runner.os }}-pip-
       - name: Install dependencies
         run: |
           sudo apt update
           sudo apt install -y libpangocairo-1.0-0 libxkbcommon-dev libxcb-cursor0 xvfb libwayland-dev wayland-protocols xwayland qt6-base-dev
-          pip install pdm
-          pdm venv create ${{ matrix.python-version }}
-          pdm sync
+          pip install uv
+          uv venv --python ${{ matrix.python-version }}
+          uv pip install --no-cache --config-setting backend=wayland --reinstall-package qtile --group dev  # Needed to trigger ffi build in qtile
+          uv sync
       - name: Check formatting
         run: |
-          pdm run format_check .
+          source .venv/bin/activate
+          ruff format --check .
       - name: Run tests and generate coverage report
         run: |
-          pdm run cov
+          source .venv/bin/activate
+          pytest --cov-report=term-missing --cov-report=xml --cov-config=pyproject.toml --cov=src/qtile_bonsai --cov=tests
       - name: Upload coverage reports to codecov
         uses: codecov/codecov-action@v5
         with:

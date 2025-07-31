@@ -361,7 +361,7 @@ class BonsaiBar(base._Widget):
             # Truncate title based on available width
             tab_title = n["title_resolved"]
             if len(tab_title) > per_tab_max_chars:
-                tab_title = f"{tab_title[:per_tab_max_chars - 1]}…"
+                tab_title = f"{tab_title[: per_tab_max_chars - 1]}…"
             self.text_layout.text = tab_title
 
             # Center title text in the tab

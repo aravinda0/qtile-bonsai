@@ -1,0 +1,12 @@
+# Installation of pywayland into venv seems to need assistance in locating relevant
+# system-level files on some platforms. Uncomment the following if required.
+# export CFLAGS="$CFLAGS -I/usr/include/wlroots0.17"
+# export LDFLAGS="$LDFLAGS -L/usr/lib/wlroots0.17"
+
+
+# Activate venv
+if [ -f .venv/bin/activate ]; then
+    source .venv/bin/activate
+else
+    echo "venv does not exist"
+fi
