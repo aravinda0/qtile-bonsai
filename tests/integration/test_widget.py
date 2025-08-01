@@ -39,10 +39,7 @@ def test_when_widget_tab_clicked_then_that_tab_is_activated_in_layout(
 
     second_tab_offset = 50
 
-    # position arg is silliness. qtile says will drop it.
-    manager.bar["bottom"].fake_button_press(
-        screen=0, position="bottom", x=second_tab_offset, y=0
-    )
+    manager.bar["bottom"].fake_button_press(x=second_tab_offset, y=0)
 
     assert manager.window.info()["id"] == win2["id"]
 
