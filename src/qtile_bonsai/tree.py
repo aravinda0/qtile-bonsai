@@ -146,7 +146,7 @@ class BonsaiTabContainer(BonsaiNodeMixin, TabContainer):
             # Truncate title based on available width
             tab_title = tab.title_resolved
             if len(tab_title) > per_tab_max_chars:
-                tab_title = f"{tab_title[:per_tab_max_chars - 1]}…"
+                tab_title = f"{tab_title[: per_tab_max_chars - 1]}…"
 
             # Draw the tab
             self.bar_drawer.fillrect(
