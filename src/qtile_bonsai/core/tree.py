@@ -8,9 +8,8 @@ import collections
 import textwrap
 import uuid
 from collections.abc import Iterable, Iterator
+from enum import StrEnum
 from typing import Any, Callable
-
-from strenum import StrEnum
 
 from qtile_bonsai.core.geometry import (
     Axis,

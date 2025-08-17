@@ -6,7 +6,7 @@ build-backend = "pdm.backend"
 name = "qtile-bonsai"
 description = "A flexible custom layout for the qtile window manager that supports arbitrarily nestable tabs and splits."
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.12"
 license = {text = "MIT"}
 keywords = ["qtile", "bonsai", "tiling", "window", "manager", "layout"]
 authors = [
@@ -16,8 +16,6 @@ classifiers = [
   "Development Status :: 5 - Production/Stable",
   "License :: OSI Approved :: MIT License",
   "Programming Language :: Python :: 3 :: Only",
-  "Programming Language :: Python :: 3.10",
-  "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
   "Programming Language :: Python :: 3.13",
   "Programming Language :: Python :: Implementation :: CPython",
@@ -26,7 +24,6 @@ classifiers = [
 ]
 dynamic = ["version"]
 dependencies = [
-  "strenum",
   "psutil",
 ]
 

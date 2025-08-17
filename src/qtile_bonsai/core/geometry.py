@@ -6,9 +6,8 @@ from __future__ import annotations
 
 import typing
 from collections.abc import Sequence
+from enum import StrEnum
 from typing import Literal
-
-from strenum import StrEnum
 
 from qtile_bonsai.core.utils import all_or_none
 
