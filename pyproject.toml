@@ -1,9 +1,10 @@
 [build-system]
-requires = ["pdm-backend"]
-build-backend = "pdm.backend"
+requires = ["uv_build>=0.8.13,<0.9.0"]
+build-backend = "uv_build"
 
 [project]
 name = "qtile-bonsai"
+version = "0.5.0"
 description = "A flexible custom layout for the qtile window manager that supports arbitrarily nestable tabs and splits."
 readme = "README.md"
 requires-python = ">=3.12"
@@ -22,7 +23,6 @@ classifiers = [
   "Programming Language :: Python :: Implementation :: PyPy",
   "Topic :: Desktop Environment :: Window Managers",
 ]
-dynamic = ["version"]
 dependencies = [
   "psutil",
 ]
@@ -34,11 +34,10 @@ Source = "https://github.com/aravinda0/qtile-bonsai"
 "Visual Guide" = "https://aravinda0.github.io/qtile-bonsai/static/visual_guide/"
 
 
-[tool.pdm]
-version = { source = "file", path = "src/qtile_bonsai/__init__.py" }
-
-
-[tool.pdm.dev-dependencies]
+# 💡 Note: Run the following first before running `uv sync`. Needed to trigger qtile ffi
+# builder, for qtile wayland dependencies.
+# uv pip install --no-cache --config-setting backend=wayland --reinstall-package qtile --group dev
+[dependency-groups]
 dev = [
     "xcffib",
     "cairocffi",
@@ -60,11 +59,11 @@ dev = [
 ]
 
 
-[tool.pdm.scripts]
-cov = "pytest --cov-report=term-missing --cov-report=xml --cov-config=pyproject.toml --cov=src/qtile_bonsai --cov=tests {args}"
-no-cov = "cov --no-cov {args}"
-format = "ruff format {args}"
-format_check = "ruff format --check {args}"
+[[tool.uv.index]]
+name = "testpypi"
+url = "https://test.pypi.org/simple/"
+publish-url = "https://test.pypi.org/legacy/"
+explicit = true
 
 
 [tool.coverage.run]

@@ -51,37 +51,30 @@ have the following options for installation.
 
 #### PyPI
 
+If you used [uv](https://docs.astral.sh/uv/) to install qtile, you can install qtile-bonsai alongside it:
 ```bash
-pip install qtile-bonsai 
+uv tool install qtile --with qtile-bonsai
+```
+
+Or if you want to use the pip interface:
+```bash
+uv pip install qtile-bonsai --break-system-packages
 ```
 
 > [!NOTE]
-> If you have qtile installed globally (eg. via your distro's package manager),
-> you likely have to do:
-> 
-> ```bash
-> pip install qtile-bonsai --break-system-packages
-> ```
-> 
-> Nowadays `pip` tries to play it safe and not potentially modify some
-> dependency that your system's Python-software may depend on. For qtile-bonsai,
-> using this flag should be safe.
-> 
-> An alternative approach would be to have installed qtile via [pipx](https://github.com/pypa/pipx) 
-> and then 'inject' qtile-bonsai into the same virtualenv where qtile resides:
-> 
-> ```
-> pipx install qtile
-> pipx inject qtile qtile-bonsai
-> ```
+> The `--break-system-packages` is needed to install a package alongside your system
+> managed python packages, where the qtile installation might reside.
+> This should be safe enough with qtile-bonsai which doesn't have much in the way of
+> dependencies.
+
 
 #### AUR
 
 For arch-based distros, you can install it from the AUR either manually or with
 your favorite AUR-helper. For example:
 
-```
-yay -S qtile-bonsai
+```bash
+paru -S qtile-bonsai
 ```
 
 #### NixOS
