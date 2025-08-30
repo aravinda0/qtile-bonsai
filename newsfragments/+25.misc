@@ -1,0 +1,1 @@
+Not exactly user-facing, but the 'container-select mode' feature now no longer pre-creates internal windows to use later as indicators. These are now created on demand and destroyed when you toggle out of the mode. Avoids some background pollution.

@@ -385,7 +385,7 @@ class Bonsai(Layout):
     @property
     def actionable_node(self) -> Node | None:
         if self.interaction_mode == Bonsai.InteractionMode.container_select:
-            return self._tree.selected_node
+            return self._tree.focused_node_csm
         return self.focused_pane
 
     @property
@@ -756,9 +756,9 @@ class Bonsai(Layout):
             return
 
         if self.interaction_mode == Bonsai.InteractionMode.container_select:
-            if self._tree.selected_node is not None:
+            if self._tree.focused_node_csm is not None:
                 next_node = self._tree.adjacent_node(
-                    self._tree.selected_node, direction, wrap=wrap
+                    self._tree.focused_node_csm, direction, wrap=wrap
                 )
                 self._tree.activate_selection(next_node)
                 self._request_relayout()
@@ -1378,16 +1378,16 @@ class Bonsai(Layout):
         if self.interaction_mode != Bonsai.InteractionMode.container_select:
             return
 
-        if self._tree.selected_node is None:
+        if self._tree.focused_node_csm is None:
             return
 
         child = next(
             (
                 n
                 for n in self._tree.iter_walk(
-                    start=self._tree.selected_node, only_visible=True
+                    start=self._tree.focused_node_csm, only_visible=True
                 )
-                if not isinstance(n, Tab) and n is not self._tree.selected_node
+                if not isinstance(n, Tab) and n is not self._tree.focused_node_csm
             ),
             None,
         )
@@ -1407,11 +1407,11 @@ class Bonsai(Layout):
             return
         if self.interaction_mode != Bonsai.InteractionMode.container_select:
             return
-        if self._tree.selected_node is None:
+        if self._tree.focused_node_csm is None:
             return
 
         try:
-            ancestor = self._tree.selected_node.get_first_ancestor(
+            ancestor = self._tree.focused_node_csm.get_first_ancestor(
                 (SplitContainer, TabContainer)
             )
             if isinstance(ancestor, SplitContainer) and ancestor.has_single_child:

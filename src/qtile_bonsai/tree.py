@@ -345,14 +345,14 @@ class BonsaiTree(Tree):
         # Invariant: A layout instance's linked group does not change.
         self._group = group
 
-        self._container_selection: ContainerSelection = ContainerSelection(
-            self, group.qtile
-        )
+        self._active_csm_manager: ContainerSelectModeManager | None = None
         self._on_click_tab_bar = on_click_tab_bar
 
     @property
-    def selected_node(self) -> Node | None:
-        return self._container_selection.focused_node
+    def focused_node_csm(self) -> Node | None:
+        if self._active_csm_manager is not None:
+            return self._active_csm_manager.focused_node
+        return None
 
     def create_pane(
         self,
@@ -389,10 +389,12 @@ class BonsaiTree(Tree):
                 node.render(screen_rect)
             else:
                 node.hide()
-        self._container_selection.render(screen_rect)
+        if self._active_csm_manager is not None:
+            self._active_csm_manager.render(screen_rect)
 
     def finalize(self):
-        self._container_selection.finalize()
+        if self._active_csm_manager is not None:
+            self._active_csm_manager.finalize()
         for node in self.iter_walk():
             node.finalize()
 
@@ -401,10 +403,16 @@ class BonsaiTree(Tree):
             node.hide()
 
     def activate_selection(self, node: Node):
-        self._container_selection.focused_node = node
+        if self._active_csm_manager is None:
+            self._active_csm_manager = ContainerSelectModeManager(
+                self, self._group.qtile
+            )
+        self._active_csm_manager.focused_node = node
 
     def clear_selection(self):
-        self._container_selection.focused_node = None
+        if self._active_csm_manager is not None:
+            self._active_csm_manager.finalize()
+            self._active_csm_manager = None
 
     def handle_bar_hiding_config(self, tc: BonsaiTabContainer):
         """ """
@@ -428,7 +436,7 @@ class BonsaiTree(Tree):
         super().handle_bar_hiding_config(tc)
 
 
-class ContainerSelection:
+class ContainerSelectModeManager:
     """Manages a UI rect representing a 'selection' of a BonsaiNode subtree in the form
     of a border around them.
 
