@@ -4,7 +4,7 @@ build-backend = "uv_build"
 
 [project]
 name = "qtile-bonsai"
-version = "0.5.0"
+version = "0.6.0"
 description = "A flexible custom layout for the qtile window manager that supports arbitrarily nestable tabs and splits."
 readme = "README.md"
 requires-python = ">=3.12"

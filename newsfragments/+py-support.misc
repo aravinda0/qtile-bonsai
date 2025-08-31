@@ -1,1 +1,0 @@
-qtile-bonsai now officially only supports Python 3.12 and above, just like qtile. But really, anywhere you can get qtile running, you should be fine with qtile-bonsai.

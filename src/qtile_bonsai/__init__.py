@@ -5,4 +5,4 @@ from qtile_bonsai.layout import Bonsai  # noqa: F401
 from qtile_bonsai.widget import BonsaiBar  # noqa: F401
 
 
-__version__ = "0.5.0"
+__version__ = "0.6.0"

@@ -1,3 +1,15 @@
+## qtile-bonsai v0.6.0 (2025-08-31)
+
+### Fixes
+
+- Fixed an obscure rendering issue where the tab bar could render above floating windows when `window.move_up()`/`window.move_down()` commands were invoked on the floats. (#24)
+
+### Miscellaneous
+
+- qtile-bonsai now officially only supports Python 3.12 and above, just like qtile. But really, anywhere you can get qtile running, you should be fine with qtile-bonsai.
+- Not exactly user-facing, but the 'container-select mode' feature now no longer pre-creates internal windows to use later as indicators. These are now created on demand and destroyed when you toggle out of the mode. Avoids some background pollution. (#25)
+
+
 ## v0.5.0 [2024-12-30]
 
 ### Features & Improvements
