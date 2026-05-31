@@ -648,6 +648,186 @@ class TestTab:
             """,
         )
 
+    def test_add_tab_next_to_active_tab(self, tree: Tree):
+        tree.tab()
+        p2 = tree.tab()
+        tree.tab()
+        tree.focus(p2)
+
+        tree.tab(position="next")
+
+        assert tree_matches_repr(
+            tree,
+            """
+            - tc:1
+                - t:2
+                    - sc.x:3
+                        - p:4 | {x: 0, y: 20, w: 400, h: 280}
+                - t:5
+                    - sc.x:6
+                        - p:7 | {x: 0, y: 20, w: 400, h: 280}
+                - t:11
+                    - sc.x:12
+                        - p:13 | {x: 0, y: 20, w: 400, h: 280}
+                - t:8
+                    - sc.x:9
+                        - p:10 | {x: 0, y: 20, w: 400, h: 280}
+            """,
+        )
+
+    def test_add_tab_at_first_position(self, tree: Tree):
+        _ = tree.tab()
+        p2 = tree.tab()
+        tree.focus(p2)
+
+        tree.tab(position="first")
+
+        assert tree_matches_repr(
+            tree,
+            """
+            - tc:1
+                - t:8
+                    - sc.x:9
+                        - p:10 | {x: 0, y: 20, w: 400, h: 280}
+                - t:2
+                    - sc.x:3
+                        - p:4 | {x: 0, y: 20, w: 400, h: 280}
+                - t:5
+                    - sc.x:6
+                        - p:7 | {x: 0, y: 20, w: 400, h: 280}
+            """,
+        )
+
+    def test_add_tab_at_last_position_by_default(self, tree: Tree):
+        tree.tab()
+        p2 = tree.tab()
+        tree.tab()
+        tree.focus(p2)
+
+        assert tree_matches_repr(
+            tree,
+            """
+            - tc:1
+                - t:2
+                    - sc.x:3
+                        - p:4 | {x: 0, y: 20, w: 400, h: 280}
+                - t:5
+                    - sc.x:6
+                        - p:7 | {x: 0, y: 20, w: 400, h: 280}
+                - t:8
+                    - sc.x:9
+                        - p:10 | {x: 0, y: 20, w: 400, h: 280}
+            """,
+        )
+
+    def test_add_tab_at_last_position_explicitly(self, tree: Tree):
+        p1 = tree.tab()
+        tree.tab()
+        tree.focus(p1)
+        tree.tab(position="last")
+
+        assert tree_matches_repr(
+            tree,
+            """
+            - tc:1
+                - t:2
+                    - sc.x:3
+                        - p:4 | {x: 0, y: 20, w: 400, h: 280}
+                - t:5
+                    - sc.x:6
+                        - p:7 | {x: 0, y: 20, w: 400, h: 280}
+                - t:8
+                    - sc.x:9
+                        - p:10 | {x: 0, y: 20, w: 400, h: 280}
+            """,
+        )
+
+    def test_add_tab_before_active_tab(self, tree: Tree):
+        tree.tab()
+        p2 = tree.tab()
+        tree.tab()
+        tree.focus(p2)
+
+        tree.tab(position="previous")
+
+        assert tree_matches_repr(
+            tree,
+            """
+            - tc:1
+                - t:2
+                    - sc.x:3
+                        - p:4 | {x: 0, y: 20, w: 400, h: 280}
+                - t:11
+                    - sc.x:12
+                        - p:13 | {x: 0, y: 20, w: 400, h: 280}
+                - t:5
+                    - sc.x:6
+                        - p:7 | {x: 0, y: 20, w: 400, h: 280}
+                - t:8
+                    - sc.x:9
+                        - p:10 | {x: 0, y: 20, w: 400, h: 280}
+            """,
+        )
+
+    def test_add_tab_at_new_level_before_original_node(self, tree: Tree):
+        p1 = tree.tab()
+        p2 = tree.split(p1, "x")
+        p3 = tree.split(p2, "y")
+
+        tree.tab(p3, new_level=True, position="previous")
+
+        assert tree_matches_repr(
+            tree,
+            """
+            - tc:1
+                - t:2
+                    - sc.x:3
+                        - p:4 | {x: 0, y: 20, w: 200, h: 280}
+                        - sc.y:6
+                            - p:5 | {x: 200, y: 20, w: 200, h: 140}
+                            - tc:8
+                                - t:9
+                                    - sc.x:10
+                                        - p:11 | {x: 200, y: 180, w: 200, h: 120}
+                                - t:12
+                                    - sc.x:13
+                                        - p:7 | {x: 200, y: 180, w: 200, h: 120}
+            """,
+        )
+
+    def test_add_tab_next_to_active_tab_at_specified_level(self, tree: Tree):
+        p1 = tree.tab()
+        p2 = tree.tab(p1, new_level=True)
+        p3 = tree.tab(p2, new_level=True)
+        tree.focus(p2)
+
+        tree.tab(p3, level=2, position="previous")
+
+        assert tree_matches_repr(
+            tree,
+            """
+            - tc:1
+                - t:2
+                    - sc.x:3
+                        - tc:5
+                            - t:6
+                                - sc.x:7
+                                    - p:4 | {x: 0, y: 40, w: 400, h: 260}
+                            - t:17
+                                - sc.x:18
+                                    - p:19 | {x: 0, y: 40, w: 400, h: 260}
+                            - t:8
+                                - sc.x:9
+                                    - tc:11
+                                        - t:12
+                                            - sc.x:13
+                                                - p:10 | {x: 0, y: 60, w: 400, h: 240}
+                                        - t:14
+                                            - sc.x:15
+                                                - p:16 | {x: 0, y: 60, w: 400, h: 240}
+            """,
+        )
+
     def test_given_a_tree_with_nested_tab_levels_when_a_tab_is_added_without_providing_a_pane_reference_then_the_new_tab_is_added_at_the_topmost_level(
         self, tree: Tree
     ):

@@ -9,7 +9,7 @@ import textwrap
 import uuid
 from collections.abc import Iterable, Iterator
 from enum import StrEnum
-from typing import Any, Callable
+from typing import Any, Callable, Literal
 
 from qtile_bonsai.core.geometry import (
     Axis,
@@ -55,6 +55,17 @@ class NodeHierarchySelectionMode(StrEnum):
 class NodeHierarchyPullOutSelectionMode(StrEnum):
     mru_deepest = _enum_type_mru_deepest
     mru_subtab_else_deepest = _enum_type_mru_subtab_else_deepest
+
+
+class TabPlacement(StrEnum):
+    first = "first"
+    last = "last"
+    next = "next"
+    previous = "previous"
+
+
+TabPlacementLiteral = Literal["first", "last", "next", "previous"]
+TabPlacementParam = TabPlacementLiteral | TabPlacement
 
 
 class InvalidTreeStructureError(Exception):
@@ -239,7 +250,10 @@ class Tree:
         *,
         new_level: bool = False,
         level: int | None = None,
+        position: TabPlacementParam = TabPlacement.last,
     ) -> Pane:
+        position = TabPlacement(position)
+
         if self.is_empty:
             if at_node is not None or new_level or level is not None:
                 raise ValueError(
@@ -254,8 +268,8 @@ class Tree:
                     "`new_level` requires a reference `at_node` under which to add tabs"
                 )
 
-            tc, added_nodes = self._add_tab_at_new_level(at_node)
-            pane = self.find_mru_pane(start_node=tc.children[-1])
+            tab, added_nodes = self._add_tab_at_new_level(at_node, position=position)
+            pane = self.find_mru_pane(start_node=tab)
         elif level is not None:
             if at_node is None:
                 raise ValueError("`level` requires a reference `at_node`")
@@ -271,7 +285,9 @@ class Tree:
                 )
 
             tc = ancestor_tab_containers[-level]
-            tab, added_nodes = self._add_tab(tc)
+            tab, added_nodes = self._add_tab(
+                tc, insert_index=self._resolve_tab_insert_index(tc, position)
+            )
             pane = self.find_mru_pane(start_node=tab)
         else:
             if at_node is None:
@@ -282,7 +298,9 @@ class Tree:
             if tc is None:
                 raise InvalidTreeStructureError
 
-            tab, added_nodes = self._add_tab(tc)
+            tab, added_nodes = self._add_tab(
+                tc, insert_index=self._resolve_tab_insert_index(tc, position)
+            )
             pane = self.find_mru_pane(start_node=tab)
 
         self._notify_subscribers(TreeEvent.node_added, added_nodes)
@@ -1273,6 +1291,7 @@ class Tree:
         tc: TabContainer,
         *,
         insert_node: Node | None = None,
+        insert_index: int | None = None,
         tc_rect: Rect | None = None,
         focus_new: bool = True,
     ) -> tuple[Tab, list[Node]]:
@@ -1286,6 +1305,8 @@ class Tree:
                 provided is a `Tab`, just use that.
                 If nothing is provided, a new Pane instance is created to add under the
                 new tab.
+            `insert_index`:
+                If provided, insert the new tab at this index. Else append it.
             `tc_rect`:
                 If provided, this Rect will be used determine the dimensions of the new
                 tab. Else will determine dimensions from the provided `tc`.
@@ -1323,14 +1344,20 @@ class Tree:
         if isinstance(insert_node, Tab):
             t = insert_node
             t.parent = tc
-            tc.children.append(t)
+            if insert_index is None:
+                tc.children.append(t)
+            else:
+                tc.children.insert(insert_index, t)
             if focus_new:
                 tc.active_child = t
             _transform_tab(t)
             return (t, added_nodes)
         t = self.create_tab()
         t.parent = tc
-        tc.children.append(t)
+        if insert_index is None:
+            tc.children.append(t)
+        else:
+            tc.children.insert(insert_index, t)
         added_nodes.append(t)
         if focus_new:
             tc.active_child = t
@@ -1361,9 +1388,28 @@ class Tree:
 
         return (t, added_nodes)
 
+    def _resolve_tab_insert_index(
+        self, tc: TabContainer, position: TabPlacement
+    ) -> int | None:
+        if position == TabPlacement.last:
+            return None
+        if position == TabPlacement.first:
+            return 0
+        if tc.active_child is None:
+            return None
+
+        active_index = tc.children.index(tc.active_child)
+        if position == TabPlacement.next:
+            return active_index + 1
+        return active_index
+
     def _add_tab_at_new_level(
-        self, at_node: Node, insert_node: Node | None = None
-    ) -> tuple[Node, list[Node]]:
+        self,
+        at_node: Node,
+        insert_node: Node | None = None,
+        *,
+        position: TabPlacement = TabPlacement.last,
+    ) -> tuple[Tab, list[Node]]:
         """Converts the provided `at_node` into a subtab tree, placing `at_node` as the
         first tab in the new level, and creates a new second tab in that subtab tree.
 
@@ -1371,6 +1417,7 @@ class Tree:
         new pane to place there instead.
         """
         added_nodes = []
+        position = TabPlacement(position)
 
         # Find the nearest SplitContainer under which tabbing should happen
         try:
@@ -1406,15 +1453,20 @@ class Tree:
         )
         added_nodes.append(tc)
 
-        _, _added_nodes = self._add_tab(tc, insert_node=at_node, tc_rect=at_node_rect)
-        added_nodes.extend(_added_nodes)
-
-        _, _added_nodes = self._add_tab(
-            tc, insert_node=insert_node, tc_rect=at_node_rect
+        pos_prev = (
+            True if position in [TabPlacement.first, TabPlacement.previous] else False
         )
+        br1, br2 = (insert_node, at_node) if pos_prev else (at_node, insert_node)
+
+        t1, _added_nodes = self._add_tab(tc, insert_node=br1, tc_rect=at_node_rect)
         added_nodes.extend(_added_nodes)
 
-        return tc, added_nodes
+        t2, _added_nodes = self._add_tab(tc, insert_node=br2, tc_rect=at_node_rect)
+        added_nodes.extend(_added_nodes)
+
+        new_tab = t1 if pos_prev else t2
+
+        return new_tab, added_nodes
 
     def _build_tab_bar(
         self, x: int, y: int, w: int, tab_level: int, tab_count: int
@@ -1658,21 +1710,21 @@ class Tree:
                     (c for c in tc.children if c.id == n["active_child"]), None
                 )
                 return tc
-            elif node_type == Tab.abbrv():
+            if node_type == Tab.abbrv():
                 t = self.create_tab()
                 t.id = node_id
                 t.title = n["title"]
                 t.parent = parent
                 t.children = [walk_and_create(c, t) for c in n["children"]]
                 return t
-            elif node_type == SplitContainer.abbrv():
+            if node_type == SplitContainer.abbrv():
                 sc = self.create_split_container()
                 sc.id = node_id
                 sc.axis = Axis(n["axis"])
                 sc.parent = parent
                 sc.children = [walk_and_create(c, sc) for c in n["children"]]
                 return sc
-            elif node_type == Pane.abbrv():
+            if node_type == Pane.abbrv():
                 principal_rect = Rect(**n["box"]["principal_rect"])
                 p = self.create_pane(principal_rect=principal_rect)
                 p.id = node_id

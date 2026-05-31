@@ -36,6 +36,8 @@ from qtile_bonsai.core.tree import (
     InvalidNodeSelectionError,
     NodeHierarchyPullOutSelectionMode,
     NodeHierarchySelectionMode,
+    TabPlacement,
+    TabPlacementParam,
     TreeEvent,
 )
 from qtile_bonsai.theme import Gruvbox
@@ -694,6 +696,7 @@ class Bonsai(Layout):
         *,
         new_level: bool = False,
         level: int | None = None,
+        position: TabPlacementParam = TabPlacement.last,
     ):
         """
         Launch the provided `program` into a new window as a new tab.
@@ -709,11 +712,16 @@ class Bonsai(Layout):
                 If provided, launch the new window as a tab at the provided `level` of
                 tabs in the currently focused window's tab hierarchy.
                 Level 1 is the topmost level.
+            `position`:
+                Controls where the new tab is placed relative to the currently active
+                tab. Can be `"first"`, `"last"`, `"next"`, or `"previous"`. Defaults to
+                `"last"`.
 
         Examples:
             - `layout.spawn_tab(my_terminal)`
             - `layout.spawn_tab(my_terminal, new_level=True)`
             - `layout.spawn_tab("qutebrowser", level=1)`
+            - `layout.spawn_tab(my_terminal, position="next")`
         """
         # We use this closed-over flag to ensure that subtab UX is sensible. After a new
         # subtab is invoked, subsequent 'spawn tab' invocations should not implicitly
@@ -726,7 +734,12 @@ class Bonsai(Layout):
 
             if not fall_back_to_default_tab_spawning:
                 fall_back_to_default_tab_spawning = True
-                return tree.tab(self.actionable_node, new_level=new_level, level=level)
+                return tree.tab(
+                    self.actionable_node,
+                    new_level=new_level,
+                    level=level,
+                    position=position,
+                )
 
             # Subsequent implicitly created tabs are spawned at whatever level
             # `self.actionable_node` is in.

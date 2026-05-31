@@ -1,0 +1,1 @@
+New tabs via `spawn_tab()` can now have their placement controlled with the `position` param. They can be placed at first/previous/next/last positions relative to the active tab.
